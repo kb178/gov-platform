@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 实体基类
+ * 实体基类（纯POJO，不依赖任何框架）
  *
  * @author gov-platform
  */
