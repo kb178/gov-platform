@@ -1,0 +1,63 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gov-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: gov-platform
+    gateway:
+      discovery:
+        locator:
+          enabled: false  # 不使用服务发现路由
+      routes:
+        # 系统服务路由
+        - id: gov-system
+          uri: lb://gov-system
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1
+
+        # 事项服务路由
+        - id: gov-item
+          uri: lb://gov-item
+          predicates:
+            - Path=/item/**
+          filters:
+            - StripPrefix=1
+
+        # 审批服务路由
+        - id: gov-approval
+          uri: lb://gov-approval
+          predicates:
+            - Path=/approval/**
+          filters:
+            - StripPrefix=1
+
+        # 证照服务路由
+        - id: gov-license
+          uri: lb://gov-license
+          predicates:
+            - Path=/license/**
+          filters:
+            - StripPrefix=1
+
+        # 消息服务路由
+        - id: gov-message
+          uri: lb://gov-message
+          predicates:
+            - Path=/message/**
+          filters:
+            - StripPrefix=1
+
+        # 数据服务路由
+        - id: gov-data
+          uri: lb://gov-data
+          predicates:
+            - Path=/data/**
+          filters:
+            - StripPrefix=1
