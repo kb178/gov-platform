@@ -61,3 +61,8 @@ spring:
             - Path=/data/**
           filters:
             - StripPrefix=1
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}
+  expire: ${JWT_EXPIRE:86400000}

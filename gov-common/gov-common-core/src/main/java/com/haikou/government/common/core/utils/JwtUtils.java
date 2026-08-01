@@ -3,7 +3,11 @@ package com.haikou.government.common.core.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -17,26 +21,36 @@ import java.util.Map;
  * @author gov-platform
  */
 @Slf4j
+@Component
 public class JwtUtils {
 
-    /** 密钥（实际项目应该从配置读取） */
-    private static final String SECRET = "gov-platform-jwt-secret-key-must-be-at-least-256-bits-long";
+    /** 密钥（从配置文件读取） */
+    @Value("${jwt.secret:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}")
+    private String secret;
 
-    /** Token 有效期（毫秒） */
-    private static final long EXPIRE = 24 * 60 * 60 * 1000L;
+    /** Token 有效期（毫秒），默认24小时 */
+    @Value("${jwt.expire:86400000}")
+    private long expire;
 
-    private static SecretKey getSecretKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private SecretKey getSecretKey() {
+        return secretKey;
     }
 
     /**
      * 生成 Token
      */
-    public static String createToken(Map<String, Object> claims) {
+    public String createToken(Map<String, Object> claims) {
         return Jwts.builder()
                 .claims(claims)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRE))
+                .expiration(new Date(System.currentTimeMillis() + expire))
                 .signWith(getSecretKey())
                 .compact();
     }
@@ -44,7 +58,7 @@ public class JwtUtils {
     /**
      * 解析 Token
      */
-    public static Claims parseToken(String token) {
+    public Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSecretKey())
                 .build()
@@ -55,7 +69,7 @@ public class JwtUtils {
     /**
      * 根据用户信息生成 Token
      */
-    public static String createToken(Long userId, String username, String uuid) {
+    public String createToken(Long userId, String username, String uuid) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("user_id", userId);
         claims.put("username", username);
@@ -66,7 +80,7 @@ public class JwtUtils {
     /**
      * 从 Token 中获取用户名
      */
-    public static String getUsernameFromToken(String token) {
+    public String getUsernameFromToken(String token) {
         Claims claims = parseToken(token);
         return claims.get("username", String.class);
     }
@@ -74,7 +88,7 @@ public class JwtUtils {
     /**
      * 从 Token 中获取用户ID
      */
-    public static Long getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = parseToken(token);
         return claims.get("user_id", Long.class);
     }
@@ -82,7 +96,7 @@ public class JwtUtils {
     /**
      * 从 Token 中获取用户Key
      */
-    public static String getUserKeyFromToken(String token) {
+    public String getUserKeyFromToken(String token) {
         Claims claims = parseToken(token);
         return claims.get("user_key", String.class);
     }
@@ -90,7 +104,7 @@ public class JwtUtils {
     /**
      * 验证 Token 是否过期
      */
-    public static boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         try {
             Claims claims = parseToken(token);
             return claims.getExpiration().before(new Date());
