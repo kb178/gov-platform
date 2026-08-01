@@ -1,4 +1,4 @@
-package com.haikou.government.system.domain.dto;
+package com.haikou.government.system.dto;
 
 import lombok.Data;
 

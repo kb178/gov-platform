@@ -9,6 +9,11 @@ import java.time.LocalDateTime;
 /**
  * 实体基类（纯POJO，不依赖任何框架）
  *
+ * 只包含所有表都有的公共字段：
+ * - createBy / createTime：创建审计
+ * - updateBy / updateTime：更新审计
+ * - delFlag：逻辑删除
+ *
  * @author gov-platform
  */
 @Data
@@ -32,7 +37,4 @@ public class BaseEntity implements Serializable {
 
     /** 删除标志（0存在 1删除） */
     private Integer delFlag;
-
-    /** 备注 */
-    private String remark;
 }

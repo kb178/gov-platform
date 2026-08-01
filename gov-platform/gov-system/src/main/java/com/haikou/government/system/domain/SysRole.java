@@ -58,4 +58,10 @@ public class SysRole extends BaseEntity {
      */
     @TableField("status")
     private Byte status;
+
+    /**
+     * 备注
+     */
+    @TableField("remark")
+    private String remark;
 }

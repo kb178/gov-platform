@@ -46,4 +46,10 @@ public class SysConfig extends BaseEntity {
      */
     @TableField("config_value")
     private String configValue;
+
+    /**
+     * 备注
+     */
+    @TableField("remark")
+    private String remark;
 }

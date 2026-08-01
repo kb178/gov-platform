@@ -47,7 +47,7 @@ mybatis-plus:
 # JWT 配置
 jwt:
   secret: ${JWT_SECRET:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}
-  expire: ${JWT_EXPIRE:86400000}
+  expire: ${JWT_EXPIRE:7200000}  # Token 有效期2小时（默认值）
 
 # 日志配置
 logging:
