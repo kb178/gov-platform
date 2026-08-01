@@ -12,6 +12,7 @@
     <name>政务一体化平台</name>
     <description>海口政务服务微服务项目</description>
 
+    <!-- 子模块 -->
     <modules>
         <module>gov-common</module>
         <module>gov-api</module>
@@ -44,7 +45,7 @@
         <flowable.version>7.0.0</flowable.version>
     </properties>
 
-    <!-- 依赖管理 -->
+    <!-- 依赖管理：子模块还是需要引用模块，只不过不用写版本号 -->
     <dependencyManagement>
         <dependencies>
             <!-- Spring Boot -->

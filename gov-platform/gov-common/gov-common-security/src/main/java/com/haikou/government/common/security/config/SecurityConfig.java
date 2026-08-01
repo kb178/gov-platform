@@ -31,7 +31,13 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/captcha").permitAll()
+                .requestMatchers(
+                    "/login",
+                    "/register",
+                    "/captcha",
+                    "/sysUser/sendCode",
+                    "/sysUser/register"
+                ).permitAll()
                 .anyRequest().authenticated()
             );
 

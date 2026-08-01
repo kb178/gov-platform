@@ -2,13 +2,15 @@ server:
   port: 8081
 
 spring:
+  config:
+    import: optional:nacos:gov-system.yml
   application:
     name: gov-system
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/gov_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    password: ${DB_PASSWORD:password}
     druid:
       initial-size: 5
       min-idle: 5

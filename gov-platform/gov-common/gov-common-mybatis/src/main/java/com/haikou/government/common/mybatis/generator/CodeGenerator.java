@@ -32,10 +32,10 @@ public class CodeGenerator {
     /** 数据库连接 */
     private static final String DB_URL = "jdbc:mysql://localhost:3306/gov_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai";
     private static final String DB_USERNAME = "root";
-    private static final String DB_PASSWORD = "root";
+    private static final String DB_PASSWORD = "password";
 
     /** 作者 */
-    private static final String AUTHOR = "gov-platform";
+    private static final String AUTHOR = "xhl";
 
     /** 父包名 */
     private static final String PARENT_PACKAGE = "com.haikou.government.system";
@@ -46,33 +46,40 @@ public class CodeGenerator {
     /** 输出目录（根据目标服务修改） */
     private static final String MODULE_PATH = "/gov-system";
 
-    /** 要生成的表名 */
+    /** 要生成的表名（第一阶段全部表） */
     private static final List<String> TABLES = Arrays.asList(
-        "sys_user",
-        "sys_role",
-        "sys_menu",
-        "sys_dept"
+            "sys_user",        // 用户表
+            "sys_role",        // 角色表
+            "sys_menu",        // 菜单表
+            "sys_dept",        // 部门表
+            "user_role",       // 用户角色关联表
+            "role_menu",       // 角色菜单关联表
+            "dict_type",       // 字典类型表
+            "dict_data",       // 字典数据表
+            "sys_config",      // 系统参数表
+            "sys_oper_log",    // 操作日志表
+            "sys_login_log"    // 登录日志表
     );
 
     // ==================== 生成区（一般不用改）====================
 
     public static void main(String[] args) {
-        // 输出路径配置
+        // 输出路径配置（包含完整的包路径）
         Map<OutputFile, String> pathMap = new HashMap<>();
-        String javaPath = PROJECT_PATH + MODULE_PATH + "/src/main/java";
+        String basePath = PROJECT_PATH + MODULE_PATH + "/src/main/java/com/haikou/government/system";
         String xmlPath = PROJECT_PATH + MODULE_PATH + "/src/main/resources/mapper";
-        pathMap.put(OutputFile.entity, javaPath);
-        pathMap.put(OutputFile.mapper, javaPath);
+        pathMap.put(OutputFile.entity, basePath + "/domain");
+        pathMap.put(OutputFile.mapper, basePath + "/mapper");
         pathMap.put(OutputFile.xml, xmlPath);
-        pathMap.put(OutputFile.service, javaPath);
-        pathMap.put(OutputFile.serviceImpl, javaPath);
-        pathMap.put(OutputFile.controller, javaPath);
+        pathMap.put(OutputFile.service, basePath + "/service");
+        pathMap.put(OutputFile.serviceImpl, basePath + "/service/impl");
+        pathMap.put(OutputFile.controller, basePath + "/controller");
 
         FastAutoGenerator.create(DB_URL, DB_USERNAME, DB_PASSWORD)
             // 全局配置
             .globalConfig(builder -> builder
                 .author(AUTHOR)
-                .outputDir(javaPath)
+                .outputDir(basePath)
                 .disableOpenDir()
             )
             // 包配置
@@ -94,6 +101,8 @@ public class CodeGenerator {
                     .superClass("com.haikou.government.common.core.domain.BaseEntity")
                     .enableLombok()
                     .enableTableFieldAnnotation()
+                    // 忽略 BaseEntity 中已有的字段
+                    .addIgnoreColumns("create_by", "create_time", "update_by", "update_time", "del_flag", "remark")
                     // 自动填充配置
                     .addTableFills(new Column("create_time", FieldFill.INSERT))
                     .addTableFills(new Column("create_by", FieldFill.INSERT))
@@ -113,7 +122,7 @@ public class CodeGenerator {
             .execute();
 
         System.out.println("========================================");
-        System.out.println("代码生成完成！输出目录：" + javaPath);
+        System.out.println("代码生成完成！输出目录：" + basePath);
         System.out.println("提示：生成后在 delFlag 字段手动加 @TableLogic 注解即可");
         System.out.println("========================================");
     }
