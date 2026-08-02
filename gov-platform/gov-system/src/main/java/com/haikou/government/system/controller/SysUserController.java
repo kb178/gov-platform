@@ -2,9 +2,11 @@ package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.system.dto.LoginDTO;
+import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.vo.LoginVO;
+import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.service.SmsService;
 import com.haikou.government.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -78,5 +80,47 @@ public class SysUserController {
     public R<LoginVO> smsLogin(@Valid @RequestBody SmsLoginDTO smsLoginDTO) {
         LoginVO loginVO = sysUserService.smsLogin(smsLoginDTO);
         return R.ok(loginVO);
+    }
+
+    /**
+     * 实名认证
+     *
+     * @param realNameDTO 实名认证参数（姓名 + 身份证号）
+     * @return 是否认证成功
+     */
+    @Operation(summary = "实名认证", description = "提交身份证号和姓名进行实名认证")
+    @PostMapping("/realNameAuth")
+    public R<Boolean> realNameAuth(@Valid @RequestBody RealNameDTO realNameDTO) {
+        // 从 Token 中获取用户ID（由 Gateway 传递）
+        Long userId = getCurrentUserId();
+        boolean result = sysUserService.realNameAuth(userId, realNameDTO);
+        return R.ok(result);
+    }
+
+    /**
+     * 查询实名认证状态
+     *
+     * @return 实名认证信息
+     */
+    @Operation(summary = "查询实名认证状态", description = "获取当前用户的实名认证信息")
+    @GetMapping("/realNameStatus")
+    public R<RealNameVO> getRealNameStatus() {
+        // 从 Token 中获取用户ID
+        Long userId = getCurrentUserId();
+        RealNameVO realNameVO = sysUserService.getRealNameStatus(userId);
+        return R.ok(realNameVO);
+    }
+
+    /**
+     * 获取当前登录用户ID
+     *
+     * 从 Gateway 传递的请求头中获取用户ID
+     *
+     * @return 用户ID
+     */
+    private Long getCurrentUserId() {
+        // TODO: 从请求头中获取用户ID（需要配合 Gateway 的 AuthFilter）
+        // 临时返回固定值，后面完善
+        return 1L;
     }
 }

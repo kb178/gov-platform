@@ -9,9 +9,11 @@ import com.haikou.government.common.security.utils.PasswordUtils;
 import com.haikou.government.system.domain.SysUser;
 import com.haikou.government.system.domain.SysLoginLog;
 import com.haikou.government.system.dto.LoginDTO;
+import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.vo.LoginVO;
+import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.mapper.SysUserMapper;
 import com.haikou.government.system.mapper.SysLoginLogMapper;
 import com.haikou.government.system.service.SmsService;
@@ -259,5 +261,94 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             return "***";
         }
         return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
+    }
+
+    /**
+     * 实名认证
+     *
+     * @param userId 用户ID
+     * @param realNameDTO 实名认证参数（姓名 + 身份证号）
+     * @return 是否认证成功
+     */
+    @Override
+    public boolean realNameAuth(Long userId, RealNameDTO realNameDTO) {
+        // 1. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 检查是否已认证
+        if (user.getRealNameStatus() != null && user.getRealNameStatus() == 1) {
+            throw new BusinessException("已实名认证，请勿重复认证");
+        }
+
+        // 3. 校验身份证号是否已被其他用户使用
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getIdCard, realNameDTO.getIdCard())
+                    .ne(SysUser::getUserId, userId);
+        Long count = baseMapper.selectCount(queryWrapper);
+        if (count > 0) {
+            throw new BusinessException("该身份证号已被其他用户认证");
+        }
+
+        // 4. 更新用户实名信息
+        user.setRealName(realNameDTO.getRealName());
+        user.setIdCard(realNameDTO.getIdCard());
+        user.setRealNameStatus((byte) 1);
+
+        // 5. 保存到数据库
+        boolean result = updateById(user);
+        if (result) {
+            log.info("用户 {} 实名认证成功，身份证号：{}", userId, maskIdCard(realNameDTO.getIdCard()));
+        }
+        return result;
+    }
+
+    /**
+     * 查询实名认证状态
+     *
+     * @param userId 用户ID
+     * @return 实名认证信息
+     */
+    @Override
+    public RealNameVO getRealNameStatus(Long userId) {
+        // 1. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 构建返回结果
+        return RealNameVO.builder()
+                .status(user.getRealNameStatus() != null ? user.getRealNameStatus() : (byte) 0)
+                .realName(maskRealName(user.getRealName()))
+                .idCard(maskIdCard(user.getIdCard()))
+                .build();
+    }
+
+    /**
+     * 真实姓名脱敏
+     * 示例：张三 → 张*三，张小三 → 张*三
+     */
+    private String maskRealName(String realName) {
+        if (realName == null || realName.length() < 2) {
+            return "***";
+        }
+        if (realName.length() == 2) {
+            return realName.charAt(0) + "*";
+        }
+        return realName.charAt(0) + "*" + realName.charAt(realName.length() - 1);
+    }
+
+    /**
+     * 身份证号脱敏
+     * 示例：460100199001011234 → 460100********1234
+     */
+    private String maskIdCard(String idCard) {
+        if (idCard == null || idCard.length() < 8) {
+            return "***";
+        }
+        return idCard.substring(0, 6) + "********" + idCard.substring(idCard.length() - 4);
     }
 }

@@ -2,9 +2,11 @@ package com.haikou.government.system.service;
 
 import com.haikou.government.system.domain.SysUser;
 import com.haikou.government.system.dto.LoginDTO;
+import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.vo.LoginVO;
+import com.haikou.government.system.vo.RealNameVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -40,4 +42,21 @@ public interface SysUserService extends IService<SysUser> {
      * @return LoginVO 登录成功信息（包含 Token）
      */
     LoginVO smsLogin(SmsLoginDTO smsLoginDTO);
+
+    /**
+     * 实名认证
+     *
+     * @param userId 用户ID
+     * @param realNameDTO 实名认证参数（姓名 + 身份证号）
+     * @return 是否认证成功
+     */
+    boolean realNameAuth(Long userId, RealNameDTO realNameDTO);
+
+    /**
+     * 查询实名认证状态
+     *
+     * @param userId 用户ID
+     * @return 实名认证信息
+     */
+    RealNameVO getRealNameStatus(Long userId);
 }
