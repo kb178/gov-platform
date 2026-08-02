@@ -7,7 +7,7 @@ spring:
     name: gov-item
   # 导入 Nacos 配置（Spring Boot 3.x 必须）
   config:
-    import: "optional:nacos:"
+    import: "optional:nacos:gov-item.yml"
   # 数据源
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
