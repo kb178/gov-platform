@@ -13,8 +13,10 @@ import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
+import com.haikou.government.system.dto.UpdateUserDTO;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
+import com.haikou.government.system.vo.UserInfoVO;
 import com.haikou.government.system.mapper.SysUserMapper;
 import com.haikou.government.system.mapper.SysLoginLogMapper;
 import com.haikou.government.system.service.SmsService;
@@ -389,6 +391,71 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         if (success) {
             log.info("用户修改密码成功，userId={}", userId);
+        }
+
+        return success;
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    @Override
+    public UserInfoVO getUserInfo(Long userId) {
+        // 1. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 构建返回结果
+        return UserInfoVO.builder()
+                .userId(user.getUserId())
+                .phone(maskPhone(user.getPhone()))
+                .nickname(user.getNickname())
+                .avatar(user.getAvatar())
+                .sex(user.getSex())
+                .email(user.getEmail())
+                .realNameStatus(user.getRealNameStatus() != null ? user.getRealNameStatus() : (byte) 0)
+                .realName(maskRealName(user.getRealName()))
+                .build();
+    }
+
+    /**
+     * 修改个人信息
+     *
+     * @param userId 用户ID
+     * @param updateUserDTO 修改参数
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean updateUserInfo(Long userId, UpdateUserDTO updateUserDTO) {
+        // 1. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 更新字段（只更新非空字段）
+        if (updateUserDTO.getNickname() != null) {
+            user.setNickname(updateUserDTO.getNickname());
+        }
+        if (updateUserDTO.getAvatar() != null) {
+            user.setAvatar(updateUserDTO.getAvatar());
+        }
+        if (updateUserDTO.getSex() != null) {
+            user.setSex(updateUserDTO.getSex());
+        }
+        if (updateUserDTO.getEmail() != null) {
+            user.setEmail(updateUserDTO.getEmail());
+        }
+
+        // 3. 保存到数据库
+        boolean success = updateById(user);
+        if (success) {
+            log.info("用户修改个人信息成功，userId={}", userId);
         }
 
         return success;

@@ -6,8 +6,10 @@ import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
+import com.haikou.government.system.dto.UpdateUserDTO;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
+import com.haikou.government.system.vo.UserInfoVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -69,4 +71,21 @@ public interface SysUserService extends IService<SysUser> {
      * @return 是否修改成功
      */
     boolean changePassword(Long userId, ChangePasswordDTO changePasswordDTO);
+
+    /**
+     * 获取用户信息
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    UserInfoVO getUserInfo(Long userId);
+
+    /**
+     * 修改个人信息
+     *
+     * @param userId 用户ID
+     * @param updateUserDTO 修改参数（昵称、头像、性别、邮箱）
+     * @return 是否修改成功
+     */
+    boolean updateUserInfo(Long userId, UpdateUserDTO updateUserDTO);
 }

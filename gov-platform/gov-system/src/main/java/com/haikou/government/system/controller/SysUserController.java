@@ -7,8 +7,10 @@ import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
+import com.haikou.government.system.dto.UpdateUserDTO;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
+import com.haikou.government.system.vo.UserInfoVO;
 import com.haikou.government.system.service.SmsService;
 import com.haikou.government.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -125,6 +127,35 @@ public class SysUserController {
         // 使用 SecurityUtils 获取当前登录用户ID
         Long userId = SecurityUtils.getCurrentUserId();
         boolean result = sysUserService.changePassword(userId, changePasswordDTO);
+        return R.ok(result);
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @return 用户信息
+     */
+    @Operation(summary = "获取用户信息", description = "获取当前登录用户的详细信息")
+    @GetMapping("/info")
+    public R<UserInfoVO> getUserInfo() {
+        // 使用 SecurityUtils 获取当前登录用户ID
+        Long userId = SecurityUtils.getCurrentUserId();
+        UserInfoVO userInfoVO = sysUserService.getUserInfo(userId);
+        return R.ok(userInfoVO);
+    }
+
+    /**
+     * 修改个人信息
+     *
+     * @param updateUserDTO 修改参数（昵称、头像、性别、邮箱）
+     * @return 是否修改成功
+     */
+    @Operation(summary = "修改个人信息", description = "修改当前登录用户的昵称、头像、性别、邮箱")
+    @PutMapping("/info")
+    public R<Boolean> updateUserInfo(@Valid @RequestBody UpdateUserDTO updateUserDTO) {
+        // 使用 SecurityUtils 获取当前登录用户ID
+        Long userId = SecurityUtils.getCurrentUserId();
+        boolean result = sysUserService.updateUserInfo(userId, updateUserDTO);
         return R.ok(result);
     }
 }
