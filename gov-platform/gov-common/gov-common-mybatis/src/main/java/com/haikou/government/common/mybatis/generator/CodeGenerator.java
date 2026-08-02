@@ -21,7 +21,7 @@ import java.util.Map;
  *
  * 生成后手动处理：
  * - 实体类添加 extends BaseEntity
- * - delFlag 字段添加 @TableLogic 注解
+ * - 需要逻辑删除的表，在实体中手动添加 @TableLogic delFlag 字段
  *
  * @author gov-platform
  */
@@ -91,8 +91,8 @@ public class CodeGenerator {
                     .superClass("com.haikou.government.common.core.domain.BaseEntity")
                     .enableLombok()
                     .enableTableFieldAnnotation()
-                    // 忽略 BaseEntity 中已有的字段
-                    .addIgnoreColumns("create_by", "create_time", "update_by", "update_time", "del_flag", "remark")
+                    // 忽略 BaseEntity 中已有的字段（del_flag 不再忽略，需要在实体中单独处理）
+                    .addIgnoreColumns("create_by", "create_time", "update_by", "update_time", "remark")
                     // 自动填充配置
                     .addTableFills(new Column("create_time", FieldFill.INSERT))
                     .addTableFills(new Column("create_by", FieldFill.INSERT))
