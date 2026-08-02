@@ -6,9 +6,11 @@ spring:
       discovery:
         server-addr: localhost:8848
         namespace: gov-platform
-      # 配置中心
+      # 配置中心（禁用检查）
       config:
         server-addr: localhost:8848
         namespace: gov-platform
         file-extension: yml
         group: DEFAULT_GROUP
+        import-check:
+          enabled: false
