@@ -2,7 +2,7 @@ package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.core.exception.BusinessException;
-import com.haikou.government.common.core.utils.HttpRequestHolder;
+import com.haikou.government.common.security.filter.JwtAuthFilter;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
@@ -14,7 +14,6 @@ import com.haikou.government.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -117,18 +116,17 @@ public class SysUserController {
     /**
      * 获取当前登录用户ID
      *
-     * 从 Gateway 传递的请求头中获取用户ID
-     * Gateway 的 AuthFilter 会解析 Token，将用户ID放入请求头 X-User-Id
+     * 从 Spring Security 上下文中获取用户ID
+     * JwtAuthFilter 会将用户ID存入 Security 上下文
      *
      * @return 用户ID
      */
     private Long getCurrentUserId() {
-        // 从请求头中获取用户ID（Gateway 传递）
-        HttpServletRequest request = HttpRequestHolder.get();
-        String userIdStr = request.getHeader("X-User-Id");
-        if (userIdStr == null || userIdStr.isEmpty()) {
+        // 从 Security 上下文中获取用户ID
+        Long userId = JwtAuthFilter.getCurrentUserId();
+        if (userId == null) {
             throw new BusinessException("用户未登录");
         }
-        return Long.parseLong(userIdStr);
+        return userId;
     }
 }

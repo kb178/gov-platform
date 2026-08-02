@@ -38,10 +38,4 @@ public class RealNameVO {
      */
     @Schema(description = "身份证号（脱敏）", example = "460100********1234")
     private String idCard;
-
-    /**
-     * 认证时间
-     */
-    @Schema(description = "认证时间", example = "2026-08-02 15:30:00")
-    private String authTime;
 }

@@ -1,5 +1,7 @@
 package com.haikou.government.common.security.config;
 
+import com.haikou.government.common.security.filter.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security 安全配置类
@@ -22,6 +25,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration // 声明为配置类，Spring 启动时会自动加载
 @EnableWebSecurity // 启用 Spring Security 安全功能
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
 
     /**
      * 配置安全过滤器链
@@ -43,7 +49,11 @@ public class SecurityConfig {
             // 为什么：前后端分离项目，服务器不保存会话状态，每次请求都要带 Token
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // ========== 3. 配置请求授权规则 ==========
+            // ========== 3. 添加 JWT 认证过滤器 ==========
+            // 在 UsernamePasswordAuthenticationFilter 之前执行
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+            // ========== 4. 配置请求授权规则 ==========
             .authorizeHttpRequests(auth -> auth
                 // 配置哪些路径可以匿名访问（不需要登录）
                 .requestMatchers(
