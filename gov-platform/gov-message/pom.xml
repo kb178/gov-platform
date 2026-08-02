@@ -12,7 +12,7 @@
 
     <artifactId>gov-message</artifactId>
 
-    <description>消息服务（短信、站内消息）</description>
+    <description>消息服务（站内信、短信通知、邮件推送）</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -21,11 +21,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Nacos -->
+        <!-- Nacos Discovery -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
+
+        <!-- Nacos Config -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
@@ -49,18 +51,6 @@
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
         </dependency>
 
-        <!-- RabbitMQ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-
-        <!-- WebSocket -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-
         <!-- Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -81,10 +71,6 @@
         <dependency>
             <groupId>com.haikou</groupId>
             <artifactId>gov-common-mybatis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.haikou</groupId>
-            <artifactId>gov-api</artifactId>
         </dependency>
     </dependencies>
 

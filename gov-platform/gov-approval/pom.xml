@@ -12,7 +12,7 @@
 
     <artifactId>gov-approval</artifactId>
 
-    <description>审批服务（工作流引擎）</description>
+    <description>审批服务（审批流程、审批记录、催办督办）</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -21,11 +21,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Nacos -->
+        <!-- Nacos Discovery -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
+
+        <!-- Nacos Config -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
@@ -61,12 +63,6 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Flowable -->
-        <dependency>
-            <groupId>org.flowable</groupId>
-            <artifactId>flowable-spring-boot-starter</artifactId>
-        </dependency>
-
         <!-- 内部依赖 -->
         <dependency>
             <groupId>com.haikou</groupId>
@@ -75,10 +71,6 @@
         <dependency>
             <groupId>com.haikou</groupId>
             <artifactId>gov-common-mybatis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.haikou</groupId>
-            <artifactId>gov-api</artifactId>
         </dependency>
     </dependencies>
 

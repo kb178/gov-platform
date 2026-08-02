@@ -53,3 +53,6 @@ jwt:
 logging:
   level:
     com.haikou.government: info
+  # 日志存储路径（可通过环境变量覆盖）
+  file:
+    path: ${LOG_PATH:./logs}

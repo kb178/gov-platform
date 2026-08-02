@@ -12,7 +12,7 @@
 
     <artifactId>gov-data</artifactId>
 
-    <description>数据服务（统计报表、数据大屏）</description>
+    <description>数据服务（数据统计、报表分析、数据大屏）</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -21,11 +21,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Nacos -->
+        <!-- Nacos Discovery -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
+
+        <!-- Nacos Config -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
@@ -69,10 +71,6 @@
         <dependency>
             <groupId>com.haikou</groupId>
             <artifactId>gov-common-mybatis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.haikou</groupId>
-            <artifactId>gov-api</artifactId>
         </dependency>
     </dependencies>
 

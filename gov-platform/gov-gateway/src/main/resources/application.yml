@@ -72,5 +72,8 @@ jwt:
 # 日志配置
 logging:
   level:
-    com.haikou.government.gateway: debug
-    org.springframework.cloud.gateway: debug
+    com.haikou.government.gateway: info
+    org.springframework.cloud.gateway: info
+  # 日志存储路径（可通过环境变量覆盖）
+  file:
+    path: ${LOG_PATH:./logs}

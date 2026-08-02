@@ -1,0 +1,14 @@
+# Nacos 配置
+spring:
+  cloud:
+    nacos:
+      # 注册中心
+      discovery:
+        server-addr: localhost:8848
+        namespace: gov-platform
+      # 配置中心
+      config:
+        server-addr: localhost:8848
+        namespace: gov-platform
+        file-extension: yml
+        group: DEFAULT_GROUP

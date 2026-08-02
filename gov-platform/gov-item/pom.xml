@@ -12,7 +12,7 @@
 
     <artifactId>gov-item</artifactId>
 
-    <description>事项服务（办事指南、动态表单）</description>
+    <description>事项服务（事项定义、表单配置、材料管理）</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -21,11 +21,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Nacos -->
+        <!-- Nacos Discovery -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
+
+        <!-- Nacos Config -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
@@ -69,10 +71,6 @@
         <dependency>
             <groupId>com.haikou</groupId>
             <artifactId>gov-common-mybatis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.haikou</groupId>
-            <artifactId>gov-api</artifactId>
         </dependency>
     </dependencies>
 
