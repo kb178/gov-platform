@@ -669,3 +669,206 @@ SecurityContextHolder.getContext().setAuthentication(auth);
 // 3. SecurityUtils 获取用户ID
 Long userId = (Long) auth.getDetails();
 ```
+
+---
+
+## 八、JwtAuthFilter 与 Security 的执行顺序
+
+### 8.1 过滤器链执行顺序
+
+```
+请求进入
+    ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                    Spring Security 过滤器链                      │
+│                                                                 │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  ① JwtAuthFilter（我们创建的）                          │   │
+│   │     - 获取 Token                                        │   │
+│   │     - Token 为空 → 直接放行，不设置认证信息              │   │
+│   │     - Token 有效 → 验证 → 存入 Security 上下文          │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  ② 其他 Spring Security 过滤器（框架自带）              │   │
+│   │     - UsernamePasswordAuthenticationFilter               │   │
+│   │     - ExceptionTranslationFilter                         │   │
+│   │     - FilterSecurityInterceptor（最终权限检查）          │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                           ↓                                     │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  ③ FilterSecurityInterceptor（最终权限检查）            │   │
+│   │     - 检查请求路径                                       │   │
+│   │     - 检查是否有认证信息                                 │   │
+│   │     - 决定是否放行                                       │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 8.2 场景一：没有 Token 的情况
+
+```
+请求: GET /sysUser/realNameAuth
+      （没有 Authorization 请求头）
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   ① JwtAuthFilter 执行                                          │
+│                                                                 │
+│   String token = getTokenFromRequest(request);                  │
+│   // token = null（因为没有 Authorization 请求头）               │
+│                                                                 │
+│   if (StringUtils.isBlank(token)) {                             │
+│       filterChain.doFilter(request, response);  // 直接放行      │
+│       return;                                                   │
+│   }                                                             │
+│                                                                 │
+│   结果：没有设置 Security 上下文（没有认证信息）                 │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   ② FilterSecurityInterceptor 执行（最终权限检查）              │
+│                                                                 │
+│   // 1. 获取请求路径                                            │
+│   String path = "/sysUser/realNameAuth";                        │
+│                                                                 │
+│   // 2. 检查 SecurityConfig 的配置                              │
+│   //    /sysUser/realNameAuth 不在白名单中                      │
+│   //    所以需要认证（.authenticated()）                        │
+│                                                                 │
+│   // 3. 检查是否有认证信息                                      │
+│   Authentication auth = SecurityContextHolder                   │
+│       .getContext().getAuthentication();                        │
+│   // auth = null（因为 JwtAuthFilter 没有设置）                 │
+│                                                                 │
+│   // 4. 没有认证信息，抛出异常                                  │
+│   throw new AccessDeniedException("Access is denied");          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   ③ ExceptionTranslationFilter 执行（异常处理）                 │
+│                                                                 │
+│   // 捕获 AccessDeniedException                                 │
+│   catch (AccessDeniedException ex) {                            │
+│       // 返回 403 Forbidden                                     │
+│       response.setStatus(403);                                  │
+│       response.getWriter().write("Access Denied");              │
+│   }                                                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   响应: 403 Forbidden                                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 8.3 场景二：有 Token 的情况
+
+```
+请求: GET /sysUser/realNameAuth
+      Authorization: Bearer eyJhbGciOiJIUz...
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   ① JwtAuthFilter 执行                                          │
+│                                                                 │
+│   String token = getTokenFromRequest(request);                  │
+│   // token = "eyJhbGciOiJIUz..."                                │
+│                                                                 │
+│   // Token 不为空，继续验证                                     │
+│   jwtUtils.parseToken(token);  // 验证签名                      │
+│   Long userId = jwtUtils.getUserIdFromToken(token);             │
+│   String username = jwtUtils.getUsernameFromToken(token);       │
+│                                                                 │
+│   // 存入 Security 上下文                                       │
+│   UsernamePasswordAuthenticationToken auth =                    │
+│       new UsernamePasswordAuthenticationToken(                  │
+│           username, null, new ArrayList<>()                     │
+│       );                                                        │
+│   auth.setDetails(userId);                                      │
+│   SecurityContextHolder.getContext().setAuthentication(auth);   │
+│                                                                 │
+│   结果：设置了认证信息（userId = 2083862615502741505）           │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   ② FilterSecurityInterceptor 执行（最终权限检查）              │
+│                                                                 │
+│   // 1. 获取请求路径                                            │
+│   String path = "/sysUser/realNameAuth";                        │
+│                                                                 │
+│   // 2. 检查 SecurityConfig 的配置                              │
+│   //    /sysUser/realNameAuth 不在白名单中                      │
+│   //    所以需要认证（.authenticated()）                        │
+│                                                                 │
+│   // 3. 检查是否有认证信息                                      │
+│   Authentication auth = SecurityContextHolder                   │
+│       .getContext().getAuthentication();                        │
+│   // auth = UsernamePasswordAuthenticationToken                 │
+│   //   principal = "13800138000"                                │
+│   //   details = 2083862615502741505                            │
+│                                                                 │
+│   // 4. 有认证信息，放行                                        │
+│   // 继续执行下一个过滤器                                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│   ③ Controller 执行                                             │
+│                                                                 │
+│   @PostMapping("/realNameAuth")                                 │
+│   public R<Boolean> realNameAuth(@Valid @RequestBody ...) {     │
+│       Long userId = SecurityUtils.getCurrentUserId();           │
+│       // userId = 2083862615502741505                           │
+│       // ...                                                    │
+│   }                                                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 8.4 SecurityConfig 配置的作用
+
+```java
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers(
+        "/sysUser/sendCode",     // 白名单：不需要认证
+        "/sysUser/register",
+        "/sysUser/login",
+        "/sysUser/smsLogin",
+        "/doc.html",
+        "/webjars/**",
+        "/swagger-resources/**",
+        "/v3/api-docs/**"
+    ).permitAll()                // 允许所有人访问
+    
+    .anyRequest().authenticated()  // 其他请求需要认证
+)
+```
+
+**作用：** 告诉 Spring Security 哪些路径需要认证，哪些不需要。
+
+### 8.5 执行顺序总结
+
+| 顺序 | 过滤器 | 职责 | 没有 Token | 有 Token |
+|------|--------|------|-----------|---------|
+| ① | JwtAuthFilter | 验证 Token | 直接放行 | 验证并存入上下文 |
+| ② | FilterSecurityInterceptor | 权限检查 | 检查路径配置 | 检查路径配置 |
+| ③ | FilterSecurityInterceptor | 认证检查 | 无认证信息 → 403 | 有认证信息 → 放行 |
+
+### 8.6 常见问题
+
+**Q1：为什么 JwtAuthFilter 要放在 Security 过滤器之前？**
+
+A：因为 JwtAuthFilter 负责**设置认证信息**，Security 过滤器负责**检查认证信息**。必须先设置，再检查。
+
+**Q2：白名单路径为什么不需要 Token？**
+
+A：SecurityConfig 配置了 `permitAll()`，FilterSecurityInterceptor 会直接放行，不检查认证信息。
+
+**Q3：没有 Token 时，为什么返回 403 而不是 401？**
+
+A：
+- 401 Unauthorized：未认证（没有提供凭证）
+- 403 Forbidden：已认证但权限不足
+
+在 Spring Security 中，没有认证信息时返回 403。
