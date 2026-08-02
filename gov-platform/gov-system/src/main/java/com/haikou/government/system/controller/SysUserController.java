@@ -1,8 +1,7 @@
 package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
-import com.haikou.government.common.core.exception.BusinessException;
-import com.haikou.government.common.security.filter.JwtAuthFilter;
+import com.haikou.government.common.security.utils.SecurityUtils;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
@@ -93,8 +92,8 @@ public class SysUserController {
     @Operation(summary = "实名认证", description = "提交身份证号和姓名进行实名认证")
     @PostMapping("/realNameAuth")
     public R<Boolean> realNameAuth(@Valid @RequestBody RealNameDTO realNameDTO) {
-        // 从 Token 中获取用户ID（由 Gateway 传递）
-        Long userId = getCurrentUserId();
+        // 使用 SecurityUtils 获取当前登录用户ID
+        Long userId = SecurityUtils.getCurrentUserId();
         boolean result = sysUserService.realNameAuth(userId, realNameDTO);
         return R.ok(result);
     }
@@ -107,26 +106,9 @@ public class SysUserController {
     @Operation(summary = "查询实名认证状态", description = "获取当前用户的实名认证信息")
     @GetMapping("/realNameStatus")
     public R<RealNameVO> getRealNameStatus() {
-        // 从 Token 中获取用户ID
-        Long userId = getCurrentUserId();
+        // 使用 SecurityUtils 获取当前登录用户ID
+        Long userId = SecurityUtils.getCurrentUserId();
         RealNameVO realNameVO = sysUserService.getRealNameStatus(userId);
         return R.ok(realNameVO);
-    }
-
-    /**
-     * 获取当前登录用户ID
-     *
-     * 从 Spring Security 上下文中获取用户ID
-     * JwtAuthFilter 会将用户ID存入 Security 上下文
-     *
-     * @return 用户ID
-     */
-    private Long getCurrentUserId() {
-        // 从 Security 上下文中获取用户ID
-        Long userId = JwtAuthFilter.getCurrentUserId();
-        if (userId == null) {
-            throw new BusinessException("用户未登录");
-        }
-        return userId;
     }
 }
