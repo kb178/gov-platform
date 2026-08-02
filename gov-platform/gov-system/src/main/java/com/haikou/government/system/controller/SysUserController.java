@@ -6,6 +6,7 @@ import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
+import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
 import com.haikou.government.system.vo.LoginVO;
@@ -156,6 +157,19 @@ public class SysUserController {
         // 使用 SecurityUtils 获取当前登录用户ID
         Long userId = SecurityUtils.getCurrentUserId();
         boolean result = sysUserService.updateUserInfo(userId, updateUserDTO);
+        return R.ok(result);
+    }
+
+    /**
+     * 找回密码（重置密码）
+     *
+     * @param resetPasswordDTO 重置密码参数（手机号、验证码、新密码、确认密码）
+     * @return 是否重置成功
+     */
+    @Operation(summary = "找回密码", description = "通过手机号验证码重置密码")
+    @PostMapping("/resetPassword")
+    public R<Boolean> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
+        boolean result = sysUserService.resetPassword(resetPasswordDTO);
         return R.ok(result);
     }
 }

@@ -12,6 +12,7 @@ import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
+import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
 import com.haikou.government.system.vo.LoginVO;
@@ -456,6 +457,49 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         boolean success = updateById(user);
         if (success) {
             log.info("用户修改个人信息成功，userId={}", userId);
+        }
+
+        return success;
+    }
+
+    /**
+     * 找回密码（重置密码）
+     *
+     * @param resetPasswordDTO 重置密码参数
+     * @return 是否重置成功
+     */
+    @Override
+    public boolean resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        // 1. 验证新密码和确认密码是否一致
+        if (!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getConfirmPassword())) {
+            throw new BusinessException("新密码和确认密码不一致");
+        }
+
+        // 2. 验证验证码
+        String cacheCode = redisUtils.get("sms:code:" + resetPasswordDTO.getPhone());
+        if (cacheCode == null) {
+            throw new BusinessException("验证码已过期，请重新获取");
+        }
+        if (!cacheCode.equals(resetPasswordDTO.getCode())) {
+            throw new BusinessException("验证码错误");
+        }
+
+        // 3. 查询用户
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getPhone, resetPasswordDTO.getPhone());
+        SysUser user = baseMapper.selectOne(queryWrapper);
+        if (user == null) {
+            throw new BusinessException("该手机号未注册");
+        }
+
+        // 4. 更新密码（BCrypt 加密）
+        user.setPassword(PasswordUtils.encode(resetPasswordDTO.getNewPassword()));
+        boolean success = updateById(user);
+
+        // 5. 删除验证码
+        if (success) {
+            redisUtils.delete("sms:code:" + resetPasswordDTO.getPhone());
+            log.info("用户重置密码成功，phone={}", maskPhone(resetPasswordDTO.getPhone()));
         }
 
         return success;

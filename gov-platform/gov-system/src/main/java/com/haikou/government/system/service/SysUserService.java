@@ -5,6 +5,7 @@ import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
+import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
 import com.haikou.government.system.vo.LoginVO;
@@ -88,4 +89,12 @@ public interface SysUserService extends IService<SysUser> {
      * @return 是否修改成功
      */
     boolean updateUserInfo(Long userId, UpdateUserDTO updateUserDTO);
+
+    /**
+     * 找回密码（重置密码）
+     *
+     * @param resetPasswordDTO 重置密码参数（手机号、验证码、新密码、确认密码）
+     * @return 是否重置成功
+     */
+    boolean resetPassword(ResetPasswordDTO resetPasswordDTO);
 }
