@@ -7,20 +7,22 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
         namespace: gov-platform
     gateway:
+      # 不使用服务发现路由（我们手动配置路由）
       discovery:
         locator:
-          enabled: false  # 不使用服务发现路由
+          enabled: false
+      # 路由配置
       routes:
         # 系统服务路由
         - id: gov-system
-          uri: lb://gov-system
+          uri: lb://gov-system  # lb:// 表示从 Nacos 获取服务地址
           predicates:
-            - Path=/system/**
+            - Path=/system/**   # 匹配 /system/** 的请求
           filters:
-            - StripPrefix=1
+            - StripPrefix=1     # 去掉第一个路径前缀 /system
 
         # 事项服务路由
         - id: gov-item
@@ -65,4 +67,10 @@ spring:
 # JWT 配置
 jwt:
   secret: ${JWT_SECRET:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}
-  expire: ${JWT_EXPIRE:86400000}
+  expire: ${JWT_EXPIRE:7200000}
+
+# 日志配置
+logging:
+  level:
+    com.haikou.government.gateway: debug
+    org.springframework.cloud.gateway: debug

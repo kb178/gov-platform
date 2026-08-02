@@ -1,4 +1,4 @@
-package com.haikou.government.common.core.config;
+package com.haikou.government.system.config;
 
 import com.haikou.government.common.core.interceptor.RequestInterceptor;
 import org.springframework.context.annotation.Configuration;
