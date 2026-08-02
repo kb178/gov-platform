@@ -1,5 +1,6 @@
 package com.haikou.government.system.vo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,6 +13,7 @@ import lombok.Data;
  * @author xhl
  * @since 2026-08-01
  */
+@Schema(description = "登录响应结果")
 @Data
 @Builder // 使用 Builder 模式，方便构建对象
 public class LoginVO {
@@ -26,25 +28,30 @@ public class LoginVO {
      *
      * Token 格式：Header.Payload.Signature（三段用 . 分隔）
      */
+    @Schema(description = "访问令牌", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String accessToken;
 
     /**
      * 用户ID
      */
+    @Schema(description = "用户ID", example = "1")
     private Long userId;
 
     /**
      * 用户名
      */
+    @Schema(description = "用户名", example = "13800138000")
     private String username;
 
     /**
      * 昵称
      */
+    @Schema(description = "昵称", example = "张三")
     private String nickname;
 
     /**
      * 用户类型（1=老百姓，2=工作人员）
      */
+    @Schema(description = "用户类型（1=老百姓，2=工作人员）", example = "1")
     private Byte userType;
 }

@@ -1,5 +1,6 @@
 package com.haikou.government.system.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
@@ -14,6 +15,7 @@ import jakarta.validation.constraints.Pattern;
  * @author xhl
  * @since 2026-08-01
  */
+@Schema(description = "密码登录请求参数")
 @Data
 public class LoginDTO {
 
@@ -24,6 +26,7 @@ public class LoginDTO {
      * - @NotBlank: 不能为空
      * - @Pattern: 必须符合手机号格式（1开头，第二位3-9，后面9位数字）
      */
+    @Schema(description = "手机号", required = true, example = "13800138000")
     @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
@@ -34,6 +37,7 @@ public class LoginDTO {
      * 校验规则：
      * - @NotBlank: 不能为空
      */
+    @Schema(description = "登录密码", required = true, example = "123456")
     @NotBlank(message = "密码不能为空")
     private String password;
 }
