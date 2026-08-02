@@ -2,6 +2,7 @@ package com.haikou.government.system.domain;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.haikou.government.common.core.domain.BaseEntity;
 import java.io.Serializable;
@@ -64,4 +65,11 @@ public class SysRole extends BaseEntity {
      */
     @TableField("remark")
     private String remark;
+
+    /**
+     * 删除标志（0存在 1删除）
+     */
+    @TableLogic
+    @TableField("del_flag")
+    private Integer delFlag;
 }

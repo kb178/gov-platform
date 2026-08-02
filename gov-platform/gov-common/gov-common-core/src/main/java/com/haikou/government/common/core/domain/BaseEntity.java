@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
  * 只包含所有表都有的公共字段：
  * - createBy / createTime：创建审计
  * - updateBy / updateTime：更新审计
- * - delFlag：逻辑删除
+ *
+ * 注意：delFlag（逻辑删除）不放在这里，只在需要的实体中单独添加
  *
  * @author gov-platform
  */
@@ -34,7 +35,4 @@ public class BaseEntity implements Serializable {
     /** 更新时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
-
-    /** 删除标志（0存在 1删除） */
-    private Integer delFlag;
 }
