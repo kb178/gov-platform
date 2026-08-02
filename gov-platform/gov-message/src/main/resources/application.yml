@@ -3,13 +3,19 @@ server:
   port: 8085
 
 spring:
-  cloud:
-    nacos:
-      config:
-        import-check:
-          enabled: false
   application:
     name: gov-message
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        namespace: gov-platform
+      config:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        namespace: gov-platform
+        file-extension: yml
+        import-check:
+          enabled: false
   # 数据源
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
