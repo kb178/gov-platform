@@ -8,6 +8,7 @@ import com.haikou.government.common.redis.utils.RedisUtils;
 import com.haikou.government.common.security.utils.PasswordUtils;
 import com.haikou.government.system.domain.SysUser;
 import com.haikou.government.system.domain.SysLoginLog;
+import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
@@ -350,5 +351,46 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             return "***";
         }
         return idCard.substring(0, 6) + "********" + idCard.substring(idCard.length() - 4);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID
+     * @param changePasswordDTO 修改密码参数
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean changePassword(Long userId, ChangePasswordDTO changePasswordDTO) {
+        // 1. 验证新密码和确认密码是否一致
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword())) {
+            throw new BusinessException("新密码和确认密码不一致");
+        }
+
+        // 2. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 3. 验证旧密码是否正确
+        if (!PasswordUtils.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
+            throw new BusinessException("旧密码错误");
+        }
+
+        // 4. 验证新密码不能和旧密码相同
+        if (changePasswordDTO.getOldPassword().equals(changePasswordDTO.getNewPassword())) {
+            throw new BusinessException("新密码不能与旧密码相同");
+        }
+
+        // 5. 更新密码（BCrypt 加密）
+        user.setPassword(PasswordUtils.encode(changePasswordDTO.getNewPassword()));
+        boolean success = updateById(user);
+
+        if (success) {
+            log.info("用户修改密码成功，userId={}", userId);
+        }
+
+        return success;
     }
 }

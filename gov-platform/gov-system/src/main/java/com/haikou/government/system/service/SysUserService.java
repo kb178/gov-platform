@@ -1,6 +1,7 @@
 package com.haikou.government.system.service;
 
 import com.haikou.government.system.domain.SysUser;
+import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
@@ -59,4 +60,13 @@ public interface SysUserService extends IService<SysUser> {
      * @return 实名认证信息
      */
     RealNameVO getRealNameStatus(Long userId);
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID
+     * @param changePasswordDTO 修改密码参数（旧密码、新密码、确认密码）
+     * @return 是否修改成功
+     */
+    boolean changePassword(Long userId, ChangePasswordDTO changePasswordDTO);
 }

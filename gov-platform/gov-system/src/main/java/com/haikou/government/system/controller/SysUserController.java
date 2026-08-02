@@ -2,6 +2,7 @@ package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.security.utils.SecurityUtils;
+import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
 import com.haikou.government.system.dto.RegisterDTO;
@@ -110,5 +111,20 @@ public class SysUserController {
         Long userId = SecurityUtils.getCurrentUserId();
         RealNameVO realNameVO = sysUserService.getRealNameStatus(userId);
         return R.ok(realNameVO);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param changePasswordDTO 修改密码参数（旧密码、新密码、确认密码）
+     * @return 是否修改成功
+     */
+    @Operation(summary = "修改密码", description = "已登录用户修改密码")
+    @PostMapping("/changePassword")
+    public R<Boolean> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+        // 使用 SecurityUtils 获取当前登录用户ID
+        Long userId = SecurityUtils.getCurrentUserId();
+        boolean result = sysUserService.changePassword(userId, changePasswordDTO);
+        return R.ok(result);
     }
 }
