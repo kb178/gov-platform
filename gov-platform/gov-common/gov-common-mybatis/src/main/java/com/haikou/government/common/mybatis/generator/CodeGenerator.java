@@ -46,9 +46,19 @@ public class CodeGenerator {
     /** 输出目录（根据目标服务修改） */
     private static final String MODULE_PATH = "/gov-system";
 
-    /** 要生成的表名（当前只生成菜单表） */
+    /** 要生成的表名（第一阶段全部表） */
     private static final List<String> TABLES = Arrays.asList(
-            "sys_menu"         // 菜单表
+            "sys_user",        // 用户表
+            "sys_role",        // 角色表
+            "sys_menu",        // 菜单表
+            "sys_dept",        // 部门表
+            "user_role",       // 用户角色关联表
+            "role_menu",       // 角色菜单关联表
+            "dict_type",       // 字典类型表
+            "dict_data",       // 字典数据表
+            "sys_config",      // 系统参数表
+            "sys_oper_log",    // 操作日志表
+            "sys_login_log"    // 登录日志表
     );
 
     // ==================== 生成区（一般不用改）====================
