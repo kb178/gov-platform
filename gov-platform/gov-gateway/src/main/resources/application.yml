@@ -6,7 +6,7 @@ spring:
     name: gov-gateway
   # 导入 Nacos 配置（Spring Boot 3.x 必须）
   config:
-    import: optional:nacos:
+    import: "optional:nacos:"
   cloud:
     nacos:
       discovery:
