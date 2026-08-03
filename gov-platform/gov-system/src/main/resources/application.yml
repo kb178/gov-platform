@@ -1,0 +1,56 @@
+server:
+  port: 8081
+
+spring:
+  config:
+    import: optional:nacos:gov-system.yml
+  application:
+    name: gov-system
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/gov_system?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: 0
+      password: ${REDIS_PASSWORD:}
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        namespace: gov-platform
+      config:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        namespace: gov-platform
+        file-extension: yml
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.haikou.government.system.domain
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      # 逻辑删除已通过 @TableLogic 注解在实体中配置，不再使用全局配置
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}
+  expire: ${JWT_EXPIRE:7200000}  # Token 有效期2小时（默认值）
+
+# 日志配置
+logging:
+  level:
+    com.haikou.government: info
+  # 日志存储路径（可通过环境变量覆盖）
+  file:
+    path: ${LOG_PATH:./logs}

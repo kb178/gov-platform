@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: gov-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:root}
+      MYSQL_CHARSET: utf8mb4
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - gov-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: gov-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:}
+    volumes:
+      - redis_data:/data
+    networks:
+      - gov-network
+
+  # Nacos 注册中心
+  nacos:
+    image: nacos/nacos-server:v2.3.0
+    container_name: gov-nacos
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: ""
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    networks:
+      - gov-network
+
+  # RabbitMQ 消息队列
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gov-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - gov-network
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  gov-network:
+    driver: bridge

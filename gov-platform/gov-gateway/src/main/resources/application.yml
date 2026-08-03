@@ -1,0 +1,82 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gov-gateway
+  # 导入 Nacos 配置（Spring Boot 3.x 必须）
+  config:
+    import: "optional:nacos:gov-gateway.yml"
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        namespace: gov-platform
+    gateway:
+      # 不使用服务发现路由（我们手动配置路由）
+      discovery:
+        locator:
+          enabled: false
+      # 路由配置
+      routes:
+        # 系统服务路由
+        - id: gov-system
+          uri: lb://gov-system  # lb:// 表示从 Nacos 获取服务地址
+          predicates:
+            - Path=/system/**   # 匹配 /system/** 的请求
+          filters:
+            - StripPrefix=1     # 去掉第一个路径前缀 /system
+
+        # 事项服务路由
+        - id: gov-item
+          uri: lb://gov-item
+          predicates:
+            - Path=/item/**
+          filters:
+            - StripPrefix=1
+
+        # 审批服务路由
+        - id: gov-approval
+          uri: lb://gov-approval
+          predicates:
+            - Path=/approval/**
+          filters:
+            - StripPrefix=1
+
+        # 证照服务路由
+        - id: gov-license
+          uri: lb://gov-license
+          predicates:
+            - Path=/license/**
+          filters:
+            - StripPrefix=1
+
+        # 消息服务路由
+        - id: gov-message
+          uri: lb://gov-message
+          predicates:
+            - Path=/message/**
+          filters:
+            - StripPrefix=1
+
+        # 数据服务路由
+        - id: gov-data
+          uri: lb://gov-data
+          predicates:
+            - Path=/data/**
+          filters:
+            - StripPrefix=1
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}
+  expire: ${JWT_EXPIRE:7200000}
+
+# 日志配置
+logging:
+  level:
+    com.haikou.government.gateway: info
+    org.springframework.cloud.gateway: info
+  # 日志存储路径（可通过环境变量覆盖）
+  file:
+    path: ${LOG_PATH:./logs}

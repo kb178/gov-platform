@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+      </profile>
+      <profile name="Annotation profile for 政务一体化平台" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
+        </processorPath>
+        <module name="gov-common-security" />
+        <module name="gov-common-redis" />
+        <module name="gov-gateway" />
+        <module name="gov-item" />
+        <module name="gov-system" />
+        <module name="gov-approval" />
+        <module name="gov-common-mybatis" />
+        <module name="gov-data" />
+        <module name="gov-api" />
+        <module name="gov-common-core" />
+        <module name="gov-license" />
+        <module name="gov-message" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>
