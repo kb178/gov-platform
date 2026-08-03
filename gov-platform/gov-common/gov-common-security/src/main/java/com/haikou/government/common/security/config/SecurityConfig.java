@@ -1,4 +1,4 @@
-package com.haikou.government.system.config;
+package com.haikou.government.common.security.config;
 
 import com.haikou.government.common.security.filter.JwtAuthFilter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        log.info("========== gov-system SecurityConfig 已加载 ==========");
+        log.info("========== SecurityConfig 已加载 ==========");
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
