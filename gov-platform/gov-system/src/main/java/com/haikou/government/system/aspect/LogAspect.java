@@ -1,6 +1,7 @@
 package com.haikou.government.system.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haikou.government.common.core.utils.HttpRequestHolder;
 import com.haikou.government.common.core.utils.JwtUtils;
 import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.domain.SysOperLog;
@@ -15,8 +16,6 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
@@ -49,7 +48,7 @@ public class LogAspect {
     private JwtUtils jwtUtils;
 
     /**
-     * 密码字段正则（匹配 JSON 中的 password 字段值）
+     * 密码字段正则
      */
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
             "(\"password\"\\s*:\\s*\")([^\"]*)(\")",
@@ -82,10 +81,7 @@ public class LogAspect {
      */
     @Around("logPointcut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        // 记录开始时间
         long startTime = System.currentTimeMillis();
-
-        // 创建日志对象
         SysOperLog operLog = new SysOperLog();
 
         try {
@@ -96,17 +92,16 @@ public class LogAspect {
             operLog.setTitle(logAnnotation.title() + " - " + logAnnotation.businessType().getDesc());
             operLog.setMethod(signature.getDeclaringTypeName() + "." + signature.getName());
 
-            // 获取请求信息
-            HttpServletRequest request = getRequest();
+            // 获取请求信息（使用 HttpRequestHolder，无需手动获取 request）
+            HttpServletRequest request = HttpRequestHolder.get();
             if (request != null) {
                 operLog.setRequestMethod(request.getMethod());
                 operLog.setOperUrl(request.getRequestURI());
-                operLog.setOperIp(getClientIp(request));
+                operLog.setOperIp(HttpRequestHolder.getClientIp());  // 直接调用，无需重复实现
             }
 
             // 获取操作人（从 JWT Token 中解析）
-            String username = getUsernameFromToken(request);
-            operLog.setOperName(username != null ? username : "unknown");
+            operLog.setOperName(getUsernameFromToken(request));
 
             // 记录请求参数（脱敏处理）
             String params = objectMapper.writeValueAsString(joinPoint.getArgs());
@@ -118,18 +113,16 @@ public class LogAspect {
             // 记录返回结果（脱敏处理）
             String resultStr = objectMapper.writeValueAsString(result);
             operLog.setJsonResult(desensitize(resultStr));
-            operLog.setStatus((byte) 0); // 成功
+            operLog.setStatus((byte) 0);
 
             return result;
 
         } catch (Throwable e) {
-            // 记录异常信息
-            operLog.setStatus((byte) 1); // 异常
+            operLog.setStatus((byte) 1);
             operLog.setErrorMsg(truncate(e.getMessage(), 2000));
             throw e;
 
         } finally {
-            // 记录耗时和时间
             long costTime = System.currentTimeMillis() - startTime;
             operLog.setCostTime(costTime);
             operLog.setOperTime(LocalDateTime.now());
@@ -142,8 +135,7 @@ public class LogAspect {
     }
 
     /**
-     * 异步保存日志（不影响业务接口响应时间）
-     * @Async注解会开启新的线程自动执行的，不会阻塞业务线程
+     * 异步保存日志
      */
     @Async
     public void asyncSaveLog(SysOperLog operLog) {
@@ -156,30 +148,24 @@ public class LogAspect {
 
     /**
      * 敏感信息脱敏
-     *
-     * 处理规则：
-     * 1. password 字段值替换为 ***
-     * 2. 身份证号保留前3后4：110***1234
-     * 3. 手机号保留前3后4：138****8000
      */
     private String desensitize(String content) {
         if (content == null || content.isEmpty()) {
             return content;
         }
 
-        // 截断过长内容
         content = truncate(content, 2000);
 
-        // 1. 密码脱敏：将 password 字段值替换为 ***
+        // 密码脱敏
         content = PASSWORD_PATTERN.matcher(content).replaceAll("$1***$3");
 
-        // 2. 身份证号脱敏：保留前3后4
+        // 身份证号脱敏：保留前3后4
         content = ID_CARD_PATTERN.matcher(content).replaceAll(match -> {
             String idCard = match.group();
             return idCard.substring(0, 3) + "***" + idCard.substring(14);
         });
 
-        // 3. 手机号脱敏：保留前3后4
+        // 手机号脱敏：保留前3后4
         content = PHONE_PATTERN.matcher(content).replaceAll(match -> {
             String phone = match.group();
             return phone.substring(0, 3) + "****" + phone.substring(7);
@@ -196,40 +182,6 @@ public class LogAspect {
             return null;
         }
         return str.length() > maxLength ? str.substring(0, maxLength) : str;
-    }
-
-    /**
-     * 获取当前请求
-     */
-    private HttpServletRequest getRequest() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        return attributes != null ? attributes.getRequest() : null;
-    }
-
-    /**
-     * 获取客户端真实 IP
-     *
-     * 优先级：X-Forwarded-For > Proxy-Client-IP > WL-Proxy-Client-IP > X-Real-IP > remoteAddr
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("X-Real-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        // 多个代理时取第一个
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-        return ip;
     }
 
     /**
