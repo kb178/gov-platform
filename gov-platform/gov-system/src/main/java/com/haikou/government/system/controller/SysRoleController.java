@@ -1,7 +1,9 @@
 package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
+import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.RoleDTO;
+import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.SysRoleService;
 import com.haikou.government.system.vo.RoleVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +59,7 @@ public class SysRoleController {
      * @param roleDTO 角色参数
      * @return 是否成功
      */
+    @Log(title = "角色管理", businessType = BusinessType.INSERT)
     @Operation(summary = "新增角色", description = "添加新角色")
     @PostMapping
     public R<Boolean> add(@Valid @RequestBody RoleDTO roleDTO) {
@@ -70,6 +73,7 @@ public class SysRoleController {
      * @param roleDTO 角色参数
      * @return 是否成功
      */
+    @Log(title = "角色管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改角色", description = "修改角色信息")
     @PutMapping
     public R<Boolean> update(@Valid @RequestBody RoleDTO roleDTO) {
@@ -83,6 +87,7 @@ public class SysRoleController {
      * @param roleId 角色ID
      * @return 是否成功
      */
+    @Log(title = "角色管理", businessType = BusinessType.DELETE)
     @Operation(summary = "删除角色", description = "删除角色")
     @DeleteMapping("/{roleId}")
     public R<Boolean> delete(@PathVariable Long roleId) {

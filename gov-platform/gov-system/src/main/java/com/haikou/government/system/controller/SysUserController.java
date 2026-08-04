@@ -2,6 +2,7 @@ package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.security.utils.SecurityUtils;
+import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
@@ -9,6 +10,7 @@ import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
+import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.vo.UserInfoVO;
@@ -53,6 +55,7 @@ public class SysUserController {
     /**
      * 手机号注册
      */
+    @Log(title = "用户管理", businessType = BusinessType.INSERT)
     @Operation(summary = "手机号注册", description = "使用手机号、密码、验证码注册新用户")
     @PostMapping("/register")
     public R<Boolean> register(@Valid @RequestBody RegisterDTO registerDTO) {
@@ -66,6 +69,7 @@ public class SysUserController {
      * @param loginDTO 登录参数
      * @return LoginVO 登录成功信息
      */
+    @Log(title = "用户管理", businessType = BusinessType.QUERY)
     @Operation(summary = "密码登录", description = "使用手机号和密码登录，连续失败5次将锁定15分钟")
     @PostMapping("/login")
     public R<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
@@ -93,6 +97,7 @@ public class SysUserController {
      * @param realNameDTO 实名认证参数（姓名 + 身份证号）
      * @return 是否认证成功
      */
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "实名认证", description = "提交身份证号和姓名进行实名认证")
     @PostMapping("/realNameAuth")
     public R<Boolean> realNameAuth(@Valid @RequestBody RealNameDTO realNameDTO) {
@@ -122,6 +127,7 @@ public class SysUserController {
      * @param changePasswordDTO 修改密码参数（旧密码、新密码、确认密码）
      * @return 是否修改成功
      */
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改密码", description = "已登录用户修改密码")
     @PostMapping("/changePassword")
     public R<Boolean> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
@@ -151,6 +157,7 @@ public class SysUserController {
      * @param updateUserDTO 修改参数（昵称、头像、性别、邮箱）
      * @return 是否修改成功
      */
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改个人信息", description = "修改当前登录用户的昵称、头像、性别、邮箱")
     @PutMapping("/info")
     public R<Boolean> updateUserInfo(@Valid @RequestBody UpdateUserDTO updateUserDTO) {
