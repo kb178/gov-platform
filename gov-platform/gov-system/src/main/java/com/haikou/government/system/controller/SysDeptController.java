@@ -1,7 +1,9 @@
 package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
+import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.DeptDTO;
+import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.SysDeptService;
 import com.haikou.government.system.vo.DeptVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +59,7 @@ public class SysDeptController {
      * @param deptDTO 部门参数
      * @return 是否成功
      */
+    @Log(title = "部门管理", businessType = BusinessType.INSERT)
     @Operation(summary = "新增部门", description = "添加新部门")
     @PostMapping
     public R<Boolean> add(@Valid @RequestBody DeptDTO deptDTO) {
@@ -70,6 +73,7 @@ public class SysDeptController {
      * @param deptDTO 部门参数
      * @return 是否成功
      */
+    @Log(title = "部门管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改部门", description = "修改部门信息")
     @PutMapping
     public R<Boolean> update(@Valid @RequestBody DeptDTO deptDTO) {
@@ -83,6 +87,7 @@ public class SysDeptController {
      * @param deptId 部门ID
      * @return 是否成功
      */
+    @Log(title = "部门管理", businessType = BusinessType.DELETE)
     @Operation(summary = "删除部门", description = "删除部门（不能删除有子部门的部门）")
     @DeleteMapping("/{deptId}")
     public R<Boolean> delete(@PathVariable Long deptId) {

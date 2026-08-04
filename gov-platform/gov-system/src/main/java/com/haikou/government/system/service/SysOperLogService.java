@@ -1,6 +1,8 @@
 package com.haikou.government.system.service;
 
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.system.domain.SysOperLog;
+import com.haikou.government.system.dto.OperLogQueryDTO;
 import com.haikou.government.system.vo.OperLogVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -15,7 +17,15 @@ import java.util.List;
 public interface SysOperLogService extends IService<SysOperLog> {
 
     /**
-     * 查询操作日志列表
+     * 分页查询操作日志
+     *
+     * @param queryDTO 查询参数（包含分页和条件）
+     * @return 分页结果
+     */
+    PageResult<OperLogVO> getOperLogPage(OperLogQueryDTO queryDTO);
+
+    /**
+     * 查询操作日志列表（不分页，用于导出）
      *
      * @return 操作日志列表
      */

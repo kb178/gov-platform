@@ -102,6 +102,7 @@ public class SysRoleController {
      * @param menuIds 菜单ID列表
      * @return 是否成功
      */
+    @Log(title = "角色管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "分配菜单权限", description = "为角色分配菜单权限")
     @PutMapping("/{roleId}/menus")
     public R<Boolean> assignMenus(@PathVariable Long roleId, @RequestBody List<Long> menuIds) {

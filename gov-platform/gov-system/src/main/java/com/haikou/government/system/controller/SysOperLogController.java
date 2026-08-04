@@ -1,6 +1,10 @@
 package com.haikou.government.system.controller;
 
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.domain.R;
+import com.haikou.government.system.annotation.Log;
+import com.haikou.government.system.dto.OperLogQueryDTO;
+import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.SysOperLogService;
 import com.haikou.government.system.vo.OperLogVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +29,20 @@ public class SysOperLogController {
     private SysOperLogService sysOperLogService;
 
     /**
-     * 查询操作日志列表
+     * 分页查询操作日志
+     *
+     * @param queryDTO 查询参数（包含分页和条件）
+     * @return 分页结果
+     */
+    @Operation(summary = "分页查询操作日志", description = "支持按模块标题、操作人、状态、时间范围筛选")
+    @GetMapping("/page")
+    public R<PageResult<OperLogVO>> page(OperLogQueryDTO queryDTO) {
+        PageResult<OperLogVO> pageResult = sysOperLogService.getOperLogPage(queryDTO);
+        return R.ok(pageResult);
+    }
+
+    /**
+     * 查询操作日志列表（不分页）
      *
      * @return 操作日志列表
      */
@@ -44,7 +61,7 @@ public class SysOperLogController {
      */
     @Operation(summary = "查询操作日志详情", description = "根据日志ID查询详情")
     @GetMapping("/{operId}")
-    public R<OperLogVO> getById(@PathVariable Long operId) {
+    public R<OperLogVO> getById(@PathVariable("operId") Long operId) {
         OperLogVO vo = sysOperLogService.getOperLogById(operId);
         return R.ok(vo);
     }
@@ -54,7 +71,8 @@ public class SysOperLogController {
      *
      * @return 是否成功
      */
-    @Operation(summary = "清空操作日志", description = "删除所有操作日志")
+    @Log(title = "操作日志", businessType = BusinessType.DELETE)
+    @Operation(summary = "清空操作日志", description = "删除所有操作日志（仅管理员）")
     @DeleteMapping("/clean")
     public R<Boolean> clean() {
         boolean result = sysOperLogService.cleanOperLog();

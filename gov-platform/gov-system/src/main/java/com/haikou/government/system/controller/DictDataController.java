@@ -1,7 +1,9 @@
 package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
+import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.DictDataDTO;
+import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.DictDataService;
 import com.haikou.government.system.vo.DictDataVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,6 +60,7 @@ public class DictDataController {
      * @param dictDataDTO 字典数据参数
      * @return 是否成功
      */
+    @Log(title = "字典数据", businessType = BusinessType.INSERT)
     @Operation(summary = "新增字典数据", description = "添加新字典数据")
     @PostMapping
     public R<Boolean> add(@Valid @RequestBody DictDataDTO dictDataDTO) {
@@ -71,6 +74,7 @@ public class DictDataController {
      * @param dictDataDTO 字典数据参数
      * @return 是否成功
      */
+    @Log(title = "字典数据", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改字典数据", description = "修改字典数据信息")
     @PutMapping
     public R<Boolean> update(@Valid @RequestBody DictDataDTO dictDataDTO) {
@@ -84,6 +88,7 @@ public class DictDataController {
      * @param dictCode 字典编码
      * @return 是否成功
      */
+    @Log(title = "字典数据", businessType = BusinessType.DELETE)
     @Operation(summary = "删除字典数据", description = "删除字典数据")
     @DeleteMapping("/{dictCode}")
     public R<Boolean> delete(@PathVariable Long dictCode) {
