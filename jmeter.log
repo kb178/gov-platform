@@ -1,0 +1,22 @@
+2026-07-16 22:57:31,271 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-07-16 22:57:31,283 INFO o.a.j.JMeter: Loading user properties from: /Users/xhl/Downloads/apache-jmeter-5.6.3/bin/user.properties
+2026-07-16 22:57:31,284 INFO o.a.j.JMeter: Loading system properties from: /Users/xhl/Downloads/apache-jmeter-5.6.3/bin/system.properties
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: Version 5.6.3
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: java.version=17.0.19
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: os.name=Mac OS X
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: os.arch=aarch64
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: os.version=26.4
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: java.awt.headless=null
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-07-16 22:57:31,286 INFO o.a.j.JMeter: Available Processors =10
+2026-07-16 22:57:31,289 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-07-16 22:57:31,289 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-07-16 22:57:31,289 INFO o.a.j.JMeter: JMeterHome=/Users/xhl/Downloads/apache-jmeter-5.6.3
+2026-07-16 22:57:31,290 INFO o.a.j.JMeter: user.dir  =/Users/xhl/code/个人github仓库代码
+2026-07-16 22:57:31,290 INFO o.a.j.JMeter: PWD       =/Users/xhl/code/个人github仓库代码
+2026-07-16 22:57:31,299 INFO o.a.j.JMeter: IP: 192.168.1.77 Name: 192.168.1.77 FullName: 192.168.1.77
+2026-07-16 22:57:31,305 INFO o.a.j.JMeter: Loaded icon properties from org/apache/jmeter/images/icon.properties
+2026-07-16 22:57:31,531 INFO o.a.j.JMeterGuiLauncher: Setting LAF to: com.github.weisj.darklaf.DarkLaf:com.github.weisj.darklaf.theme.DarculaTheme

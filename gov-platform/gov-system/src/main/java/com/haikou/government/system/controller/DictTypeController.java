@@ -1,7 +1,9 @@
 package com.haikou.government.system.controller;
 
 import com.haikou.government.common.core.domain.R;
+import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.DictTypeDTO;
+import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.DictTypeService;
 import com.haikou.government.system.vo.DictTypeVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +59,7 @@ public class DictTypeController {
      * @param dictTypeDTO 字典类型参数
      * @return 是否成功
      */
+    @Log(title = "字典管理", businessType = BusinessType.INSERT)
     @Operation(summary = "新增字典类型", description = "添加新字典类型")
     @PostMapping
     public R<Boolean> add(@Valid @RequestBody DictTypeDTO dictTypeDTO) {
@@ -70,6 +73,7 @@ public class DictTypeController {
      * @param dictTypeDTO 字典类型参数
      * @return 是否成功
      */
+    @Log(title = "字典管理", businessType = BusinessType.UPDATE)
     @Operation(summary = "修改字典类型", description = "修改字典类型信息")
     @PutMapping
     public R<Boolean> update(@Valid @RequestBody DictTypeDTO dictTypeDTO) {
@@ -83,6 +87,7 @@ public class DictTypeController {
      * @param dictId 字典类型ID
      * @return 是否成功
      */
+    @Log(title = "字典管理", businessType = BusinessType.DELETE)
     @Operation(summary = "删除字典类型", description = "删除字典类型及关联的字典数据")
     @DeleteMapping("/{dictId}")
     public R<Boolean> delete(@PathVariable Long dictId) {

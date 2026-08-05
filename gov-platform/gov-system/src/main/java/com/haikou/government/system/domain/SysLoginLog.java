@@ -3,16 +3,13 @@ package com.haikou.government.system.domain;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.haikou.government.common.core.domain.BaseEntity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * <p>
- * 登录日志表
- * </p>
+ * 登录日志表（无审计字段）
  *
  * @author xhl
  * @since 2026-08-01
@@ -20,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("sys_login_log")
-public class SysLoginLog extends BaseEntity {
+public class SysLoginLog implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
