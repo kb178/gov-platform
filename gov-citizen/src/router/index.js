@@ -21,6 +21,12 @@ const routes = [
     meta: { title: '登录', layout: 'blank' }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/register/index.vue'),
+    meta: { title: '注册', layout: 'blank' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/error/404.vue'),
@@ -42,8 +48,10 @@ router.beforeEach((to, from, next) => {
 
   // 登录鉴权
   const token = localStorage.getItem('token')
-  if (to.path !== '/login' && !token) {
-    // 未登录访问非登录页，跳转到登录页
+  const publicPaths = ['/login', '/register']
+
+  if (!publicPaths.includes(to.path) && !token) {
+    // 未登录访问需要登录的页面，跳转到登录页
     next('/login')
   } else if (to.path === '/login' && token) {
     // 已登录访问登录页，跳转到首页

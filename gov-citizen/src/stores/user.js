@@ -5,7 +5,7 @@ import { login, logout, getUserInfo, loginBySms, sendSmsCode } from '@/api/user'
 export const useUserStore = defineStore('user', () => {
   // 状态
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref(null)
+  const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || 'null'))
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
@@ -23,6 +23,7 @@ export const useUserStore = defineStore('user', () => {
       nickname: data.nickname,
       userType: data.userType
     }
+    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
     return data
   }
 
@@ -37,6 +38,7 @@ export const useUserStore = defineStore('user', () => {
       nickname: data.nickname,
       userType: data.userType
     }
+    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
     return data
   }
 
@@ -66,6 +68,7 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     userInfo.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
   }
 
   return {

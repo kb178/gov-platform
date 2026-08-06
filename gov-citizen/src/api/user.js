@@ -9,6 +9,20 @@ export function login(data) {
   })
 }
 
+// 用户注册
+export function register(data) {
+  return request({
+    url: '/system/sysUser/register',
+    method: 'post',
+    data: {
+      phone: data.phone,
+      code: data.code,
+      password: data.password,
+      confirmPassword: data.confirmPassword
+    }
+  })
+}
+
 // 用户登出
 export function logout() {
   return request({
@@ -29,7 +43,7 @@ export function getUserInfo() {
 export function sendSmsCode(phone) {
   return request({
     url: '/system/sysUser/sendCode',
-    method: 'get',
+    method: 'post',
     params: { phone }
   })
 }
