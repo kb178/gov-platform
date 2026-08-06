@@ -1,0 +1,102 @@
+// 全局样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  color: $text-primary;
+  background-color: $bg-color;
+}
+
+a {
+  color: $primary-color;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+
+  &:hover {
+    background: #9ca3af;
+  }
+}
+
+// 页面容器
+.page-container {
+  background: $bg-white;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  box-shadow: $shadow-sm;
+}
+
+// 页面标题
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xl;
+
+  .title {
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+// 搜索栏
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+  padding: $spacing-lg;
+  background: $bg-white;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+}
+
+// 表格操作列
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+// 文本溢出省略
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 清除浮动
+.clearfix::after {
+  content: '';
+  display: table;
+  clear: both;
+}
