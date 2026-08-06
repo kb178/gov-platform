@@ -34,8 +34,26 @@ export function logout() {
 // 获取用户信息
 export function getUserInfo() {
   return request({
-    url: '/user/info',
+    url: '/system/sysUser/info',
     method: 'get'
+  })
+}
+
+// 修改个人信息
+export function updateUserInfo(data) {
+  return request({
+    url: '/system/sysUser/info',
+    method: 'put',
+    data
+  })
+}
+
+// 修改密码
+export function changePassword(data) {
+  return request({
+    url: '/system/sysUser/changePassword',
+    method: 'post',
+    data
   })
 }
 
@@ -53,15 +71,6 @@ export function loginBySms(data) {
   return request({
     url: '/system/sysUser/smsLogin',
     method: 'post',
-    data
-  })
-}
-
-// 修改密码
-export function updatePassword(data) {
-  return request({
-    url: '/user/password',
-    method: 'put',
     data
   })
 }
