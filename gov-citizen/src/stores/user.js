@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login, logout, getUserInfo } from '@/api/user'
+import { login, logout, getUserInfo, loginBySms, sendSmsCode } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -11,13 +11,38 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = computed(() => !!token.value)
   const username = computed(() => userInfo.value?.username || '')
 
-  // 登录
+  // 密码登录
   async function loginAction(loginForm) {
     const { data } = await login(loginForm)
-    token.value = data.token
-    localStorage.setItem('token', data.token)
-    await getUserInfoAction()
+    token.value = data.accessToken
+    localStorage.setItem('token', data.accessToken)
+    // 直接使用登录接口返回的用户信息
+    userInfo.value = {
+      userId: data.userId,
+      username: data.username,
+      nickname: data.nickname,
+      userType: data.userType
+    }
     return data
+  }
+
+  // 短信验证码登录
+  async function loginBySmsAction(loginForm) {
+    const { data } = await loginBySms(loginForm)
+    token.value = data.accessToken
+    localStorage.setItem('token', data.accessToken)
+    userInfo.value = {
+      userId: data.userId,
+      username: data.username,
+      nickname: data.nickname,
+      userType: data.userType
+    }
+    return data
+  }
+
+  // 发送验证码
+  async function sendSmsCodeAction(phone) {
+    return await sendSmsCode(phone)
   }
 
   // 获取用户信息
@@ -49,6 +74,8 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     username,
     loginAction,
+    loginBySmsAction,
+    sendSmsCodeAction,
     getUserInfoAction,
     logoutAction,
     resetState

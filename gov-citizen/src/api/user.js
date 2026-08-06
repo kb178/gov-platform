@@ -3,7 +3,7 @@ import request from './index'
 // 用户登录
 export function login(data) {
   return request({
-    url: '/user/login',
+    url: '/system/sysUser/login',
     method: 'post',
     data
   })
@@ -28,16 +28,16 @@ export function getUserInfo() {
 // 发送短信验证码
 export function sendSmsCode(phone) {
   return request({
-    url: '/user/sms/send',
-    method: 'post',
-    data: { phone }
+    url: '/system/sysUser/sendCode',
+    method: 'get',
+    params: { phone }
   })
 }
 
 // 短信验证码登录
 export function loginBySms(data) {
   return request({
-    url: '/user/login/sms',
+    url: '/system/sysUser/smsLogin',
     method: 'post',
     data
   })

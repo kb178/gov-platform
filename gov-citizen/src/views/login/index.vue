@@ -250,8 +250,7 @@ onBeforeUnmount(() => {
 const handleSendSms = async () => {
   try {
     await smsFormRef.value.validateField('phone')
-    // TODO: 调用发送验证码接口
-    // await userStore.sendSmsCode(smsForm.phone)
+    await userStore.sendSmsCodeAction(smsForm.phone)
 
     ElMessage.success('验证码已发送')
     countdown.value = 60
@@ -272,14 +271,10 @@ const handlePasswordLogin = async () => {
     await passwordFormRef.value.validate()
     loading.value = true
 
-    // TODO: 调用密码登录接口
-    // await userStore.loginByPassword({
-    //   phone: passwordForm.phone,
-    //   password: passwordForm.password
-    // })
-
-    // 模拟登录成功
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await userStore.loginAction({
+      phone: passwordForm.phone,
+      password: passwordForm.password
+    })
 
     ElMessage.success('登录成功')
     router.push('/')
@@ -296,14 +291,10 @@ const handleSmsLogin = async () => {
     await smsFormRef.value.validate()
     loading.value = true
 
-    // TODO: 调用验证码登录接口
-    // await userStore.loginBySms({
-    //   phone: smsForm.phone,
-    //   code: smsForm.code
-    // })
-
-    // 模拟登录成功
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await userStore.loginBySmsAction({
+      phone: smsForm.phone,
+      code: smsForm.code
+    })
 
     ElMessage.success('登录成功')
     router.push('/')

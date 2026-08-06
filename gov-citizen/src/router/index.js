@@ -39,7 +39,18 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title
     ? `${to.meta.title} - 海口政务服务平台`
     : '海口政务服务平台'
-  next()
+
+  // 登录鉴权
+  const token = localStorage.getItem('token')
+  if (to.path !== '/login' && !token) {
+    // 未登录访问非登录页，跳转到登录页
+    next('/login')
+  } else if (to.path === '/login' && token) {
+    // 已登录访问登录页，跳转到首页
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router
