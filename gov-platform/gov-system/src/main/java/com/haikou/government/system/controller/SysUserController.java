@@ -1,5 +1,6 @@
 package com.haikou.government.system.controller;
 
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.security.utils.SecurityUtils;
 import com.haikou.government.system.annotation.Log;
@@ -10,10 +11,14 @@ import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
+import com.haikou.government.system.dto.UserAddDTO;
+import com.haikou.government.system.dto.UserQueryDTO;
+import com.haikou.government.system.dto.UserUpdateDTO;
 import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.vo.UserInfoVO;
+import com.haikou.government.system.vo.UserVO;
 import com.haikou.government.system.service.SmsService;
 import com.haikou.government.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +27,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 用户表 前端控制器
@@ -177,6 +184,93 @@ public class SysUserController {
     @PostMapping("/resetPassword")
     public R<Boolean> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
         boolean result = sysUserService.resetPassword(resetPasswordDTO);
+        return R.ok(result);
+    }
+
+    // ==================== 管理端接口 ====================
+
+    /**
+     * 用户分页列表（管理端）
+     */
+    @Operation(summary = "用户分页列表", description = "管理员查看用户列表，支持按用户名、手机号、用户类型、状态筛选")
+    @GetMapping("/admin/page")
+    public R<PageResult<UserVO>> getUserPage(UserQueryDTO queryDTO) {
+        PageResult<UserVO> pageResult = sysUserService.getUserPage(queryDTO);
+        return R.ok(pageResult);
+    }
+
+    /**
+     * 用户详情（管理端）
+     */
+    @Operation(summary = "用户详情", description = "管理员查看用户详细信息")
+    @GetMapping("/admin/{userId}")
+    public R<UserVO> getUserDetail(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable("userId") Long userId) {
+        UserVO userVO = sysUserService.getUserDetail(userId);
+        return R.ok(userVO);
+    }
+
+    /**
+     * 新增用户（管理端）
+     */
+    @Log(title = "用户管理", businessType = BusinessType.INSERT)
+    @Operation(summary = "新增用户", description = "管理员创建新用户")
+    @PostMapping("/admin")
+    public R<Boolean> addUser(@Valid @RequestBody UserAddDTO userAddDTO) {
+        boolean result = sysUserService.addUser(userAddDTO);
+        return R.ok(result);
+    }
+
+    /**
+     * 修改用户（管理端）
+     */
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
+    @Operation(summary = "修改用户", description = "管理员修改用户信息")
+    @PutMapping("/admin")
+    public R<Boolean> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        boolean result = sysUserService.updateUser(userUpdateDTO);
+        return R.ok(result);
+    }
+
+    /**
+     * 删除用户（管理端）
+     */
+    @Log(title = "用户管理", businessType = BusinessType.DELETE)
+    @Operation(summary = "删除用户", description = "管理员删除用户（逻辑删除）")
+    @DeleteMapping("/admin/{userId}")
+    public R<Boolean> deleteUser(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable("userId") Long userId) {
+        boolean result = sysUserService.deleteUser(userId);
+        return R.ok(result);
+    }
+
+    /**
+     * 重置用户密码（管理端）
+     */
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
+    @Operation(summary = "重置密码", description = "管理员重置用户密码为默认密码（123456）")
+    @PutMapping("/admin/resetPassword/{userId}")
+    public R<Boolean> resetUserPassword(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable("userId") Long userId) {
+        boolean result = sysUserService.resetUserPassword(userId);
+        return R.ok(result);
+    }
+
+    /**
+     * 分配用户角色（管理端）
+     */
+    @Log(title = "用户管理", businessType = BusinessType.GRANT)
+    @Operation(summary = "分配角色", description = "管理员为用户分配角色")
+    @PutMapping("/admin/assignRoles/{userId}")
+    public R<Boolean> assignRoles(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable("userId") Long userId,
+            @Parameter(description = "角色ID列表", required = true)
+            @RequestBody List<Long> roleIds) {
+        boolean result = sysUserService.assignRoles(userId, roleIds);
         return R.ok(result);
     }
 }

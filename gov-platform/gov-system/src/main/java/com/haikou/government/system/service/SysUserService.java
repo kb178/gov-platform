@@ -1,5 +1,6 @@
 package com.haikou.government.system.service;
 
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.system.domain.SysUser;
 import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
@@ -8,9 +9,13 @@ import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
+import com.haikou.government.system.dto.UserAddDTO;
+import com.haikou.government.system.dto.UserQueryDTO;
+import com.haikou.government.system.dto.UserUpdateDTO;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.vo.UserInfoVO;
+import com.haikou.government.system.vo.UserVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -97,4 +102,63 @@ public interface SysUserService extends IService<SysUser> {
      * @return 是否重置成功
      */
     boolean resetPassword(ResetPasswordDTO resetPasswordDTO);
+
+    // ==================== 管理端接口 ====================
+
+    /**
+     * 用户分页列表
+     *
+     * @param queryDTO 查询参数
+     * @return 分页结果
+     */
+    PageResult<UserVO> getUserPage(UserQueryDTO queryDTO);
+
+    /**
+     * 用户详情（管理端）
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    UserVO getUserDetail(Long userId);
+
+    /**
+     * 新增用户（管理员操作）
+     *
+     * @param userAddDTO 新增参数
+     * @return 是否成功
+     */
+    boolean addUser(UserAddDTO userAddDTO);
+
+    /**
+     * 修改用户（管理员操作）
+     *
+     * @param userUpdateDTO 修改参数
+     * @return 是否成功
+     */
+    boolean updateUser(UserUpdateDTO userUpdateDTO);
+
+    /**
+     * 删除用户（逻辑删除）
+     *
+     * @param userId 用户ID
+     * @return 是否成功
+     */
+    boolean deleteUser(Long userId);
+
+    /**
+     * 重置用户密码（管理员操作）
+     *
+     * @param userId 用户ID
+     * @return 是否成功
+     */
+    boolean resetUserPassword(Long userId);
+
+    /**
+     * 分配用户角色
+     *
+     * @param userId 用户ID
+     * @param roleIds 角色ID列表
+     * @return 是否成功
+     */
+    boolean assignRoles(Long userId, java.util.List<Long> roleIds);
 }

@@ -35,17 +35,18 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      */
     @Override
     public PageResult<ConfigVO> getConfigPage(ConfigQueryDTO queryDTO) {
+        //构造条件，条件由ConfigQueryDTO传递过来
         LambdaQueryWrapper<SysConfig> wrapper = buildQueryWrapper(queryDTO);
-
+        //构造查询条件
         Page<SysConfig> page = this.page(
                 new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize()),
                 wrapper
         );
-
+        // 转换为VO
         List<ConfigVO> voList = page.getRecords().stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
-
+        // 返回结果
         return new PageResult<>(page.getTotal(), voList, queryDTO.getPageNum(), queryDTO.getPageSize());
     }
 
@@ -155,10 +156,12 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
 
         if (StringUtils.hasText(queryDTO.getConfigName())) {
+            // 参数名称（模糊查询）
             wrapper.like(SysConfig::getConfigName, queryDTO.getConfigName());
         }
 
         if (StringUtils.hasText(queryDTO.getConfigKey())) {
+            // 参数键名（模糊查询）
             wrapper.like(SysConfig::getConfigKey, queryDTO.getConfigKey());
         }
 

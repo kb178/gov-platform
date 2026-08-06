@@ -23,6 +23,9 @@ public enum BusinessType {
     /** 导出 */
     EXPORT("导出"),
 
+    /** 授权 */
+    GRANT("授权"),
+
     /** 其他 */
     OTHER("其他");
 

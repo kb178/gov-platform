@@ -1,6 +1,8 @@
 package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.common.core.utils.JwtUtils;
 import com.haikou.government.common.core.utils.HttpRequestHolder;
@@ -8,6 +10,7 @@ import com.haikou.government.common.redis.utils.RedisUtils;
 import com.haikou.government.common.security.utils.PasswordUtils;
 import com.haikou.government.system.domain.SysUser;
 import com.haikou.government.system.domain.SysLoginLog;
+import com.haikou.government.system.domain.SysUserRole;
 import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
@@ -15,19 +18,30 @@ import com.haikou.government.system.dto.RegisterDTO;
 import com.haikou.government.system.dto.ResetPasswordDTO;
 import com.haikou.government.system.dto.SmsLoginDTO;
 import com.haikou.government.system.dto.UpdateUserDTO;
+import com.haikou.government.system.dto.UserAddDTO;
+import com.haikou.government.system.dto.UserQueryDTO;
+import com.haikou.government.system.dto.UserUpdateDTO;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.vo.UserInfoVO;
+import com.haikou.government.system.vo.UserVO;
 import com.haikou.government.system.mapper.SysUserMapper;
 import com.haikou.government.system.mapper.SysLoginLogMapper;
+import com.haikou.government.system.mapper.SysUserRoleMapper;
+import com.haikou.government.system.mapper.SysRoleMapper;
 import com.haikou.government.system.service.SmsService;
 import com.haikou.government.system.service.SysUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -52,6 +66,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Autowired
     private SysLoginLogMapper loginLogMapper;
+
+    @Autowired
+    private SysUserRoleMapper userRoleMapper;
+
+    @Autowired
+    private SysRoleMapper roleMapper;
 
     /** 登录失败次数 Redis Key 前缀 */
     private static final String LOGIN_FAIL_KEY = "login:fail:";
@@ -503,5 +523,301 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         return success;
+    }
+
+    // ==================== 管理端接口实现 ====================
+
+    /**
+     * 用户分页列表
+     */
+    @Override
+    public PageResult<UserVO> getUserPage(UserQueryDTO queryDTO) {
+        // 1. 构建查询条件
+        LambdaQueryWrapper<SysUser> queryWrapper = buildUserQueryWrapper(queryDTO);
+
+        // 2. 执行分页查询
+        Page<SysUser> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<SysUser> userPage = baseMapper.selectPage(page, queryWrapper);
+
+        // 3. 转换为 VO
+        List<UserVO> voList = userPage.getRecords().stream()
+                .map(this::convertToUserVO)
+                .collect(Collectors.toList());
+
+        // 4. 返回分页结果
+        return new PageResult<>(userPage.getTotal(), voList, queryDTO.getPageNum(), queryDTO.getPageSize());
+    }
+
+    /**
+     * 用户详情（管理端）
+     */
+    @Override
+    public UserVO getUserDetail(Long userId) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        return convertToUserVO(user);
+    }
+
+    /**
+     * 新增用户（管理员操作）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean addUser(UserAddDTO userAddDTO) {
+        // 1. 校验用户名是否已存在
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getUsername, userAddDTO.getUsername());
+        Long count = baseMapper.selectCount(queryWrapper);
+        if (count > 0) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 2. 校验手机号是否已存在
+        if (StringUtils.hasText(userAddDTO.getPhone())) {
+            queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SysUser::getPhone, userAddDTO.getPhone());
+            count = baseMapper.selectCount(queryWrapper);
+            if (count > 0) {
+                throw new BusinessException("手机号已被使用");
+            }
+        }
+
+        // 3. 创建用户对象
+        SysUser user = new SysUser();
+        user.setUsername(userAddDTO.getUsername());
+        user.setPassword(PasswordUtils.encode(userAddDTO.getPassword()));
+        user.setNickname(userAddDTO.getNickname());
+        user.setPhone(userAddDTO.getPhone());
+        user.setEmail(userAddDTO.getEmail());
+        user.setSex(userAddDTO.getSex());
+        user.setUserType(userAddDTO.getUserType());
+        user.setDeptId(userAddDTO.getDeptId());
+        user.setRemark(userAddDTO.getRemark());
+        user.setStatus((byte) 0);
+
+        // 4. 保存用户
+        boolean success = save(user);
+        if (!success) {
+            throw new BusinessException("新增用户失败");
+        }
+
+        // 5. 分配角色
+        if (userAddDTO.getRoleIds() != null && !userAddDTO.getRoleIds().isEmpty()) {
+            saveUserRoles(user.getUserId(), userAddDTO.getRoleIds());
+        }
+
+        log.info("新增用户成功：username={}", userAddDTO.getUsername());
+        return true;
+    }
+
+    /**
+     * 修改用户（管理员操作）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateUser(UserUpdateDTO userUpdateDTO) {
+        // 1. 查询用户
+        SysUser user = getById(userUpdateDTO.getUserId());
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 校验手机号是否被其他用户使用
+        if (StringUtils.hasText(userUpdateDTO.getPhone())) {
+            LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SysUser::getPhone, userUpdateDTO.getPhone())
+                        .ne(SysUser::getUserId, userUpdateDTO.getUserId());
+            Long count = baseMapper.selectCount(queryWrapper);
+            if (count > 0) {
+                throw new BusinessException("手机号已被其他用户使用");
+            }
+        }
+
+        // 3. 更新用户信息
+        if (userUpdateDTO.getNickname() != null) {
+            user.setNickname(userUpdateDTO.getNickname());
+        }
+        if (userUpdateDTO.getPhone() != null) {
+            user.setPhone(userUpdateDTO.getPhone());
+        }
+        if (userUpdateDTO.getEmail() != null) {
+            user.setEmail(userUpdateDTO.getEmail());
+        }
+        if (userUpdateDTO.getSex() != null) {
+            user.setSex(userUpdateDTO.getSex());
+        }
+        if (userUpdateDTO.getUserType() != null) {
+            user.setUserType(userUpdateDTO.getUserType());
+        }
+        if (userUpdateDTO.getDeptId() != null) {
+            user.setDeptId(userUpdateDTO.getDeptId());
+        }
+        if (userUpdateDTO.getStatus() != null) {
+            user.setStatus(userUpdateDTO.getStatus());
+        }
+        if (userUpdateDTO.getRemark() != null) {
+            user.setRemark(userUpdateDTO.getRemark());
+        }
+
+        // 4. 保存更新
+        boolean success = updateById(user);
+        if (success) {
+            log.info("修改用户成功：userId={}", userUpdateDTO.getUserId());
+        }
+        return success;
+    }
+
+    /**
+     * 删除用户（逻辑删除）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteUser(Long userId) {
+        // 1. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 删除用户（逻辑删除）
+        boolean success = removeById(userId);
+        if (success) {
+            // 3. 删除用户角色关联
+            LambdaQueryWrapper<SysUserRole> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SysUserRole::getUserId, userId);
+            userRoleMapper.delete(queryWrapper);
+
+            log.info("删除用户成功：userId={}, username={}", userId, user.getUsername());
+        }
+        return success;
+    }
+
+    /**
+     * 重置用户密码（管理员操作）
+     */
+    @Override
+    public boolean resetUserPassword(Long userId) {
+        // 1. 查询用户
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 重置为默认密码（123456）
+        String defaultPassword = "123456";
+        user.setPassword(PasswordUtils.encode(defaultPassword));
+
+        // 3. 保存更新
+        boolean success = updateById(user);
+        if (success) {
+            log.info("重置用户密码成功：userId={}", userId);
+        }
+        return success;
+    }
+
+    /**
+     * 分配用户角色
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean assignRoles(Long userId, List<Long> roleIds) {
+        // 1. 校验用户是否存在
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 删除原有角色关联
+        LambdaQueryWrapper<SysUserRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUserRole::getUserId, userId);
+        userRoleMapper.delete(queryWrapper);
+
+        // 3. 保存新的角色关联
+        if (roleIds != null && !roleIds.isEmpty()) {
+            saveUserRoles(userId, roleIds);
+        }
+
+        log.info("分配用户角色成功：userId={}, roleIds={}", userId, roleIds);
+        return true;
+    }
+
+    // ==================== 私有方法 ====================
+
+    /**
+     * 构建用户查询条件
+     */
+    private LambdaQueryWrapper<SysUser> buildUserQueryWrapper(UserQueryDTO queryDTO) {
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (StringUtils.hasText(queryDTO.getUsername())) {
+            queryWrapper.like(SysUser::getUsername, queryDTO.getUsername());
+        }
+        if (StringUtils.hasText(queryDTO.getPhone())) {
+            queryWrapper.like(SysUser::getPhone, queryDTO.getPhone());
+        }
+        if (queryDTO.getUserType() != null) {
+            queryWrapper.eq(SysUser::getUserType, queryDTO.getUserType());
+        }
+        if (queryDTO.getStatus() != null) {
+            queryWrapper.eq(SysUser::getStatus, queryDTO.getStatus());
+        }
+        if (queryDTO.getDeptId() != null) {
+            queryWrapper.eq(SysUser::getDeptId, queryDTO.getDeptId());
+        }
+
+        queryWrapper.orderByDesc(SysUser::getCreateTime);
+        return queryWrapper;
+    }
+
+    /**
+     * 转换为 UserVO
+     */
+    private UserVO convertToUserVO(SysUser user) {
+        UserVO vo = UserVO.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .nickname(user.getNickname())
+                .realName(user.getRealName())
+                .phone(maskPhone(user.getPhone()))
+                .email(user.getEmail())
+                .sex(user.getSex())
+                .avatar(user.getAvatar())
+                .userType(user.getUserType())
+                .deptId(user.getDeptId())
+                .status(user.getStatus())
+                .realNameStatus(user.getRealNameStatus())
+                .loginIp(user.getLoginIp())
+                .loginTime(user.getLoginTime())
+                .createTime(user.getCreateTime())
+                .roleIds(new ArrayList<>())
+                .roleNames(new ArrayList<>())
+                .build();
+
+        // 查询用户角色
+        LambdaQueryWrapper<SysUserRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUserRole::getUserId, user.getUserId());
+        List<SysUserRole> userRoles = userRoleMapper.selectList(queryWrapper);
+        if (userRoles != null && !userRoles.isEmpty()) {
+            List<Long> roleIds = userRoles.stream()
+                    .map(SysUserRole::getRoleId)
+                    .collect(Collectors.toList());
+            vo.setRoleIds(roleIds);
+        }
+
+        return vo;
+    }
+
+    /**
+     * 保存用户角色关联
+     */
+    private void saveUserRoles(Long userId, List<Long> roleIds) {
+        for (Long roleId : roleIds) {
+            SysUserRole userRole = new SysUserRole();
+            userRole.setUserId(userId);
+            userRole.setRoleId(roleId);
+            userRoleMapper.insert(userRole);
+        }
     }
 }

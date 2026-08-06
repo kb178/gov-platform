@@ -127,4 +127,10 @@ public class SysUser extends BaseEntity {
     @TableLogic
     @TableField("del_flag")
     private Integer delFlag;
+
+    /**
+     * 备注
+     */
+    @TableField("remark")
+    private String remark;
 }
