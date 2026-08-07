@@ -52,19 +52,22 @@ router.beforeEach((to, from, next) => {
     ? `${to.meta.title} - 海口政务服务平台`
     : '海口政务服务平台'
 
-  // 登录鉴权
-  const token = localStorage.getItem('token')
-  const publicPaths = ['/login', '/register']
+  // TODO: 测试阶段暂时关闭登录拦截，上线前恢复
+  next()
 
-  if (!publicPaths.includes(to.path) && !token) {
-    // 未登录访问需要登录的页面，跳转到登录页
-    next('/login')
-  } else if (to.path === '/login' && token) {
-    // 已登录访问登录页，跳转到首页
-    next('/')
-  } else {
-    next()
-  }
+  // // 登录鉴权
+  // const token = localStorage.getItem('token')
+  // const publicPaths = ['/login', '/register']
+  //
+  // if (!publicPaths.includes(to.path) && !token) {
+  //   // 未登录访问需要登录的页面，跳转到登录页
+  //   next('/login')
+  // } else if (to.path === '/login' && token) {
+  //   // 已登录访问登录页，跳转到首页
+  //   next('/')
+  // } else {
+  //   next()
+  // }
 })
 
 export default router
