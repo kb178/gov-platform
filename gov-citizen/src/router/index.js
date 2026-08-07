@@ -53,6 +53,12 @@ const routes = [
         name: 'Verify',
         component: () => import('@/views/verify/index.vue'),
         meta: { title: '实名认证' }
+      },
+      {
+        path: 'message',
+        name: 'Message',
+        component: () => import('@/views/message/index.vue'),
+        meta: { title: '消息中心' }
       }
     ]
   },
@@ -67,6 +73,12 @@ const routes = [
     name: 'Register',
     component: () => import('@/views/register/index.vue'),
     meta: { title: '注册', layout: 'blank' }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/forgot-password/index.vue'),
+    meta: { title: '找回密码', layout: 'blank' }
   },
   {
     path: '/:pathMatch(.*)*',
