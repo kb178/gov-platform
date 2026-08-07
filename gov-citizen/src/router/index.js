@@ -27,6 +27,18 @@ const routes = [
     meta: { title: '注册', layout: 'blank' }
   },
   {
+    path: '/items',
+    name: 'Items',
+    component: () => import('@/views/items/index.vue'),
+    meta: { title: '事项办理' }
+  },
+  {
+    path: '/items/:id',
+    name: 'ItemDetail',
+    component: () => import('@/views/items/detail.vue'),
+    meta: { title: '事项详情' }
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('@/views/profile/index.vue'),
