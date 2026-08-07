@@ -8,7 +8,9 @@
           <span class="separator">/</span>
           <router-link to="/items">事项办理</router-link>
           <span class="separator">/</span>
-          <router-link :to="`/items?category=${itemDetail.category}`">{{ itemDetail.categoryName }}</router-link>
+          <router-link :to="`/items?category=${itemDetail.category}`">{{
+            itemDetail.categoryName
+          }}</router-link>
           <span class="separator">/</span>
           <span class="current">{{ itemDetail.name }}</span>
         </div>
@@ -36,16 +38,11 @@
               </div>
               <div class="item-actions-bar">
                 <button class="btn-apply" @click="handleApply">立即办理</button>
-                <button
-                  :class="['btn-action', { collected: isCollected }]"
-                  @click="toggleCollect"
-                >
+                <button :class="['btn-action', { collected: isCollected }]" @click="toggleCollect">
                   <span>{{ isCollected ? '★' : '☆' }}</span>
                   {{ isCollected ? '已收藏' : '收藏' }}
                 </button>
-                <button class="btn-action" @click="handleShare">
-                  <span>📤</span> 分享
-                </button>
+                <button class="btn-action" @click="handleShare"><span>📤</span> 分享</button>
               </div>
             </div>
 
@@ -102,11 +99,7 @@
                 办理流程
               </h3>
               <div class="flow-steps">
-                <div
-                  v-for="(step, index) in itemDetail.steps"
-                  :key="index"
-                  class="flow-step"
-                >
+                <div v-for="(step, index) in itemDetail.steps" :key="index" class="flow-step">
                   <div class="step-number">{{ index + 1 }}</div>
                   <div class="step-content">
                     <div class="step-title">{{ step.title }}</div>
@@ -127,9 +120,10 @@
                 <div class="location-info">
                   <h4>{{ itemDetail.location.name }}</h4>
                   <p>
-                    <span class="address">📍 {{ itemDetail.location.address }}</span><br>
-                    📞 电话：{{ itemDetail.location.phone }}<br>
-                    🕐 工作时间：{{ itemDetail.location.hours }}<br>
+                    <span class="address">📍 {{ itemDetail.location.address }}</span
+                    ><br />
+                    📞 电话：{{ itemDetail.location.phone }}<br />
+                    🕐 工作时间：{{ itemDetail.location.hours }}<br />
                     🚌 交通：{{ itemDetail.location.traffic }}
                   </p>
                 </div>
@@ -288,12 +282,12 @@ const handleShare = () => {
 }
 
 // 常见问题点击
-const handleFaqClick = (faq) => {
+const handleFaqClick = faq => {
   ElMessage.info(faq.answer)
 }
 
 // 跳转相关事项
-const goToDetail = (id) => {
+const goToDetail = id => {
   router.push(`/items/${id}`)
 }
 
@@ -325,25 +319,25 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   padding: 24px 0;
 
   a {
-    color: #6B7280;
+    color: #6b7280;
     text-decoration: none;
     transition: color 0.2s;
 
     &:hover {
-      color: #1E40AF;
+      color: #1e40af;
     }
   }
 
   .separator {
-    color: #D1D5DB;
+    color: #d1d5db;
   }
 
   .current {
-    color: #1F2937;
+    color: #1f2937;
   }
 }
 
@@ -379,7 +373,7 @@ onMounted(() => {
   width: 72px;
   height: 72px;
   border-radius: 18px;
-  background: #EFF6FF;
+  background: #eff6ff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,7 +387,7 @@ onMounted(() => {
   h1 {
     font-size: 24px;
     font-weight: 700;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 12px;
   }
 }
@@ -410,13 +404,13 @@ onMounted(() => {
   border-radius: 4px;
 
   &.dept {
-    background: #E0E7FF;
-    color: #6366F1;
+    background: #e0e7ff;
+    color: #6366f1;
   }
 
   &.type {
-    background: #EFF6FF;
-    color: #1E40AF;
+    background: #eff6ff;
+    color: #1e40af;
   }
 }
 
@@ -424,7 +418,7 @@ onMounted(() => {
   display: flex;
   gap: 24px;
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 
   span {
     display: flex;
@@ -443,7 +437,7 @@ onMounted(() => {
   padding: 0 40px;
   font-size: 16px;
   font-weight: 600;
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -451,7 +445,7 @@ onMounted(() => {
   transition: background 0.2s;
 
   &:hover {
-    background: #3B82F6;
+    background: #3b82f6;
   }
 }
 
@@ -459,7 +453,7 @@ onMounted(() => {
   height: 48px;
   padding: 0 24px;
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   color: #374151;
   display: flex;
   align-items: center;
@@ -470,13 +464,13 @@ onMounted(() => {
   font-size: 14px;
 
   &:hover {
-    border-color: #93C5FD;
-    color: #1E40AF;
+    border-color: #93c5fd;
+    color: #1e40af;
   }
 
   &.collected {
-    color: #F59E0B;
-    border-color: #F59E0B;
+    color: #f59e0b;
+    border-color: #f59e0b;
   }
 }
 
@@ -492,13 +486,13 @@ onMounted(() => {
 .section-title {
   font-size: 18px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #f3f4f6;
 
   .icon {
     font-size: 22px;
@@ -522,7 +516,7 @@ onMounted(() => {
       position: absolute;
       left: 0;
       top: 14px;
-      color: #10B981;
+      color: #10b981;
       font-weight: 600;
     }
   }
@@ -532,7 +526,7 @@ onMounted(() => {
 .material-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #F3F4F6;
+  border: 1px solid #f3f4f6;
   border-radius: 8px;
   overflow: hidden;
 
@@ -540,14 +534,14 @@ onMounted(() => {
   td {
     padding: 14px 16px;
     text-align: left;
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid #f3f4f6;
   }
 
   th {
-    background: #F9FAFB;
+    background: #f9fafb;
     font-weight: 600;
     font-size: 13px;
-    color: #6B7280;
+    color: #6b7280;
   }
 
   tr:last-child td {
@@ -561,17 +555,17 @@ onMounted(() => {
 }
 
 .material-required {
-  color: #EF4444;
+  color: #ef4444;
   font-weight: 500;
 }
 
 .material-optional {
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .material-tip {
   font-size: 12px;
-  color: #9CA3AF;
+  color: #9ca3af;
   margin-top: 4px;
 }
 
@@ -598,7 +592,7 @@ onMounted(() => {
     top: 40px;
     bottom: 0;
     width: 2px;
-    background: #F3F4F6;
+    background: #f3f4f6;
   }
 }
 
@@ -606,7 +600,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
   display: flex;
   align-items: center;
@@ -626,13 +620,13 @@ onMounted(() => {
 .step-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 8px;
 }
 
 .step-desc {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   line-height: 1.6;
 }
 
@@ -641,14 +635,14 @@ onMounted(() => {
   display: flex;
   gap: 20px;
   padding: 20px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
 }
 
 .location-icon {
   width: 48px;
   height: 48px;
-  background: #EFF6FF;
+  background: #eff6ff;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -661,18 +655,18 @@ onMounted(() => {
   h4 {
     font-size: 15px;
     font-weight: 600;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 8px;
   }
 
   p {
     font-size: 13px;
-    color: #6B7280;
+    color: #6b7280;
     line-height: 1.8;
   }
 
   .address {
-    color: #3B82F6;
+    color: #3b82f6;
     cursor: pointer;
 
     &:hover {
@@ -697,7 +691,7 @@ onMounted(() => {
   h3 {
     font-size: 16px;
     font-weight: 600;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -708,7 +702,7 @@ onMounted(() => {
 .info-item {
   display: flex;
   padding: 14px 0;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #f3f4f6;
   font-size: 14px;
 
   &:last-child {
@@ -718,16 +712,16 @@ onMounted(() => {
 
 .info-label {
   width: 80px;
-  color: #6B7280;
+  color: #6b7280;
   flex-shrink: 0;
 }
 
 .info-value {
   flex: 1;
-  color: #1F2937;
+  color: #1f2937;
 
   &.highlight {
-    color: #1E40AF;
+    color: #1e40af;
     font-weight: 500;
   }
 }
@@ -741,27 +735,27 @@ onMounted(() => {
 
 .faq-item {
   padding: 14px 16px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: #EFF6FF;
+    background: #eff6ff;
   }
 }
 
 .faq-question {
   font-size: 14px;
   font-weight: 500;
-  color: #1F2937;
+  color: #1f2937;
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   &::after {
     content: '>';
-    color: #9CA3AF;
+    color: #9ca3af;
   }
 }
 
@@ -782,14 +776,14 @@ onMounted(() => {
   transition: background 0.2s;
 
   &:hover {
-    background: #F9FAFB;
+    background: #f9fafb;
   }
 }
 
 .related-icon {
   width: 36px;
   height: 36px;
-  background: #EFF6FF;
+  background: #eff6ff;
   border-radius: 8px;
   display: flex;
   align-items: center;

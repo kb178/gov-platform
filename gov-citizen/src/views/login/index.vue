@@ -40,10 +40,7 @@
           >
             密码登录
           </div>
-          <div
-            :class="['login-tab', { active: loginType === 'sms' }]"
-            @click="loginType = 'sms'"
-          >
+          <div :class="['login-tab', { active: loginType === 'sms' }]" @click="loginType = 'sms'">
             验证码登录
           </div>
         </div>
@@ -116,10 +113,7 @@
               maxlength="6"
             >
               <template #append>
-                <el-button
-                  :disabled="countdown > 0"
-                  @click="handleSendSms"
-                >
+                <el-button :disabled="countdown > 0" @click="handleSendSms">
                   {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
                 </el-button>
               </template>
@@ -306,7 +300,7 @@ const handleSmsLogin = async () => {
 }
 
 // 第三方登录
-const handleThirdPartyLogin = (type) => {
+const handleThirdPartyLogin = type => {
   ElMessage.info(`${type === 'wechat' ? '微信' : '支付宝'}登录功能开发中`)
 }
 </script>
@@ -315,7 +309,7 @@ const handleThirdPartyLogin = (type) => {
 .login-page {
   min-height: 100vh;
   display: flex;
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #60A5FA 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
 }
 
 /* 左侧品牌区域 */
@@ -343,8 +337,13 @@ const handleThirdPartyLogin = (type) => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, -30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
+  }
 }
 
 .brand-content {
@@ -559,8 +558,12 @@ const handleThirdPartyLogin = (type) => {
     box-shadow: var(--shadow-md);
   }
 
-  &.wechat { color: #07C160; }
-  &.alipay { color: #1677FF; }
+  &.wechat {
+    color: #07c160;
+  }
+  &.alipay {
+    color: #1677ff;
+  }
 }
 
 /* 用户协议 */

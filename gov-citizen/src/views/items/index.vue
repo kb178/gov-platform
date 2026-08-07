@@ -20,7 +20,7 @@
                 type="text"
                 placeholder="搜索事项名称，如：身份证、营业执照..."
                 @keyup.enter="handleSearch"
-              >
+              />
             </div>
             <button class="search-btn" @click="handleSearch">搜 索</button>
           </div>
@@ -31,9 +31,7 @@
           <!-- 左侧分类 -->
           <aside class="sidebar">
             <div class="category-card">
-              <div class="category-header">
-                <span>📂</span> 事项分类
-              </div>
+              <div class="category-header"><span>📂</span> 事项分类</div>
               <div class="category-list">
                 <div
                   v-for="cat in categories"
@@ -105,8 +103,12 @@
                   </div>
                 </div>
                 <div class="item-actions">
-                  <span class="item-btn item-btn-primary" @click.stop="handleApply(item)">立即办理</span>
-                  <span class="item-btn item-btn-outline" @click.stop="handleItemClick(item)">查看详情</span>
+                  <span class="item-btn item-btn-primary" @click.stop="handleApply(item)"
+                    >立即办理</span
+                  >
+                  <span class="item-btn item-btn-outline" @click.stop="handleItemClick(item)"
+                    >查看详情</span
+                  >
                 </div>
               </div>
 
@@ -130,17 +132,20 @@
                 <span
                   :class="['page-btn', { disabled: currentPage === 1 }]"
                   @click="handlePageChange(currentPage - 1)"
-                >‹</span>
+                  >‹</span
+                >
                 <span
                   v-for="page in displayPages"
                   :key="page"
                   :class="['page-btn', { active: currentPage === page, ellipsis: page === '...' }]"
                   @click="page !== '...' && handlePageChange(page)"
-                >{{ page }}</span>
+                  >{{ page }}</span
+                >
                 <span
                   :class="['page-btn', { disabled: currentPage === totalPages }]"
                   @click="handlePageChange(currentPage + 1)"
-                >›</span>
+                  >›</span
+                >
               </div>
             </div>
           </div>
@@ -184,7 +189,7 @@ const categories = ref([
   { id: 'other', name: '其他服务', icon: '📋', count: 138 }
 ])
 
-const handleCategoryChange = (id) => {
+const handleCategoryChange = id => {
   activeCategory.value = id
   currentPage.value = 1
   fetchItemList()
@@ -200,7 +205,7 @@ const filters = ref([
   { id: 'org', name: '社会组织' }
 ])
 
-const handleFilterChange = (id) => {
+const handleFilterChange = id => {
   activeFilter.value = id
   currentPage.value = 1
   fetchItemList()
@@ -215,7 +220,7 @@ const sortOptions = ref([
   { id: 'new', name: '最新发布' }
 ])
 
-const handleSortChange = (id) => {
+const handleSortChange = id => {
   activeSort.value = id
   fetchItemList()
 }
@@ -410,25 +415,29 @@ const fetchItemList = async () => {
   // 搜索
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    filtered = filtered.filter(item =>
-      item.name.toLowerCase().includes(keyword) ||
-      item.desc.toLowerCase().includes(keyword)
+    filtered = filtered.filter(
+      item => item.name.toLowerCase().includes(keyword) || item.desc.toLowerCase().includes(keyword)
     )
   }
 
   // 排序
   if (activeSort.value === 'hot') {
-    filtered.sort((a, b) => parseInt(b.count.replace(/,/g, '')) - parseInt(a.count.replace(/,/g, '')))
+    filtered.sort(
+      (a, b) => parseInt(b.count.replace(/,/g, '')) - parseInt(a.count.replace(/,/g, ''))
+    )
   }
 
   total.value = filtered.length
-  itemList.value = filtered.slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value)
+  itemList.value = filtered.slice(
+    (currentPage.value - 1) * pageSize.value,
+    currentPage.value * pageSize.value
+  )
 
   loading.value = false
 }
 
 // ========== 分页 ==========
-const handlePageChange = (page) => {
+const handlePageChange = page => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
   fetchItemList()
@@ -436,11 +445,11 @@ const handlePageChange = (page) => {
 }
 
 // ========== 操作 ==========
-const handleItemClick = (item) => {
+const handleItemClick = item => {
   router.push(`/items/${item.id}`)
 }
 
-const handleApply = (item) => {
+const handleApply = item => {
   if (!localStorage.getItem('token')) {
     ElMessage.warning('请先登录')
     router.push('/login')
@@ -463,7 +472,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .items-page {
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .container {
@@ -474,7 +483,7 @@ onMounted(() => {
 
 /* 页面横幅 */
 .page-banner {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 32px 0;
   color: white;
 
@@ -526,18 +535,18 @@ onMounted(() => {
     width: 100%;
     height: 44px;
     padding: 0 16px 0 44px;
-    border: 1px solid #E5E7EB;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s;
 
     &:focus {
-      border-color: #3B82F6;
+      border-color: #3b82f6;
     }
 
     &::placeholder {
-      color: #9CA3AF;
+      color: #9ca3af;
     }
   }
 }
@@ -545,7 +554,7 @@ onMounted(() => {
 .search-btn {
   width: 100px;
   height: 44px;
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -554,7 +563,7 @@ onMounted(() => {
   transition: background 0.2s;
 
   &:hover {
-    background: #3B82F6;
+    background: #3b82f6;
   }
 }
 
@@ -582,8 +591,8 @@ onMounted(() => {
   padding: 16px 20px;
   font-size: 15px;
   font-weight: 600;
-  color: #1F2937;
-  border-bottom: 1px solid #F3F4F6;
+  color: #1f2937;
+  border-bottom: 1px solid #f3f4f6;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -604,12 +613,12 @@ onMounted(() => {
   gap: 10px;
 
   &:hover {
-    background: #F9FAFB;
+    background: #f9fafb;
   }
 
   &.active {
-    background: #EFF6FF;
-    color: #1E40AF;
+    background: #eff6ff;
+    color: #1e40af;
     font-weight: 500;
   }
 }
@@ -627,11 +636,11 @@ onMounted(() => {
 
 .cat-count {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .category-item.active .cat-count {
-  color: #1E40AF;
+  color: #1e40af;
 }
 
 /* 右侧内容 */
@@ -654,7 +663,7 @@ onMounted(() => {
 
 .filter-label {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   flex-shrink: 0;
 }
 
@@ -670,15 +679,15 @@ onMounted(() => {
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
-  background: #F3F4F6;
+  background: #f3f4f6;
   color: #374151;
 
   &:hover {
-    color: #1E40AF;
+    color: #1e40af;
   }
 
   &.active {
-    background: #1E40AF;
+    background: #1e40af;
     color: white;
   }
 }
@@ -693,10 +702,10 @@ onMounted(() => {
 
 .result-count {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 
   span {
-    color: #1E40AF;
+    color: #1e40af;
     font-weight: 600;
   }
 }
@@ -708,7 +717,7 @@ onMounted(() => {
 
 .sort-item {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   cursor: pointer;
   padding: 4px 0;
   border-bottom: 2px solid transparent;
@@ -719,8 +728,8 @@ onMounted(() => {
   }
 
   &.active {
-    color: #1E40AF;
-    border-bottom-color: #1E40AF;
+    color: #1e40af;
+    border-bottom-color: #1e40af;
   }
 }
 
@@ -745,7 +754,7 @@ onMounted(() => {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    border-color: #93C5FD;
+    border-color: #93c5fd;
     box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
     transform: translateX(4px);
   }
@@ -760,7 +769,7 @@ onMounted(() => {
   justify-content: center;
   font-size: 28px;
   flex-shrink: 0;
-  background: #EFF6FF;
+  background: #eff6ff;
 }
 
 .item-info {
@@ -771,7 +780,7 @@ onMounted(() => {
 .item-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 6px;
   display: flex;
   align-items: center;
@@ -781,15 +790,15 @@ onMounted(() => {
 .hot-badge {
   font-size: 11px;
   padding: 2px 6px;
-  background: #FEE2E2;
-  color: #EF4444;
+  background: #fee2e2;
+  color: #ef4444;
   border-radius: 4px;
   font-weight: 500;
 }
 
 .item-desc {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -801,7 +810,7 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 
   span {
     display: flex;
@@ -831,22 +840,22 @@ onMounted(() => {
 }
 
 .item-btn-primary {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
   border: none;
 
   &:hover {
-    background: #3B82F6;
+    background: #3b82f6;
   }
 }
 
 .item-btn-outline {
   background: transparent;
-  color: #1E40AF;
-  border: 1px solid #1E40AF;
+  color: #1e40af;
+  border: 1px solid #1e40af;
 
   &:hover {
-    background: #EFF6FF;
+    background: #eff6ff;
   }
 }
 
@@ -854,13 +863,13 @@ onMounted(() => {
 .loading-state {
   text-align: center;
   padding: 60px 0;
-  color: #6B7280;
+  color: #6b7280;
 
   .loading-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid #F3F4F6;
-    border-top-color: #1E40AF;
+    border: 3px solid #f3f4f6;
+    border-top-color: #1e40af;
     border-radius: 50%;
     margin: 0 auto 16px;
     animation: spin 0.8s linear infinite;
@@ -868,7 +877,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 分页 */
@@ -895,19 +906,19 @@ onMounted(() => {
   color: #374151;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   background: white;
   padding: 0 8px;
 
   &:hover:not(.disabled):not(.ellipsis) {
-    color: #1E40AF;
-    border-color: #1E40AF;
+    color: #1e40af;
+    border-color: #1e40af;
   }
 
   &.active {
-    background: #1E40AF;
+    background: #1e40af;
     color: white;
-    border-color: #1E40AF;
+    border-color: #1e40af;
   }
 
   &.disabled {
@@ -936,13 +947,13 @@ onMounted(() => {
 
   .empty-title {
     font-size: 16px;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 8px;
   }
 
   .empty-desc {
     font-size: 14px;
-    color: #6B7280;
+    color: #6b7280;
   }
 }
 
@@ -967,11 +978,11 @@ onMounted(() => {
   .category-item {
     padding: 8px 16px;
     border-radius: 20px;
-    background: #F3F4F6;
+    background: #f3f4f6;
   }
 
   .category-item.active {
-    background: #1E40AF;
+    background: #1e40af;
     color: white;
   }
 

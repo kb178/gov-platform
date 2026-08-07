@@ -19,7 +19,7 @@
               type="text"
               placeholder="输入办件编号或事项名称查询"
               @keyup.enter="handleSearch"
-            >
+            />
           </div>
           <button class="search-btn" @click="handleSearch">查 询</button>
         </div>
@@ -39,16 +39,10 @@
 
         <!-- 办件列表 -->
         <div v-if="filteredProgressList.length > 0" class="progress-list">
-          <div
-            v-for="item in filteredProgressList"
-            :key="item.id"
-            class="progress-card"
-          >
+          <div v-for="item in filteredProgressList" :key="item.id" class="progress-card">
             <div class="progress-card-header">
               <div>
-                <div class="progress-title">
-                  {{ item.icon }} {{ item.title }}
-                </div>
+                <div class="progress-title">{{ item.icon }} {{ item.title }}</div>
                 <div class="progress-number">办件编号：{{ item.orderNo }}</div>
               </div>
               <span :class="['progress-status', `status-${item.status}`]">
@@ -65,41 +59,48 @@
                 <span class="progress-info-label">受理部门</span>
                 <span class="progress-info-value">{{ item.dept }}</span>
               </div>
-              <div class="progress-info-item" v-if="item.status === 'approved'">
+              <div v-if="item.status === 'approved'" class="progress-info-item">
                 <span class="progress-info-label">办结时间</span>
                 <span class="progress-info-value highlight-success">{{ item.completeTime }}</span>
               </div>
-              <div class="progress-info-item" v-else-if="item.status === 'rejected'">
+              <div v-else-if="item.status === 'rejected'" class="progress-info-item">
                 <span class="progress-info-label">驳回时间</span>
                 <span class="progress-info-value highlight-danger">{{ item.rejectTime }}</span>
               </div>
-              <div class="progress-info-item" v-else>
+              <div v-else class="progress-info-item">
                 <span class="progress-info-label">办理时限</span>
                 <span class="progress-info-value">{{ item.duration }}</span>
               </div>
-              <div class="progress-info-item" v-if="item.currentStep">
+              <div v-if="item.currentStep" class="progress-info-item">
                 <span class="progress-info-label">当前环节</span>
-                <span :class="['progress-info-value', `highlight-${item.status === 'rejected' ? 'danger' : 'primary'}`]">
+                <span
+                  :class="[
+                    'progress-info-value',
+                    `highlight-${item.status === 'rejected' ? 'danger' : 'primary'}`
+                  ]"
+                >
                   {{ item.currentStep }}
                 </span>
               </div>
             </div>
 
             <!-- 进度时间线 -->
-            <div class="progress-timeline" v-if="item.status !== 'rejected'">
+            <div v-if="item.status !== 'rejected'" class="progress-timeline">
               <div class="timeline-header">
                 <span class="timeline-title">办理进度</span>
                 <span class="timeline-toggle" @click="toggleTimeline(item.id)">
                   {{ expandedTimeline.includes(item.id) ? '收起 ▲' : '展开 ▼' }}
                 </span>
               </div>
-              <div class="timeline-steps" v-show="expandedTimeline.includes(item.id)">
+              <div v-show="expandedTimeline.includes(item.id)" class="timeline-steps">
                 <div
                   v-for="(step, index) in item.timeline"
                   :key="index"
                   :class="['timeline-step', step.status]"
                 >
-                  <div class="timeline-dot">{{ step.status === 'completed' ? '✓' : (index + 1) }}</div>
+                  <div class="timeline-dot">
+                    {{ step.status === 'completed' ? '✓' : index + 1 }}
+                  </div>
                   <div class="timeline-label">{{ step.name }}</div>
                   <div class="timeline-time">{{ step.time || '' }}</div>
                 </div>
@@ -107,21 +108,17 @@
             </div>
 
             <!-- 驳回原因 -->
-            <div class="reject-reason" v-if="item.status === 'rejected'">
+            <div v-if="item.status === 'rejected'" class="reject-reason">
               <span class="reject-icon">❌</span>
               <span class="reject-text">驳回原因：{{ item.rejectReason }}</span>
             </div>
 
             <div class="progress-card-footer">
-              <span v-if="item.status === 'approved'" class="footer-text success">
-                ✅ 已办结
-              </span>
+              <span v-if="item.status === 'approved'" class="footer-text success"> ✅ 已办结 </span>
               <span v-else-if="item.status === 'rejected'" class="footer-text danger">
                 请补充材料后重新提交
               </span>
-              <span v-else class="footer-text">
-                预计完成时间：{{ item.estimateTime }}
-              </span>
+              <span v-else class="footer-text"> 预计完成时间：{{ item.estimateTime }} </span>
               <div class="progress-actions">
                 <button
                   v-if="item.status === 'processing' || item.status === 'pending'"
@@ -130,9 +127,7 @@
                 >
                   催办
                 </button>
-                <button class="btn-action btn-detail" @click="handleDetail(item)">
-                  查看详情
-                </button>
+                <button class="btn-action btn-detail" @click="handleDetail(item)">查看详情</button>
                 <button
                   v-if="item.status === 'approved'"
                   class="btn-action btn-download"
@@ -216,12 +211,12 @@ const statusList = ref([
   { id: 'rejected', name: '已驳回', count: 1 }
 ])
 
-const handleStatusChange = (statusId) => {
+const handleStatusChange = statusId => {
   activeStatus.value = statusId
   currentPage.value = 1
 }
 
-const getStatusText = (status) => {
+const getStatusText = status => {
   const map = {
     pending: '待受理',
     processing: '审核中',
@@ -347,9 +342,9 @@ const filteredProgressList = computed(() => {
   // 关键词搜索
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    list = list.filter(item =>
-      item.orderNo.toLowerCase().includes(keyword) ||
-      item.title.toLowerCase().includes(keyword)
+    list = list.filter(
+      item =>
+        item.orderNo.toLowerCase().includes(keyword) || item.title.toLowerCase().includes(keyword)
     )
   }
 
@@ -359,7 +354,7 @@ const filteredProgressList = computed(() => {
 // ========== 时间线展开/收起 ==========
 const expandedTimeline = ref([1]) // 默认第一个展开
 
-const toggleTimeline = (id) => {
+const toggleTimeline = id => {
   const index = expandedTimeline.value.indexOf(id)
   if (index > -1) {
     expandedTimeline.value.splice(index, 1)
@@ -404,38 +399,36 @@ const displayPages = computed(() => {
   return pages
 })
 
-const handlePageChange = (page) => {
+const handlePageChange = page => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // ========== 操作 ==========
-const handleUrge = (item) => {
-  ElMessageBox.confirm(
-    `确定要催办 "${item.title}" 吗？催办后工作人员会尽快处理。`,
-    '催办确认',
-    {
-      confirmButtonText: '确定催办',
-      cancelButtonText: '取消',
-      type: 'info'
-    }
-  ).then(() => {
-    ElMessage.success('催办成功，工作人员会尽快处理')
-  }).catch(() => {})
+const handleUrge = item => {
+  ElMessageBox.confirm(`确定要催办 "${item.title}" 吗？催办后工作人员会尽快处理。`, '催办确认', {
+    confirmButtonText: '确定催办',
+    cancelButtonText: '取消',
+    type: 'info'
+  })
+    .then(() => {
+      ElMessage.success('催办成功，工作人员会尽快处理')
+    })
+    .catch(() => {})
 }
 
-const handleDetail = (item) => {
+const handleDetail = item => {
   ElMessage.info(`查看详情: ${item.orderNo}`)
   // TODO: 跳转到详情页或弹窗显示
 }
 
-const handleDownload = (item) => {
+const handleDownload = item => {
   ElMessage.success(`正在下载: ${item.title} 相关证照`)
   // TODO: 下载证照
 }
 
-const handleReapply = (item) => {
+const handleReapply = item => {
   router.push(`/apply/${item.id}`)
 }
 </script>
@@ -443,11 +436,11 @@ const handleReapply = (item) => {
 <style lang="scss" scoped>
 .progress-page {
   min-height: 100vh;
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .page-banner {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 32px 0;
   color: white;
 
@@ -502,18 +495,18 @@ const handleReapply = (item) => {
     width: 100%;
     height: 44px;
     padding: 0 16px 0 44px;
-    border: 1px solid #E5E7EB;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s;
 
     &:focus {
-      border-color: #3B82F6;
+      border-color: #3b82f6;
     }
 
     &::placeholder {
-      color: #9CA3AF;
+      color: #9ca3af;
     }
   }
 }
@@ -521,7 +514,7 @@ const handleReapply = (item) => {
 .search-btn {
   width: 100px;
   height: 44px;
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -530,7 +523,7 @@ const handleReapply = (item) => {
   transition: background 0.2s;
 
   &:hover {
-    background: #1E3A8A;
+    background: #1e3a8a;
   }
 }
 
@@ -549,17 +542,17 @@ const handleReapply = (item) => {
   cursor: pointer;
   transition: all 0.2s;
   background: white;
-  border: 1px solid #E5E7EB;
-  color: #4B5563;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
 
   &:hover {
-    border-color: #93C5FD;
-    color: #1E40AF;
+    border-color: #93c5fd;
+    color: #1e40af;
   }
 
   &.active {
-    background: #1E40AF;
-    border-color: #1E40AF;
+    background: #1e40af;
+    border-color: #1e40af;
     color: white;
   }
 
@@ -596,7 +589,7 @@ const handleReapply = (item) => {
   border: 1px solid transparent;
 
   &:hover {
-    border-color: #93C5FD;
+    border-color: #93c5fd;
     box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
   }
 }
@@ -611,7 +604,7 @@ const handleReapply = (item) => {
 .progress-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -619,7 +612,7 @@ const handleReapply = (item) => {
 
 .progress-number {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   margin-top: 4px;
 }
 
@@ -630,23 +623,23 @@ const handleReapply = (item) => {
   font-weight: 500;
 
   &.status-pending {
-    background: #FEF3C7;
-    color: #D97706;
+    background: #fef3c7;
+    color: #d97706;
   }
 
   &.status-processing {
-    background: #DBEAFE;
-    color: #2563EB;
+    background: #dbeafe;
+    color: #2563eb;
   }
 
   &.status-approved {
-    background: #D1FAE5;
+    background: #d1fae5;
     color: #059669;
   }
 
   &.status-rejected {
-    background: #FEE2E2;
-    color: #DC2626;
+    background: #fee2e2;
+    color: #dc2626;
   }
 }
 
@@ -654,8 +647,8 @@ const handleReapply = (item) => {
   display: flex;
   gap: 32px;
   padding: 16px 0;
-  border-top: 1px solid #F3F4F6;
-  border-bottom: 1px solid #F3F4F6;
+  border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .progress-info-item {
@@ -666,15 +659,15 @@ const handleReapply = (item) => {
 
 .progress-info-label {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .progress-info-value {
   font-size: 14px;
-  color: #1F2937;
+  color: #1f2937;
 
   &.highlight-primary {
-    color: #2563EB;
+    color: #2563eb;
   }
 
   &.highlight-success {
@@ -682,7 +675,7 @@ const handleReapply = (item) => {
   }
 
   &.highlight-danger {
-    color: #DC2626;
+    color: #dc2626;
   }
 }
 
@@ -702,17 +695,17 @@ const handleReapply = (item) => {
 .timeline-title {
   font-size: 14px;
   font-weight: 500;
-  color: #1F2937;
+  color: #1f2937;
 }
 
 .timeline-toggle {
   font-size: 13px;
-  color: #3B82F6;
+  color: #3b82f6;
   cursor: pointer;
   user-select: none;
 
   &:hover {
-    color: #1E40AF;
+    color: #1e40af;
   }
 }
 
@@ -738,15 +731,15 @@ const handleReapply = (item) => {
     left: 50%;
     width: 100%;
     height: 2px;
-    background: #E5E7EB;
+    background: #e5e7eb;
   }
 
   &.completed:not(:last-child)::after {
-    background: #10B981;
+    background: #10b981;
   }
 
   &.active:not(:last-child)::after {
-    background: linear-gradient(90deg, #10B981 50%, #E5E7EB 50%);
+    background: linear-gradient(90deg, #10b981 50%, #e5e7eb 50%);
   }
 }
 
@@ -754,7 +747,7 @@ const handleReapply = (item) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #E5E7EB;
+  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -765,31 +758,31 @@ const handleReapply = (item) => {
 }
 
 .timeline-step.completed .timeline-dot {
-  background: #10B981;
+  background: #10b981;
   color: white;
 }
 
 .timeline-step.active .timeline-dot {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
   box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.2);
 }
 
 .timeline-label {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   text-align: center;
 }
 
 .timeline-step.completed .timeline-label,
 .timeline-step.active .timeline-label {
-  color: #1F2937;
+  color: #1f2937;
   font-weight: 500;
 }
 
 .timeline-time {
   font-size: 11px;
-  color: #6B7280;
+  color: #6b7280;
   margin-top: 4px;
 }
 
@@ -799,7 +792,7 @@ const handleReapply = (item) => {
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: #FEF2F2;
+  background: #fef2f2;
   border-radius: 8px;
   margin-top: 16px;
 }
@@ -810,7 +803,7 @@ const handleReapply = (item) => {
 
 .reject-text {
   font-size: 14px;
-  color: #DC2626;
+  color: #dc2626;
 }
 
 /* 操作按钮 */
@@ -823,14 +816,14 @@ const handleReapply = (item) => {
 
 .footer-text {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
 
   &.success {
     color: #059669;
   }
 
   &.danger {
-    color: #DC2626;
+    color: #dc2626;
   }
 }
 
@@ -849,38 +842,38 @@ const handleReapply = (item) => {
 }
 
 .btn-detail {
-  background: #EFF6FF;
-  color: #1E40AF;
+  background: #eff6ff;
+  color: #1e40af;
 
   &:hover {
-    background: #DBEAFE;
+    background: #dbeafe;
   }
 }
 
 .btn-urge {
-  background: #FEF3C7;
-  color: #D97706;
+  background: #fef3c7;
+  color: #d97706;
 
   &:hover {
-    background: #FDE68A;
+    background: #fde68a;
   }
 }
 
 .btn-download {
-  background: #D1FAE5;
+  background: #d1fae5;
   color: #059669;
 
   &:hover {
-    background: #A7F3D0;
+    background: #a7f3d0;
   }
 }
 
 .btn-reapply {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
 
   &:hover {
-    background: #1E3A8A;
+    background: #1e3a8a;
   }
 }
 
@@ -899,19 +892,19 @@ const handleReapply = (item) => {
 
   .empty-title {
     font-size: 16px;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 8px;
   }
 
   .empty-desc {
     font-size: 14px;
-    color: #6B7280;
+    color: #6b7280;
     margin-bottom: 24px;
   }
 
   .btn-go {
     padding: 10px 24px;
-    background: #1E40AF;
+    background: #1e40af;
     color: white;
     border: none;
     border-radius: 8px;
@@ -919,7 +912,7 @@ const handleReapply = (item) => {
     cursor: pointer;
 
     &:hover {
-      background: #1E3A8A;
+      background: #1e3a8a;
     }
   }
 }
@@ -947,17 +940,17 @@ const handleReapply = (item) => {
   cursor: pointer;
   transition: all 0.2s;
   background: white;
-  border: 1px solid #E5E7EB;
-  color: #4B5563;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
 
   &:hover:not(.disabled) {
-    border-color: #93C5FD;
-    color: #1E40AF;
+    border-color: #93c5fd;
+    color: #1e40af;
   }
 
   &.active {
-    background: #1E40AF;
-    border-color: #1E40AF;
+    background: #1e40af;
+    border-color: #1e40af;
     color: white;
   }
 

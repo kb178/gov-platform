@@ -86,7 +86,9 @@
         <div class="message-footer">
           <span class="message-link" @click.stop="showDetail(message)">查看详情 →</span>
           <div class="message-actions">
-            <span v-if="!message.isRead" class="msg-btn" @click.stop="markRead(message)">标为已读</span>
+            <span v-if="!message.isRead" class="msg-btn" @click.stop="markRead(message)"
+              >标为已读</span
+            >
             <span class="msg-btn" @click.stop="deleteMessage(message)">删除</span>
           </div>
         </div>
@@ -111,11 +113,7 @@
     </div>
 
     <!-- 消息详情弹窗 -->
-    <el-dialog
-      v-model="showModal"
-      title="消息详情"
-      width="560px"
-    >
+    <el-dialog v-model="showModal" title="消息详情" width="560px">
       <div class="modal-message-info">
         <span>📅 {{ currentMessage?.time }}</span>
         <span>📂 {{ getTypeLabel(currentMessage?.type) }}</span>
@@ -169,7 +167,8 @@ const messages = ref([
     id: 1,
     type: 'approval',
     title: '您的居民身份证换领申请已受理',
-    content: '尊敬的用户，您提交的"居民身份证换领"申请（办件编号：BJ20240115001234）已由海口市公安局户政大厅受理，预计5个工作日内完成审核，请耐心等待。',
+    content:
+      '尊敬的用户，您提交的"居民身份证换领"申请（办件编号：BJ20240115001234）已由海口市公安局户政大厅受理，预计5个工作日内完成审核，请耐心等待。',
     time: '2024-01-15 16:30',
     isRead: false
   },
@@ -177,7 +176,8 @@ const messages = ref([
     id: 2,
     type: 'license',
     title: '您的居住证即将到期，请及时续签',
-    content: '尊敬的用户，您的居住证（证照号：460100202301...）将于2024年06月01日到期，请在到期前30日内办理续签手续，以免影响正常使用。',
+    content:
+      '尊敬的用户，您的居住证（证照号：460100202301...）将于2024年06月01日到期，请在到期前30日内办理续签手续，以免影响正常使用。',
     time: '2024-01-15 10:00',
     isRead: false
   },
@@ -185,7 +185,8 @@ const messages = ref([
     id: 3,
     type: 'notice',
     title: '关于2024年春节假期政务服务大厅放假通知',
-    content: '根据国务院办公厅通知精神，2024年春节假期安排如下：2月10日至17日放假调休，共8天。2月4日（星期日）、2月18日（星期日）上班。放假期间，线上服务正常运行。',
+    content:
+      '根据国务院办公厅通知精神，2024年春节假期安排如下：2月10日至17日放假调休，共8天。2月4日（星期日）、2月18日（星期日）上班。放假期间，线上服务正常运行。',
     time: '2024-01-14 09:00',
     isRead: false
   },
@@ -193,7 +194,8 @@ const messages = ref([
     id: 4,
     type: 'approval',
     title: '您的不动产登记申请已办结',
-    content: '尊敬的用户，您提交的"不动产登记"申请（办件编号：BJ20240110003456）已审核通过并办结，请登录平台下载电子证照。',
+    content:
+      '尊敬的用户，您提交的"不动产登记"申请（办件编号：BJ20240110003456）已审核通过并办结，请登录平台下载电子证照。',
     time: '2024-01-12 16:30',
     isRead: true
   },
@@ -201,7 +203,8 @@ const messages = ref([
     id: 5,
     type: 'system',
     title: '实名认证成功',
-    content: '恭喜您，实名认证已通过！现在您可以享受完整的政务服务功能，包括在线申请、进度查询、证照管理等。',
+    content:
+      '恭喜您，实名认证已通过！现在您可以享受完整的政务服务功能，包括在线申请、进度查询、证照管理等。',
     time: '2024-01-10 14:00',
     isRead: true
   },
@@ -209,7 +212,8 @@ const messages = ref([
     id: 6,
     type: 'approval',
     title: '您的食品经营许可证申请被驳回',
-    content: '尊敬的用户，您提交的"食品经营许可证"申请（办件编号：BJ20240108007890）因材料不全被驳回，请补充相关材料后重新提交申请。',
+    content:
+      '尊敬的用户，您提交的"食品经营许可证"申请（办件编号：BJ20240108007890）因材料不全被驳回，请补充相关材料后重新提交申请。',
     time: '2024-01-09 15:00',
     isRead: true
   }
@@ -222,7 +226,7 @@ const filteredMessages = computed(() => {
 })
 
 // 获取类型图标
-const getTypeIcon = (type) => {
+const getTypeIcon = type => {
   const icons = {
     system: '⚙️',
     approval: '✅',
@@ -233,7 +237,7 @@ const getTypeIcon = (type) => {
 }
 
 // 获取类型标签
-const getTypeLabel = (type) => {
+const getTypeLabel = type => {
   const labels = {
     system: '系统通知',
     approval: '审批通知',
@@ -244,7 +248,7 @@ const getTypeLabel = (type) => {
 }
 
 // 显示详情
-const showDetail = (message) => {
+const showDetail = message => {
   currentMessage.value = message
   if (!message.isRead) {
     message.isRead = true
@@ -255,7 +259,7 @@ const showDetail = (message) => {
 }
 
 // 标为已读
-const markRead = (message) => {
+const markRead = message => {
   if (!message.isRead) {
     message.isRead = true
     stats.value.unread--
@@ -275,7 +279,7 @@ const markAllRead = () => {
 }
 
 // 删除消息
-const deleteMessage = (message) => {
+const deleteMessage = message => {
   if (confirm('确定要删除这条消息吗？')) {
     const index = messages.value.findIndex(m => m.id === message.id)
     if (index > -1) {
@@ -309,7 +313,7 @@ const goToProgress = () => {
 
 /* 页面标题 */
 .page-banner {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 32px;
   border-radius: 12px;
   color: white;
@@ -354,9 +358,15 @@ const goToProgress = () => {
   justify-content: center;
   font-size: 24px;
 
-  &.blue { background: var(--el-color-primary-light-9); }
-  &.orange { background: var(--el-color-warning-light-9); }
-  &.green { background: var(--el-color-success-light-9); }
+  &.blue {
+    background: var(--el-color-primary-light-9);
+  }
+  &.orange {
+    background: var(--el-color-warning-light-9);
+  }
+  &.green {
+    background: var(--el-color-success-light-9);
+  }
 }
 
 .stat-info {
@@ -439,7 +449,7 @@ const goToProgress = () => {
 
   &.unread {
     border-left-color: var(--el-color-primary);
-    background: #FAFBFF;
+    background: #fafbff;
   }
 }
 

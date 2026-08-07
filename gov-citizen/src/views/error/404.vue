@@ -68,7 +68,7 @@ const goBack = () => {
   font-size: 120px;
   font-weight: 800;
   color: transparent;
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   line-height: 1;
@@ -77,8 +77,13 @@ const goBack = () => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .error-icon {
@@ -91,20 +96,25 @@ const goBack = () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(-50%, -50%); }
-  50% { transform: translate(-50%, calc(-50% - 10px)); }
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 10px));
+  }
 }
 
 .error-title {
   font-size: 28px;
   font-weight: 700;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 12px;
 }
 
 .error-desc {
   font-size: 16px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 32px;
 }
 
@@ -141,7 +151,7 @@ const goBack = () => {
 
   li {
     font-size: 14px;
-    color: #6B7280;
+    color: #6b7280;
     padding: 8px 0;
     position: relative;
     padding-left: 20px;
@@ -150,11 +160,11 @@ const goBack = () => {
       content: '•';
       position: absolute;
       left: 0;
-      color: #9CA3AF;
+      color: #9ca3af;
     }
 
     a {
-      color: #3B82F6;
+      color: #3b82f6;
       text-decoration: none;
 
       &:hover {

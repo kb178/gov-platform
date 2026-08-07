@@ -132,13 +132,13 @@ const handleLogout = async () => {
   gap: 12px;
   font-size: 18px;
   font-weight: 600;
-  color: #1E40AF;
+  color: #1e40af;
   text-decoration: none;
 
   .logo-icon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #1E40AF, #3B82F6);
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -160,11 +160,11 @@ const handleLogout = async () => {
     transition: color 0.2s;
 
     &:hover {
-      color: #1E40AF;
+      color: #1e40af;
     }
 
     &.active {
-      color: #1E40AF;
+      color: #1e40af;
       font-weight: 500;
 
       &::after {
@@ -174,7 +174,7 @@ const handleLogout = async () => {
         left: 0;
         right: 0;
         height: 2px;
-        background: #1E40AF;
+        background: #1e40af;
         border-radius: 1px;
       }
     }
@@ -205,7 +205,7 @@ const handleLogout = async () => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #93C5FD, #3B82F6);
+  background: linear-gradient(135deg, #93c5fd, #3b82f6);
   color: white;
   display: flex;
   align-items: center;
@@ -230,7 +230,7 @@ const handleLogout = async () => {
 
 /* 底部 */
 .layout-footer {
-  background: #1F2937;
+  background: #1f2937;
   color: rgba(255, 255, 255, 0.7);
   padding: 48px 0 24px;
   margin-top: auto;

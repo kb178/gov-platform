@@ -13,11 +13,15 @@
           <template v-if="!authSuccess">
             <!-- 步骤指示器 -->
             <div class="steps">
-              <div :class="['step-item', { completed: currentStep > 0, active: currentStep === 0 }]">
+              <div
+                :class="['step-item', { completed: currentStep > 0, active: currentStep === 0 }]"
+              >
                 <div class="step-circle">{{ currentStep > 0 ? '✓' : '1' }}</div>
                 <div class="step-label">填写信息</div>
               </div>
-              <div :class="['step-item', { completed: currentStep > 1, active: currentStep === 1 }]">
+              <div
+                :class="['step-item', { completed: currentStep > 1, active: currentStep === 1 }]"
+              >
                 <div class="step-circle">{{ currentStep > 1 ? '✓' : '2' }}</div>
                 <div class="step-label">身份验证</div>
               </div>
@@ -104,19 +108,14 @@
 
               <div class="auth-actions">
                 <el-button size="large" @click="currentStep = 0">上一步</el-button>
-                <el-button
-                  type="primary"
-                  size="large"
-                  :loading="submitting"
-                  @click="handleSubmit"
-                >
+                <el-button type="primary" size="large" :loading="submitting" @click="handleSubmit">
                   确认认证
                 </el-button>
               </div>
             </div>
 
             <!-- 认证提示 -->
-            <div class="auth-tips" v-if="currentStep === 0">
+            <div v-if="currentStep === 0" class="auth-tips">
               <h4>💡 认证提示</h4>
               <ul>
                 <li>认证信息将严格保密，仅用于政务服务办理</li>
@@ -153,9 +152,7 @@
                 <el-button type="primary" size="large" @click="router.push('/')">
                   返回首页
                 </el-button>
-                <el-button size="large" @click="router.push('/profile')">
-                  查看个人信息
-                </el-button>
+                <el-button size="large" @click="router.push('/profile')"> 查看个人信息 </el-button>
               </div>
             </div>
           </template>
@@ -184,9 +181,7 @@ const authForm = reactive({
 })
 
 const authRules = {
-  realName: [
-    { required: true, message: '请输入真实姓名', trigger: 'blur' }
-  ],
+  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   idCard: [
     { required: true, message: '请输入身份证号码', trigger: 'blur' },
     { pattern: /^\d{17}[\dXx]$/, message: '请输入正确的身份证号码', trigger: 'blur' }
@@ -235,7 +230,7 @@ const handleSubmit = async () => {
 }
 
 // 数据脱敏
-const maskIdCard = (idCard) => {
+const maskIdCard = idCard => {
   if (!idCard) return '-'
   return idCard.replace(/^(.{6})(.*)(.{4})$/, '$1****$3')
 }
@@ -244,7 +239,7 @@ const maskIdCard = (idCard) => {
 <style lang="scss" scoped>
 .verify-page {
   min-height: 100vh;
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .page-container {
@@ -263,7 +258,7 @@ const maskIdCard = (idCard) => {
 }
 
 .auth-header {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 40px;
   text-align: center;
   color: white;
@@ -318,12 +313,12 @@ const maskIdCard = (idCard) => {
     left: 50%;
     width: 100%;
     height: 2px;
-    background: #E5E7EB;
+    background: #e5e7eb;
   }
 
   &.active:not(:last-child)::after,
   &.completed:not(:last-child)::after {
-    background: #1E40AF;
+    background: #1e40af;
   }
 }
 
@@ -331,40 +326,40 @@ const maskIdCard = (idCard) => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #E5E7EB;
+  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 16px;
-  color: #6B7280;
+  color: #6b7280;
   position: relative;
   z-index: 1;
 }
 
 .step-item.active .step-circle {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
 }
 
 .step-item.completed .step-circle {
-  background: #10B981;
+  background: #10b981;
   color: white;
 }
 
 .step-label {
   margin-top: 12px;
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .step-item.active .step-label {
-  color: #1E40AF;
+  color: #1e40af;
   font-weight: 500;
 }
 
 .step-item.completed .step-label {
-  color: #10B981;
+  color: #10b981;
 }
 
 /* 表单 */
@@ -375,7 +370,7 @@ const maskIdCard = (idCard) => {
 
 .form-hint {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   margin-top: 8px;
 }
 
@@ -383,7 +378,7 @@ const maskIdCard = (idCard) => {
   margin-bottom: 32px;
 
   a {
-    color: #3B82F6;
+    color: #3b82f6;
     text-decoration: none;
 
     &:hover {
@@ -410,7 +405,7 @@ const maskIdCard = (idCard) => {
 }
 
 .verify-info-card {
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -419,7 +414,7 @@ const maskIdCard = (idCard) => {
 .verify-info-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 16px;
 }
 
@@ -435,12 +430,12 @@ const maskIdCard = (idCard) => {
 
   .label {
     width: 80px;
-    color: #6B7280;
+    color: #6b7280;
   }
 
   .value {
     flex: 1;
-    color: #1F2937;
+    color: #1f2937;
     font-weight: 500;
   }
 }
@@ -449,7 +444,7 @@ const maskIdCard = (idCard) => {
   display: flex;
   gap: 12px;
   padding: 16px;
-  background: #FEF3C7;
+  background: #fef3c7;
   border-radius: 8px;
   margin-bottom: 32px;
 }
@@ -461,13 +456,13 @@ const maskIdCard = (idCard) => {
 .notice-title {
   font-size: 14px;
   font-weight: 600;
-  color: #92400E;
+  color: #92400e;
   margin-bottom: 4px;
 }
 
 .notice-desc {
   font-size: 13px;
-  color: #92400E;
+  color: #92400e;
   line-height: 1.6;
 }
 
@@ -475,13 +470,13 @@ const maskIdCard = (idCard) => {
 .auth-tips {
   margin-top: 32px;
   padding: 20px;
-  background: #EFF6FF;
+  background: #eff6ff;
   border-radius: 8px;
 
   h4 {
     font-size: 14px;
     font-weight: 600;
-    color: #1E40AF;
+    color: #1e40af;
     margin-bottom: 12px;
   }
 
@@ -492,7 +487,7 @@ const maskIdCard = (idCard) => {
 
   li {
     font-size: 13px;
-    color: #4B5563;
+    color: #4b5563;
     padding: 4px 0;
     padding-left: 20px;
     position: relative;
@@ -501,7 +496,7 @@ const maskIdCard = (idCard) => {
       content: '•';
       position: absolute;
       left: 8px;
-      color: #1E40AF;
+      color: #1e40af;
     }
   }
 }
@@ -520,18 +515,18 @@ const maskIdCard = (idCard) => {
 .success-title {
   font-size: 24px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 12px;
 }
 
 .success-desc {
   font-size: 16px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 32px;
 }
 
 .success-info {
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 12px;
   padding: 24px;
   text-align: left;
@@ -548,12 +543,12 @@ const maskIdCard = (idCard) => {
 
   .label {
     width: 80px;
-    color: #6B7280;
+    color: #6b7280;
   }
 
   .value {
     flex: 1;
-    color: #1F2937;
+    color: #1f2937;
     font-weight: 500;
   }
 }

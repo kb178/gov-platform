@@ -59,15 +59,15 @@
               <span :class="['license-type-badge', `badge-${item.type}`]">
                 {{ getTypeName(item.type) }}
               </span>
-              <span v-if="item.status === 'expiring'" class="expire-warning">
-                即将过期
-              </span>
+              <span v-if="item.status === 'expiring'" class="expire-warning"> 即将过期 </span>
             </div>
             <div class="license-info">
               <div class="license-name">{{ item.name }}</div>
               <div class="license-meta">
                 <div class="license-meta-item">
-                  <span class="label">{{ item.type === 'business' ? '统一信用代码：' : '证照号：' }}</span>
+                  <span class="label">{{
+                    item.type === 'business' ? '统一信用代码：' : '证照号：'
+                  }}</span>
                   <span class="value">{{ item.number }}</span>
                 </div>
                 <div class="license-meta-item">
@@ -90,9 +90,7 @@
                 <button class="license-btn btn-verify" @click.stop="handleVerify(item)">
                   🔍 验证
                 </button>
-                <button class="license-btn btn-view" @click.stop="showDetail(item)">
-                  👁️ 查看
-                </button>
+                <button class="license-btn btn-view" @click.stop="showDetail(item)">👁️ 查看</button>
               </div>
             </div>
           </div>
@@ -128,9 +126,7 @@
       </div>
       <template #footer>
         <el-button @click="showModal = false">关闭</el-button>
-        <el-button type="primary" @click="handleDownload(currentLicense)">
-          📥 下载证照
-        </el-button>
+        <el-button type="primary" @click="handleDownload(currentLicense)"> 📥 下载证照 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -159,11 +155,11 @@ const categories = [
   { id: 'house', name: '不动产证' }
 ]
 
-const handleCategoryChange = (catId) => {
+const handleCategoryChange = catId => {
   activeCategory.value = catId
 }
 
-const getTypeName = (type) => {
+const getTypeName = type => {
   const map = {
     id: '身份证件',
     driving: '驾驶证照',
@@ -185,14 +181,14 @@ const licenseList = ref([
     status: 'valid',
     gradient: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
     details: {
-      '姓名': '张三',
-      '性别': '男',
-      '民族': '汉族',
-      '出生日期': '1990年01月01日',
-      '住址': '海南省海口市龙华区XX路XX号',
-      '身份证号': '460100199001011234',
-      '签发机关': '海口市公安局龙华分局',
-      '有效期': '2020-01-01 至 2030-01-01'
+      姓名: '张三',
+      性别: '男',
+      民族: '汉族',
+      出生日期: '1990年01月01日',
+      住址: '海南省海口市龙华区XX路XX号',
+      身份证号: '460100199001011234',
+      签发机关: '海口市公安局龙华分局',
+      有效期: '2020-01-01 至 2030-01-01'
     }
   },
   {
@@ -205,12 +201,12 @@ const licenseList = ref([
     status: 'valid',
     gradient: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
     details: {
-      '姓名': '张三',
-      '证号': '460100199001011234',
-      '准驾车型': 'C1',
-      '初次领证日期': '2012-05-15',
-      '有效期限': '2022-05-15 至 2032-05-15',
-      '发证机关': '海南省海口市公安局交通警察支队'
+      姓名: '张三',
+      证号: '460100199001011234',
+      准驾车型: 'C1',
+      初次领证日期: '2012-05-15',
+      有效期限: '2022-05-15 至 2032-05-15',
+      发证机关: '海南省海口市公安局交通警察支队'
     }
   },
   {
@@ -223,13 +219,13 @@ const licenseList = ref([
     status: 'valid',
     gradient: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
     details: {
-      '企业名称': '海口XX科技有限公司',
-      '统一社会信用代码': '91460100MA5TXXXXXX',
-      '法定代表人': '张三',
-      '注册资本': '100万元',
-      '成立日期': '2023-08-20',
-      '营业期限': '2023-08-20 至 长期',
-      '登记机关': '海口市市场监督管理局'
+      企业名称: '海口XX科技有限公司',
+      统一社会信用代码: '91460100MA5TXXXXXX',
+      法定代表人: '张三',
+      注册资本: '100万元',
+      成立日期: '2023-08-20',
+      营业期限: '2023-08-20 至 长期',
+      登记机关: '海口市市场监督管理局'
     }
   },
   {
@@ -242,13 +238,13 @@ const licenseList = ref([
     status: 'valid',
     gradient: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
     details: {
-      '权利人': '张三',
-      '共有情况': '单独所有',
-      '坐落': '海口市龙华区XX小区X栋X单元XXX',
-      '不动产单元号': '460100001001GB00001F00010001',
-      '权利类型': '国有建设用地使用权/房屋所有权',
-      '登记时间': '2023-12-01',
-      '证号': '琼(2023)海口市不动产权第XXXX号'
+      权利人: '张三',
+      共有情况: '单独所有',
+      坐落: '海口市龙华区XX小区X栋X单元XXX',
+      不动产单元号: '460100001001GB00001F00010001',
+      权利类型: '国有建设用地使用权/房屋所有权',
+      登记时间: '2023-12-01',
+      证号: '琼(2023)海口市不动产权第XXXX号'
     }
   },
   {
@@ -261,13 +257,13 @@ const licenseList = ref([
     status: 'expiring',
     gradient: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)',
     details: {
-      '姓名': '张三',
-      '性别': '男',
-      '公民身份号码': '460100199001011234',
-      '居住地住址': '海南省海口市龙华区XX路XX号',
-      '签发机关': '海口市公安局龙华分局',
-      '签发日期': '2023-06-01',
-      '有效期限': '2023-06-01 至 2024-06-01'
+      姓名: '张三',
+      性别: '男',
+      公民身份号码: '460100199001011234',
+      居住地住址: '海南省海口市龙华区XX路XX号',
+      签发机关: '海口市公安局龙华分局',
+      签发日期: '2023-06-01',
+      有效期限: '2023-06-01 至 2024-06-01'
     }
   }
 ])
@@ -281,7 +277,7 @@ const filteredList = computed(() => {
 })
 
 // ========== 状态 ==========
-const getStatusText = (status) => {
+const getStatusText = status => {
   const map = {
     valid: '有效',
     expiring: '即将过期',
@@ -294,18 +290,18 @@ const getStatusText = (status) => {
 const showModal = ref(false)
 const currentLicense = ref(null)
 
-const showDetail = (item) => {
+const showDetail = item => {
   currentLicense.value = item
   showModal.value = true
 }
 
 // ========== 操作 ==========
-const handleDownload = (item) => {
+const handleDownload = item => {
   if (!item) return
   ElMessage.success(`正在下载: ${item.name}`)
 }
 
-const handleVerify = (item) => {
+const handleVerify = item => {
   ElMessage.success(`${item.name} 验证通过`)
 }
 </script>
@@ -313,11 +309,11 @@ const handleVerify = (item) => {
 <style lang="scss" scoped>
 .license-page {
   min-height: 100vh;
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .page-banner {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 32px 0;
   color: white;
 
@@ -370,13 +366,13 @@ const handleVerify = (item) => {
 .stat-number {
   font-size: 28px;
   font-weight: 700;
-  color: #1E40AF;
+  color: #1e40af;
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 /* 证照分类 */
@@ -394,17 +390,17 @@ const handleVerify = (item) => {
   cursor: pointer;
   transition: all 0.2s;
   background: white;
-  border: 1px solid #E5E7EB;
-  color: #4B5563;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
 
   &:hover {
-    border-color: #93C5FD;
-    color: #1E40AF;
+    border-color: #93c5fd;
+    color: #1e40af;
   }
 
   &.active {
-    background: #1E40AF;
-    border-color: #1E40AF;
+    background: #1e40af;
+    border-color: #1e40af;
     color: white;
   }
 }
@@ -454,23 +450,23 @@ const handleVerify = (item) => {
   font-weight: 500;
 
   &.badge-id {
-    background: #EFF6FF;
-    color: #1E40AF;
+    background: #eff6ff;
+    color: #1e40af;
   }
 
   &.badge-driving {
-    background: #D1FAE5;
+    background: #d1fae5;
     color: #059669;
   }
 
   &.badge-business {
-    background: #FEF3C7;
-    color: #D97706;
+    background: #fef3c7;
+    color: #d97706;
   }
 
   &.badge-house {
-    background: #E0E7FF;
-    color: #4F46E5;
+    background: #e0e7ff;
+    color: #4f46e5;
   }
 }
 
@@ -481,8 +477,8 @@ const handleVerify = (item) => {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
-  background: #FEF3C7;
-  color: #D97706;
+  background: #fef3c7;
+  color: #d97706;
 }
 
 .license-info {
@@ -492,7 +488,7 @@ const handleVerify = (item) => {
 .license-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 12px;
 }
 
@@ -509,16 +505,16 @@ const handleVerify = (item) => {
   font-size: 13px;
 
   .label {
-    color: #6B7280;
+    color: #6b7280;
     width: 80px;
     flex-shrink: 0;
   }
 
   .value {
-    color: #1F2937;
+    color: #1f2937;
 
     &.text-warning {
-      color: #D97706;
+      color: #d97706;
     }
 
     &.status-valid {
@@ -526,11 +522,11 @@ const handleVerify = (item) => {
     }
 
     &.status-expiring {
-      color: #D97706;
+      color: #d97706;
     }
 
     &.status-expired {
-      color: #DC2626;
+      color: #dc2626;
     }
   }
 }
@@ -540,7 +536,7 @@ const handleVerify = (item) => {
   gap: 8px;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #F3F4F6;
+  border-top: 1px solid #f3f4f6;
 }
 
 .license-btn {
@@ -558,29 +554,29 @@ const handleVerify = (item) => {
 }
 
 .btn-download {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
 
   &:hover {
-    background: #1E3A8A;
+    background: #1e3a8a;
   }
 }
 
 .btn-verify {
-  background: #EFF6FF;
-  color: #1E40AF;
+  background: #eff6ff;
+  color: #1e40af;
 
   &:hover {
-    background: #DBEAFE;
+    background: #dbeafe;
   }
 }
 
 .btn-view {
-  background: #F3F4F6;
-  color: #4B5563;
+  background: #f3f4f6;
+  color: #4b5563;
 
   &:hover {
-    background: #E5E7EB;
+    background: #e5e7eb;
   }
 }
 
@@ -623,12 +619,12 @@ const handleVerify = (item) => {
 
   .label {
     font-size: 13px;
-    color: #6B7280;
+    color: #6b7280;
   }
 
   .value {
     font-size: 14px;
-    color: #1F2937;
+    color: #1f2937;
     font-weight: 500;
   }
 }
@@ -648,13 +644,13 @@ const handleVerify = (item) => {
 
   .empty-title {
     font-size: 16px;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 8px;
   }
 
   .empty-desc {
     font-size: 14px;
-    color: #6B7280;
+    color: #6b7280;
   }
 }
 

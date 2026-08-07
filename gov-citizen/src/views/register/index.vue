@@ -33,12 +33,7 @@
           <p>注册后即可在线办理政务服务</p>
         </div>
 
-        <el-form
-          ref="formRef"
-          :model="formData"
-          :rules="rules"
-          @keyup.enter="handleRegister"
-        >
+        <el-form ref="formRef" :model="formData" :rules="rules" @keyup.enter="handleRegister">
           <!-- 手机号 -->
           <el-form-item prop="phone">
             <el-input
@@ -58,10 +53,7 @@
               maxlength="6"
             >
               <template #append>
-                <el-button
-                  :disabled="countdown > 0"
-                  @click="handleSendSms"
-                >
+                <el-button :disabled="countdown > 0" @click="handleSendSms">
                   {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
                 </el-button>
               </template>
@@ -79,11 +71,17 @@
               @input="checkPasswordStrength"
             />
             <div class="password-strength">
-              <div :class="['strength-bar', { active: passwordStrength >= 1 }, strengthLevel]"></div>
-              <div :class="['strength-bar', { active: passwordStrength >= 2 }, strengthLevel]"></div>
-              <div :class="['strength-bar', { active: passwordStrength >= 3 }, strengthLevel]"></div>
+              <div
+                :class="['strength-bar', { active: passwordStrength >= 1 }, strengthLevel]"
+              ></div>
+              <div
+                :class="['strength-bar', { active: passwordStrength >= 2 }, strengthLevel]"
+              ></div>
+              <div
+                :class="['strength-bar', { active: passwordStrength >= 3 }, strengthLevel]"
+              ></div>
             </div>
-            <div :class="['strength-text', strengthLevel]" v-if="formData.password">
+            <div v-if="formData.password" :class="['strength-text', strengthLevel]">
               密码强度：{{ strengthText }}
             </div>
           </el-form-item>
@@ -285,7 +283,7 @@ const handleRegister = async () => {
 .register-page {
   min-height: 100vh;
   display: flex;
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #60A5FA 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
 }
 
 /* 左侧品牌区域 */
@@ -313,8 +311,13 @@ const handleRegister = async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, -30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
+  }
 }
 
 .brand-content {
@@ -435,18 +438,30 @@ const handleRegister = async () => {
   border-radius: 2px;
   transition: background 0.3s;
 
-  &.active.weak { background: var(--danger); }
-  &.active.medium { background: var(--warning); }
-  &.active.strong { background: var(--success); }
+  &.active.weak {
+    background: var(--danger);
+  }
+  &.active.medium {
+    background: var(--warning);
+  }
+  &.active.strong {
+    background: var(--success);
+  }
 }
 
 .strength-text {
   font-size: 12px;
   margin-top: 4px;
 
-  &.weak { color: var(--danger); }
-  &.medium { color: var(--warning); }
-  &.strong { color: var(--success); }
+  &.weak {
+    color: var(--danger);
+  }
+  &.medium {
+    color: var(--warning);
+  }
+  &.strong {
+    color: var(--success);
+  }
 }
 
 /* 用户协议链接 */

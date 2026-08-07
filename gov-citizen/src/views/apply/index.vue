@@ -19,7 +19,10 @@
             <div
               v-for="(step, index) in steps"
               :key="index"
-              :class="['step-item', { active: currentStep === index, completed: currentStep > index }]"
+              :class="[
+                'step-item',
+                { active: currentStep === index, completed: currentStep > index }
+              ]"
             >
               <div class="step-circle">{{ currentStep > index ? '✓' : index + 1 }}</div>
               <div class="step-label">{{ step }}</div>
@@ -46,13 +49,21 @@
                     </div>
                     <div class="form-group">
                       <label class="form-label">身份证号 <span class="required">*</span></label>
-                      <el-input v-model="formData.idCard" placeholder="请输入身份证号" maxlength="18" />
+                      <el-input
+                        v-model="formData.idCard"
+                        placeholder="请输入身份证号"
+                        maxlength="18"
+                      />
                     </div>
                   </div>
                   <div class="form-row">
                     <div class="form-group">
                       <label class="form-label">手机号 <span class="required">*</span></label>
-                      <el-input v-model="formData.phone" placeholder="请输入手机号" maxlength="11" />
+                      <el-input
+                        v-model="formData.phone"
+                        placeholder="请输入手机号"
+                        maxlength="11"
+                      />
                     </div>
                     <div class="form-group">
                       <label class="form-label">联系地址 <span class="required">*</span></label>
@@ -69,7 +80,11 @@
                   <div class="form-row">
                     <div class="form-group">
                       <label class="form-label">申请类型 <span class="required">*</span></label>
-                      <el-select v-model="formData.applyType" placeholder="请选择申请类型" style="width: 100%">
+                      <el-select
+                        v-model="formData.applyType"
+                        placeholder="请选择申请类型"
+                        style="width: 100%"
+                      >
                         <el-option label="首次申领" value="first" />
                         <el-option label="换领" value="renew" />
                         <el-option label="补领" value="replace" />
@@ -77,7 +92,11 @@
                     </div>
                     <div class="form-group">
                       <label class="form-label">领取方式 <span class="required">*</span></label>
-                      <el-select v-model="formData.receiveType" placeholder="请选择领取方式" style="width: 100%">
+                      <el-select
+                        v-model="formData.receiveType"
+                        placeholder="请选择领取方式"
+                        style="width: 100%"
+                      >
                         <el-option label="本人领取" value="self" />
                         <el-option label="邮寄送达" value="mail" />
                         <el-option label="代领" value="agent" />
@@ -87,7 +106,11 @@
                   <div class="form-row">
                     <div class="form-group">
                       <label class="form-label">领取地点 <span class="required">*</span></label>
-                      <el-select v-model="formData.receiveLocation" placeholder="请选择领取地点" style="width: 100%">
+                      <el-select
+                        v-model="formData.receiveLocation"
+                        placeholder="请选择领取地点"
+                        style="width: 100%"
+                      >
                         <el-option label="海口市公安局户政大厅" value="1" />
                         <el-option label="龙华区政务服务中心" value="2" />
                         <el-option label="美兰区政务服务中心" value="3" />
@@ -95,7 +118,11 @@
                     </div>
                     <div class="form-group">
                       <label class="form-label">有效期 <span class="required">*</span></label>
-                      <el-select v-model="formData.validPeriod" placeholder="请选择有效期" style="width: 100%">
+                      <el-select
+                        v-model="formData.validPeriod"
+                        placeholder="请选择有效期"
+                        style="width: 100%"
+                      >
                         <el-option label="10年" value="10" />
                         <el-option label="20年" value="20" />
                         <el-option label="长期" value="long" />
@@ -126,14 +153,27 @@
                     <div
                       v-for="(material, index) in materials"
                       :key="index"
-                      :class="['checklist-item', material.required ? 'required' : 'optional', { uploaded: material.uploaded }]"
+                      :class="[
+                        'checklist-item',
+                        material.required ? 'required' : 'optional',
+                        { uploaded: material.uploaded }
+                      ]"
                     >
                       <el-checkbox v-model="material.checked" :disabled="!material.uploaded" />
                       <div class="checklist-info">
                         <div class="checklist-name">{{ material.name }}</div>
                         <div class="checklist-desc">{{ material.desc }}</div>
                       </div>
-                      <span :class="['checklist-status', material.uploaded ? 'uploaded' : (material.required ? 'required' : 'optional')]">
+                      <span
+                        :class="[
+                          'checklist-status',
+                          material.uploaded
+                            ? 'uploaded'
+                            : material.required
+                              ? 'required'
+                              : 'optional'
+                        ]"
+                      >
                         {{ material.uploaded ? '已上传' : '待上传' }}
                       </span>
                     </div>
@@ -160,8 +200,12 @@
                         <div class="uploaded-size">{{ file.size }}</div>
                       </div>
                       <div class="uploaded-actions">
-                        <el-button text type="primary" size="small" @click="handlePreview(file)">预览</el-button>
-                        <el-button text type="danger" size="small" @click="handleDeleteFile(index)">删除</el-button>
+                        <el-button text type="primary" size="small" @click="handlePreview(file)"
+                          >预览</el-button
+                        >
+                        <el-button text type="danger" size="small" @click="handleDeleteFile(index)"
+                          >删除</el-button
+                        >
                       </div>
                     </div>
                   </div>
@@ -205,19 +249,27 @@
                     <div class="confirm-grid">
                       <div class="confirm-item">
                         <span class="confirm-label">申请类型</span>
-                        <span class="confirm-value">{{ getApplyTypeText(formData.applyType) }}</span>
+                        <span class="confirm-value">{{
+                          getApplyTypeText(formData.applyType)
+                        }}</span>
                       </div>
                       <div class="confirm-item">
                         <span class="confirm-label">领取方式</span>
-                        <span class="confirm-value">{{ getReceiveTypeText(formData.receiveType) }}</span>
+                        <span class="confirm-value">{{
+                          getReceiveTypeText(formData.receiveType)
+                        }}</span>
                       </div>
                       <div class="confirm-item">
                         <span class="confirm-label">领取地点</span>
-                        <span class="confirm-value">{{ getLocationText(formData.receiveLocation) }}</span>
+                        <span class="confirm-value">{{
+                          getLocationText(formData.receiveLocation)
+                        }}</span>
                       </div>
                       <div class="confirm-item">
                         <span class="confirm-label">有效期</span>
-                        <span class="confirm-value">{{ getValidPeriodText(formData.validPeriod) }}</span>
+                        <span class="confirm-value">{{
+                          getValidPeriodText(formData.validPeriod)
+                        }}</span>
                       </div>
                     </div>
                   </div>
@@ -231,7 +283,9 @@
                         <span>{{ file.type === 'pdf' ? '📄' : '🖼️' }}</span>
                         <span>{{ file.name }}</span>
                       </div>
-                      <div v-if="uploadedFiles.length === 0" class="confirm-empty">暂无上传材料</div>
+                      <div v-if="uploadedFiles.length === 0" class="confirm-empty">
+                        暂无上传材料
+                      </div>
                     </div>
                   </div>
 
@@ -249,7 +303,9 @@
                 </div>
                 <div class="action-right">
                   <el-button v-if="currentStep > 0" @click="handlePrev">上一步</el-button>
-                  <el-button v-if="currentStep < 2" type="primary" @click="handleNext">下一步</el-button>
+                  <el-button v-if="currentStep < 2" type="primary" @click="handleNext"
+                    >下一步</el-button
+                  >
                   <el-button
                     v-if="currentStep === 2"
                     type="primary"
@@ -358,7 +414,9 @@
               </div>
             </div>
             <div class="success-actions">
-              <el-button type="primary" size="large" @click="router.push('/profile')">查看办件进度</el-button>
+              <el-button type="primary" size="large" @click="router.push('/profile')"
+                >查看办件进度</el-button
+              >
               <el-button size="large" @click="router.push('/')">返回首页</el-button>
             </div>
           </div>
@@ -417,15 +475,33 @@ onMounted(() => {
 
 // ========== 材料清单 ==========
 const materials = ref([
-  { name: '居民户口簿', desc: '请上传户口簿首页和本人页照片', required: true, uploaded: false, checked: false },
-  { name: '本人近期免冠照片', desc: '白底彩色照片，可现场拍摄', required: true, uploaded: false, checked: false },
-  { name: '原居民身份证', desc: '换领时需要提供原件照片', required: false, uploaded: false, checked: false }
+  {
+    name: '居民户口簿',
+    desc: '请上传户口簿首页和本人页照片',
+    required: true,
+    uploaded: false,
+    checked: false
+  },
+  {
+    name: '本人近期免冠照片',
+    desc: '白底彩色照片，可现场拍摄',
+    required: true,
+    uploaded: false,
+    checked: false
+  },
+  {
+    name: '原居民身份证',
+    desc: '换领时需要提供原件照片',
+    required: false,
+    uploaded: false,
+    checked: false
+  }
 ])
 
 // ========== 已上传文件 ==========
 const uploadedFiles = ref([])
 
-const handleFileChange = (file) => {
+const handleFileChange = file => {
   // 验证文件大小
   const isLt10M = file.size / 1024 / 1024 < 10
   if (!isLt10M) {
@@ -462,11 +538,11 @@ const updateMaterialStatus = () => {
   }
 }
 
-const handlePreview = (file) => {
+const handlePreview = file => {
   ElMessage.info(`预览文件: ${file.name}`)
 }
 
-const handleDeleteFile = (index) => {
+const handleDeleteFile = index => {
   const deletedFile = uploadedFiles.value[index]
   uploadedFiles.value.splice(index, 1)
 
@@ -483,23 +559,23 @@ const handleDeleteFile = (index) => {
 // ========== 确认信息 ==========
 const agreed = ref(false)
 
-const getApplyTypeText = (type) => {
+const getApplyTypeText = type => {
   const map = { first: '首次申领', renew: '换领', replace: '补领' }
   return map[type] || '-'
 }
 
-const getReceiveTypeText = (type) => {
+const getReceiveTypeText = type => {
   const map = { self: '本人领取', mail: '邮寄送达', agent: '代领' }
   return map[type] || '-'
 }
 
-const getLocationText = (location) => {
-  const map = { '1': '海口市公安局户政大厅', '2': '龙华区政务服务中心', '3': '美兰区政务服务中心' }
+const getLocationText = location => {
+  const map = { 1: '海口市公安局户政大厅', 2: '龙华区政务服务中心', 3: '美兰区政务服务中心' }
   return map[location] || '-'
 }
 
-const getValidPeriodText = (period) => {
-  const map = { '10': '10年', '20': '20年', long: '长期' }
+const getValidPeriodText = period => {
+  const map = { 10: '10年', 20: '20年', long: '长期' }
   return map[period] || '-'
 }
 
@@ -512,12 +588,12 @@ const showAgreement = () => {
 }
 
 // ========== 数据脱敏 ==========
-const maskIdCard = (idCard) => {
+const maskIdCard = idCard => {
   if (!idCard) return '-'
   return idCard.replace(/^(.{6})(.*)(.{4})$/, '$1****$3')
 }
 
-const maskPhone = (phone) => {
+const maskPhone = phone => {
   if (!phone) return '-'
   return phone.replace(/^(.{3})(.*)(.{4})$/, '$1****$3')
 }
@@ -544,7 +620,8 @@ const handleNext = () => {
 
 // 步骤1验证
 const validateStep1 = () => {
-  const { name, idCard, phone, address, applyType, receiveType, receiveLocation, validPeriod } = formData.value
+  const { name, idCard, phone, address, applyType, receiveType, receiveLocation, validPeriod } =
+    formData.value
 
   if (!name || !idCard || !phone || !address) {
     ElMessage.warning('请填写所有必填的基本信息')
@@ -625,7 +702,9 @@ const handleSubmit = async () => {
 
     // 生成办件编号
     const now = new Date()
-    const orderNo = 'BJ' + now.getFullYear() +
+    const orderNo =
+      'BJ' +
+      now.getFullYear() +
       String(now.getMonth() + 1).padStart(2, '0') +
       String(now.getDate()).padStart(2, '0') +
       String(Math.floor(Math.random() * 10000)).padStart(4, '0')
@@ -660,13 +739,15 @@ onMounted(() => {
         confirmButtonText: '恢复',
         cancelButtonText: '重新填写',
         type: 'info'
-      }).then(() => {
-        formData.value = draftData.formData
-        currentStep.value = draftData.currentStep
-        ElMessage.success('草稿已恢复')
-      }).catch(() => {
-        localStorage.removeItem('applyDraft')
       })
+        .then(() => {
+          formData.value = draftData.formData
+          currentStep.value = draftData.currentStep
+          ElMessage.success('草稿已恢复')
+        })
+        .catch(() => {
+          localStorage.removeItem('applyDraft')
+        })
     } catch (e) {
       localStorage.removeItem('applyDraft')
     }
@@ -677,7 +758,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .apply-page {
   min-height: 100vh;
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .page-container {
@@ -694,10 +775,10 @@ onMounted(() => {
 .breadcrumb {
   padding: 16px 0;
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 
   a {
-    color: #3B82F6;
+    color: #3b82f6;
     text-decoration: none;
 
     &:hover {
@@ -710,7 +791,7 @@ onMounted(() => {
   }
 
   .current {
-    color: #1F2937;
+    color: #1f2937;
   }
 }
 
@@ -745,13 +826,13 @@ onMounted(() => {
     left: 50%;
     width: 100%;
     height: 2px;
-    background: #E5E7EB;
+    background: #e5e7eb;
     z-index: 0;
   }
 
   &.active:not(:last-child)::after,
   &.completed:not(:last-child)::after {
-    background: #1E40AF;
+    background: #1e40af;
   }
 }
 
@@ -759,41 +840,41 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #E5E7EB;
+  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 16px;
-  color: #6B7280;
+  color: #6b7280;
   position: relative;
   z-index: 1;
   transition: all 0.3s;
 }
 
 .step-item.active .step-circle {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
 }
 
 .step-item.completed .step-circle {
-  background: #10B981;
+  background: #10b981;
   color: white;
 }
 
 .step-label {
   margin-top: 12px;
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .step-item.active .step-label {
-  color: #1E40AF;
+  color: #1e40af;
   font-weight: 600;
 }
 
 .step-item.completed .step-label {
-  color: #10B981;
+  color: #10b981;
 }
 
 /* 主体布局 */
@@ -823,13 +904,13 @@ onMounted(() => {
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 10px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid #f3f4f6;
 
     .icon {
       font-size: 22px;
@@ -856,7 +937,7 @@ onMounted(() => {
   margin-bottom: 8px;
 
   .required {
-    color: #EF4444;
+    color: #ef4444;
     margin-left: 4px;
   }
 }
@@ -874,21 +955,21 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
-  border-left: 3px solid #E5E7EB;
+  border-left: 3px solid #e5e7eb;
 
   &.required {
-    border-left-color: #EF4444;
+    border-left-color: #ef4444;
   }
 
   &.optional {
-    border-left-color: #6B7280;
+    border-left-color: #6b7280;
   }
 
   &.uploaded {
-    border-left-color: #10B981;
-    background: #D1FAE5;
+    border-left-color: #10b981;
+    background: #d1fae5;
   }
 }
 
@@ -899,13 +980,13 @@ onMounted(() => {
 .checklist-name {
   font-size: 14px;
   font-weight: 500;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 4px;
 }
 
 .checklist-desc {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .checklist-status {
@@ -914,33 +995,33 @@ onMounted(() => {
   border-radius: 4px;
 
   &.required {
-    background: #FEE2E2;
-    color: #EF4444;
+    background: #fee2e2;
+    color: #ef4444;
   }
 
   &.optional {
-    background: #F3F4F6;
-    color: #6B7280;
+    background: #f3f4f6;
+    color: #6b7280;
   }
 
   &.uploaded {
-    background: #D1FAE5;
-    color: #10B981;
+    background: #d1fae5;
+    color: #10b981;
   }
 }
 
 /* 上传区域 */
 .upload-area {
   :deep(.el-upload-dragger) {
-    border: 2px dashed #E5E7EB;
+    border: 2px dashed #e5e7eb;
     border-radius: 8px;
     padding: 32px;
     text-align: center;
     background: white;
 
     &:hover {
-      border-color: #93C5FD;
-      background: #EFF6FF;
+      border-color: #93c5fd;
+      background: #eff6ff;
     }
   }
 }
@@ -958,7 +1039,7 @@ onMounted(() => {
 
 .upload-hint {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 /* 已上传文件 */
@@ -974,7 +1055,7 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
 }
 
@@ -988,13 +1069,13 @@ onMounted(() => {
 
 .uploaded-name {
   font-size: 14px;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 2px;
 }
 
 .uploaded-size {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .uploaded-actions {
@@ -1009,7 +1090,7 @@ onMounted(() => {
   h4 {
     font-size: 16px;
     font-weight: 600;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 16px;
   }
 }
@@ -1027,12 +1108,12 @@ onMounted(() => {
 
 .confirm-label {
   width: 80px;
-  color: #6B7280;
+  color: #6b7280;
   flex-shrink: 0;
 }
 
 .confirm-value {
-  color: #1F2937;
+  color: #1f2937;
 }
 
 .confirm-files {
@@ -1051,14 +1132,14 @@ onMounted(() => {
 
 .confirm-empty {
   font-size: 14px;
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 .agree-checkbox {
   margin-top: 24px;
 
   a {
-    color: #3B82F6;
+    color: #3b82f6;
     text-decoration: none;
 
     &:hover {
@@ -1097,7 +1178,7 @@ onMounted(() => {
   h3 {
     font-size: 16px;
     font-weight: 600;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -1118,20 +1199,20 @@ onMounted(() => {
 
 .info-label {
   width: 70px;
-  color: #6B7280;
+  color: #6b7280;
   flex-shrink: 0;
 }
 
 .info-value {
   flex: 1;
-  color: #1F2937;
+  color: #1f2937;
 
   &.verified {
-    color: #10B981;
+    color: #10b981;
   }
 
   &.highlight {
-    color: #1E40AF;
+    color: #1e40af;
     font-weight: 500;
   }
 }
@@ -1151,14 +1232,14 @@ onMounted(() => {
 .tip-icon {
   width: 24px;
   height: 24px;
-  background: #EFF6FF;
+  background: #eff6ff;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   flex-shrink: 0;
-  color: #1E40AF;
+  color: #1e40af;
 }
 
 .tip-text {
@@ -1183,18 +1264,18 @@ onMounted(() => {
 .success-title {
   font-size: 24px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 12px;
 }
 
 .success-desc {
   font-size: 16px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 32px;
 }
 
 .success-info {
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
   padding: 24px;
   text-align: left;
@@ -1212,12 +1293,12 @@ onMounted(() => {
 
 .success-label {
   width: 80px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .success-value {
   flex: 1;
-  color: #1F2937;
+  color: #1f2937;
   font-weight: 500;
 }
 

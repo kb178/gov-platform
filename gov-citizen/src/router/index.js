@@ -96,9 +96,7 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
   // 设置页面标题
-  document.title = to.meta.title
-    ? `${to.meta.title} - 海口政务服务平台`
-    : '海口政务服务平台'
+  document.title = to.meta.title ? `${to.meta.title} - 海口政务服务平台` : '海口政务服务平台'
 
   // TODO: 测试阶段暂时关闭登录拦截，上线前恢复
   next()

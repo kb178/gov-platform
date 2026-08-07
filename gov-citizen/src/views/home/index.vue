@@ -18,10 +18,8 @@
               @keyup.enter="handleSearch"
               @focus="showHotSearch = true"
               @blur="hideHotSearch"
-            >
-            <button class="search-btn" @click="handleSearch">
-              搜索
-            </button>
+            />
+            <button class="search-btn" @click="handleSearch">搜索</button>
 
             <!-- 热门搜索 -->
             <div v-show="showHotSearch" class="hot-search-panel">
@@ -125,17 +123,11 @@
         <div class="progress-grid">
           <!-- 我的办件 -->
           <div class="progress-card">
-            <h4 class="card-title">
-              <span>📋</span> 我的办件
-            </h4>
+            <h4 class="card-title"><span>📋</span> 我的办件</h4>
 
             <template v-if="userStore.isLoggedIn">
               <div class="progress-list">
-                <div
-                  v-for="item in myApplications"
-                  :key="item.id"
-                  class="progress-item"
-                >
+                <div v-for="item in myApplications" :key="item.id" class="progress-item">
                   <div :class="['progress-icon', item.status]">
                     {{ item.statusIcon }}
                   </div>
@@ -158,9 +150,7 @@
                 <div class="empty-icon">🔐</div>
                 <div class="empty-text">登录后查看办件进度</div>
                 <div class="empty-desc">登录即可查看您的办件进度、证照信息等</div>
-                <el-button type="primary" @click="$router.push('/login')">
-                  立即登录
-                </el-button>
+                <el-button type="primary" @click="$router.push('/login')"> 立即登录 </el-button>
               </div>
             </template>
           </div>
@@ -169,9 +159,7 @@
           <div class="right-panel">
             <!-- 快捷操作 -->
             <div class="action-card">
-              <h4 class="card-title">
-                <span>⚡</span> 快捷操作
-              </h4>
+              <h4 class="card-title"><span>⚡</span> 快捷操作</h4>
               <div class="action-grid">
                 <div
                   v-for="action in quickActions"
@@ -192,11 +180,7 @@
                 <el-button text class="notice-more">更多</el-button>
               </h4>
               <div class="notice-list">
-                <div
-                  v-for="notice in notices"
-                  :key="notice.id"
-                  class="notice-item"
-                >
+                <div v-for="notice in notices" :key="notice.id" class="notice-item">
                   <el-tag
                     :type="notice.type === 'important' ? 'danger' : 'info'"
                     size="small"
@@ -259,7 +243,12 @@ const searchKeyword = ref('')
 const showHotSearch = ref(false)
 
 const hotSearchTags = ref([
-  '身份证办理', '营业执照', '社保查询', '公积金提取', '不动产登记', '居住证'
+  '身份证办理',
+  '营业执照',
+  '社保查询',
+  '公积金提取',
+  '不动产登记',
+  '居住证'
 ])
 
 const handleSearch = () => {
@@ -271,7 +260,7 @@ const handleSearch = () => {
   router.push({ path: '/items', query: { keyword: searchKeyword.value } })
 }
 
-const handleHotSearch = (tag) => {
+const handleHotSearch = tag => {
   searchKeyword.value = tag
   handleSearch()
 }
@@ -291,7 +280,7 @@ const quickEntries = ref([
   { id: 5, name: '教育服务', icon: '🎓', color: 'red', category: 'education' }
 ])
 
-const handleQuickEntry = (item) => {
+const handleQuickEntry = item => {
   router.push({ path: '/items', query: { category: item.category } })
 }
 
@@ -372,7 +361,7 @@ const hotItems = ref([
   }
 ])
 
-const handleItemClick = (item) => {
+const handleItemClick = item => {
   router.push(`/items/${item.id}`)
 }
 
@@ -414,7 +403,7 @@ const quickActions = ref([
   { id: 6, name: '咨询投诉', icon: '📞', path: '#' }
 ])
 
-const handleAction = (action) => {
+const handleAction = action => {
   if (action.path === '#') {
     ElMessage.info('功能开发中')
     return
@@ -484,7 +473,7 @@ const bottomLinks = ref([
   }
 ])
 
-const handleLink = (link) => {
+const handleLink = link => {
   router.push(link.path)
 }
 
@@ -533,7 +522,7 @@ onUnmounted(() => {
 
 /* 搜索区域 */
 .search-section {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 48px 0 80px;
   position: relative;
   overflow: hidden;
@@ -551,8 +540,13 @@ onUnmounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, -30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, -30px);
+  }
 }
 
 .search-container {
@@ -610,14 +604,14 @@ onUnmounted(() => {
     background: white;
 
     &::placeholder {
-      color: #9CA3AF;
+      color: #9ca3af;
     }
   }
 
   .search-btn {
     width: 120px;
     height: 56px;
-    background: #1E40AF;
+    background: #1e40af;
     color: white;
     border: none;
     font-size: 16px;
@@ -626,7 +620,7 @@ onUnmounted(() => {
     transition: background 0.2s;
 
     &:hover {
-      background: #1E3A8A;
+      background: #1e3a8a;
     }
   }
 }
@@ -728,11 +722,21 @@ onUnmounted(() => {
   justify-content: center;
   transition: all 0.3s;
 
-  &.blue { background: #EFF6FF; }
-  &.green { background: #D1FAE5; }
-  &.orange { background: #FEF3C7; }
-  &.purple { background: #E0E7FF; }
-  &.red { background: #FEE2E2; }
+  &.blue {
+    background: #eff6ff;
+  }
+  &.green {
+    background: #d1fae5;
+  }
+  &.orange {
+    background: #fef3c7;
+  }
+  &.purple {
+    background: #e0e7ff;
+  }
+  &.red {
+    background: #fee2e2;
+  }
 }
 
 .icon-emoji {
@@ -750,7 +754,7 @@ onUnmounted(() => {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: #EF4444;
+  background: #ef4444;
   color: white;
   font-size: 11px;
   padding: 2px 6px;
@@ -872,13 +876,13 @@ onUnmounted(() => {
   border-radius: 4px;
 
   &.hot {
-    background: #FEE2E2;
-    color: #EF4444;
+    background: #fee2e2;
+    color: #ef4444;
   }
 
   &.new {
-    background: #D1FAE5;
-    color: #10B981;
+    background: #d1fae5;
+    color: #10b981;
   }
 }
 
@@ -1013,9 +1017,15 @@ onUnmounted(() => {
   margin-right: 16px;
   flex-shrink: 0;
 
-  &.pending { background: var(--warning-bg); }
-  &.approved { background: var(--success-bg); }
-  &.rejected { background: var(--danger-bg); }
+  &.pending {
+    background: var(--warning-bg);
+  }
+  &.approved {
+    background: var(--success-bg);
+  }
+  &.rejected {
+    background: var(--danger-bg);
+  }
 }
 
 .progress-info {
@@ -1036,9 +1046,15 @@ onUnmounted(() => {
 .progress-status {
   font-size: 12px;
 
-  &.pending { color: var(--warning); }
-  &.approved { color: var(--success); }
-  &.rejected { color: var(--danger); }
+  &.pending {
+    color: var(--warning);
+  }
+  &.approved {
+    color: var(--success);
+  }
+  &.rejected {
+    color: var(--danger);
+  }
 }
 
 .progress-date {

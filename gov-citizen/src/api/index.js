@@ -14,15 +14,15 @@ const service = axios.create({
 
 // 请求拦截器
 service.interceptors.request.use(
-  (config) => {
+  config => {
     const userStore = useUserStore()
     if (userStore.token) {
-        //发请求带上token
+      //发请求带上token
       config.headers['Authorization'] = `Bearer ${userStore.token}`
     }
     return config
   },
-  (error) => {
+  error => {
     console.error('请求错误：', error)
     return Promise.reject(error)
   }
@@ -30,7 +30,7 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response) => {
+  response => {
     const { code, msg, data } = response.data
 
     // 成功响应
@@ -51,7 +51,7 @@ service.interceptors.response.use(
     ElMessage.error(msg || '请求失败')
     return Promise.reject(new Error(msg))
   },
-  (error) => {
+  error => {
     // HTTP 错误
     console.error('请求错误详情:', error)
     const { status, data } = error.response || {}

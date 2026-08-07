@@ -9,7 +9,7 @@
             <div>
               <div class="user-name">{{ userInfo.nickname || '未设置昵称' }}</div>
               <div class="user-phone">{{ maskPhone(userInfo.phone) }}</div>
-              <div class="user-verify-badge" v-if="userInfo.realNameStatus === 1">
+              <div v-if="userInfo.realNameStatus === 1" class="user-verify-badge">
                 ✅ 已实名认证
               </div>
             </div>
@@ -55,18 +55,12 @@
                 <span class="menu-text">账号安全</span>
                 <span class="menu-arrow">›</span>
               </div>
-              <div
-                class="menu-item"
-                @click="router.push('/verify')"
-              >
+              <div class="menu-item" @click="router.push('/verify')">
                 <span class="menu-icon">🆔</span>
                 <span class="menu-text">实名认证</span>
                 <span class="menu-arrow">›</span>
               </div>
-              <div
-                class="menu-item"
-                @click="router.push('/message')"
-              >
+              <div class="menu-item" @click="router.push('/message')">
                 <span class="menu-icon">🔔</span>
                 <span class="menu-text">消息设置</span>
                 <span class="menu-arrow">›</span>
@@ -79,17 +73,19 @@
       <!-- 右侧内容 -->
       <div class="profile-content">
         <!-- 个人信息 -->
-        <div class="content-card" v-show="activeSection === 'info'">
+        <div v-show="activeSection === 'info'" class="content-card">
           <h3>
             <span class="icon">👤</span>
             个人信息
           </h3>
 
-          <div class="verify-status" v-if="userInfo.realNameStatus === 1">
+          <div v-if="userInfo.realNameStatus === 1" class="verify-status">
             <div class="verify-icon success">✅</div>
             <div class="verify-info">
               <div class="verify-title">已实名认证</div>
-              <div class="verify-desc">认证姓名：{{ userInfo.realName }} | 认证时间：{{ userInfo.verifyTime }}</div>
+              <div class="verify-desc">
+                认证姓名：{{ userInfo.realName }} | 认证时间：{{ userInfo.verifyTime }}
+              </div>
             </div>
           </div>
 
@@ -110,28 +106,17 @@
                 <div class="form-hint">实名认证后不可修改</div>
               </el-form-item>
               <el-form-item label="身份证号" prop="idCard">
-                <el-input
-                  v-model="profileForm.idCard"
-                  disabled
-                  placeholder="实名认证后不可修改"
-                />
+                <el-input v-model="profileForm.idCard" disabled placeholder="实名认证后不可修改" />
                 <div class="form-hint">实名认证后不可修改</div>
               </el-form-item>
             </div>
 
             <div class="form-row">
               <el-form-item label="手机号" prop="phone">
-                <el-input
-                  v-model="profileForm.phone"
-                  placeholder="请输入手机号"
-                  maxlength="11"
-                />
+                <el-input v-model="profileForm.phone" placeholder="请输入手机号" maxlength="11" />
               </el-form-item>
               <el-form-item label="邮箱" prop="email">
-                <el-input
-                  v-model="profileForm.email"
-                  placeholder="请输入邮箱"
-                />
+                <el-input v-model="profileForm.email" placeholder="请输入邮箱" />
               </el-form-item>
             </div>
 
@@ -154,10 +139,7 @@
             </div>
 
             <el-form-item label="联系地址" prop="address">
-              <el-input
-                v-model="profileForm.address"
-                placeholder="请输入联系地址"
-              />
+              <el-input v-model="profileForm.address" placeholder="请输入联系地址" />
             </el-form-item>
 
             <el-form-item label="紧急联系人">
@@ -184,7 +166,7 @@
         </div>
 
         <!-- 修改密码 -->
-        <div class="content-card" v-show="activeSection === 'password'">
+        <div v-show="activeSection === 'password'" class="content-card">
           <h3>
             <span class="icon">🔒</span>
             修改密码
@@ -215,11 +197,17 @@
                 @input="checkPasswordStrength"
               />
               <div class="password-strength">
-                <div :class="['strength-bar', { active: passwordStrength >= 1 }, strengthLevel]"></div>
-                <div :class="['strength-bar', { active: passwordStrength >= 2 }, strengthLevel]"></div>
-                <div :class="['strength-bar', { active: passwordStrength >= 3 }, strengthLevel]"></div>
+                <div
+                  :class="['strength-bar', { active: passwordStrength >= 1 }, strengthLevel]"
+                ></div>
+                <div
+                  :class="['strength-bar', { active: passwordStrength >= 2 }, strengthLevel]"
+                ></div>
+                <div
+                  :class="['strength-bar', { active: passwordStrength >= 3 }, strengthLevel]"
+                ></div>
               </div>
-              <div :class="['strength-text', strengthLevel]" v-if="passwordForm.newPassword">
+              <div v-if="passwordForm.newPassword" :class="['strength-text', strengthLevel]">
                 密码强度：{{ strengthText }}
               </div>
             </el-form-item>
@@ -242,7 +230,7 @@
         </div>
 
         <!-- 账号安全 -->
-        <div class="content-card" v-show="activeSection === 'security'">
+        <div v-show="activeSection === 'security'" class="content-card">
           <h3>
             <span class="icon">🛡️</span>
             账号安全
@@ -267,10 +255,14 @@
                   {{ userInfo.email ? `已绑定：${maskEmail(userInfo.email)}` : '未绑定邮箱' }}
                 </div>
               </div>
-              <span :class="['security-status', userInfo.email ? 'status-active' : 'status-inactive']">
+              <span
+                :class="['security-status', userInfo.email ? 'status-active' : 'status-inactive']"
+              >
                 {{ userInfo.email ? '已绑定' : '未绑定' }}
               </span>
-              <button class="security-action">{{ userInfo.email ? '更换邮箱' : '立即绑定' }}</button>
+              <button class="security-action">
+                {{ userInfo.email ? '更换邮箱' : '立即绑定' }}
+              </button>
             </div>
 
             <div class="security-item">
@@ -370,9 +362,7 @@ const profileRules = {
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
   ],
-  email: [
-    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
-  ]
+  email: [{ type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }]
 }
 
 // 密码表单
@@ -394,16 +384,12 @@ const validateConfirmPassword = (rule, value, callback) => {
 }
 
 const passwordRules = {
-  oldPassword: [
-    { required: true, message: '请输入当前密码', trigger: 'blur' }
-  ],
+  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' }
   ],
-  confirmPassword: [
-    { validator: validateConfirmPassword, trigger: 'blur' }
-  ]
+  confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }]
 }
 
 // 密码强度
@@ -508,12 +494,12 @@ const handleChangePassword = async () => {
 }
 
 // 数据脱敏
-const maskPhone = (phone) => {
+const maskPhone = phone => {
   if (!phone) return '-'
   return phone.replace(/^(.{3})(.*)(.{4})$/, '$1****$3')
 }
 
-const maskEmail = (email) => {
+const maskEmail = email => {
   if (!email) return ''
   const [username, domain] = email.split('@')
   const maskedUsername = username.charAt(0) + '****' + username.charAt(username.length - 1)
@@ -551,7 +537,7 @@ onMounted(() => {
 }
 
 .user-card-header {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 32px 24px;
   text-align: center;
   color: white;
@@ -601,7 +587,7 @@ onMounted(() => {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #f3f4f6;
   margin-bottom: 20px;
 }
 
@@ -611,19 +597,19 @@ onMounted(() => {
   transition: color 0.2s;
 
   &:hover {
-    color: #1E40AF;
+    color: #1e40af;
   }
 }
 
 .user-stat-number {
   font-size: 20px;
   font-weight: 700;
-  color: #1E40AF;
+  color: #1e40af;
 }
 
 .user-stat-label {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   margin-top: 4px;
 }
 
@@ -640,18 +626,18 @@ onMounted(() => {
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
-  color: #4B5563;
+  color: #4b5563;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: #F9FAFB;
-    color: #1E40AF;
+    background: #f9fafb;
+    color: #1e40af;
   }
 
   &.active {
-    background: #EFF6FF;
-    color: #1E40AF;
+    background: #eff6ff;
+    color: #1e40af;
     font-weight: 500;
   }
 }
@@ -667,7 +653,7 @@ onMounted(() => {
 }
 
 .menu-arrow {
-  color: #6B7280;
+  color: #6b7280;
 }
 
 /* 右侧内容 */
@@ -685,7 +671,7 @@ onMounted(() => {
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #1F2937;
+    color: #1f2937;
     margin-bottom: 24px;
     display: flex;
     align-items: center;
@@ -703,7 +689,7 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 12px;
   margin-bottom: 24px;
 }
@@ -718,7 +704,7 @@ onMounted(() => {
   font-size: 24px;
 
   &.success {
-    background: #D1FAE5;
+    background: #d1fae5;
   }
 }
 
@@ -729,13 +715,13 @@ onMounted(() => {
 .verify-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 4px;
 }
 
 .verify-desc {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 /* 表单样式 */
@@ -754,7 +740,7 @@ onMounted(() => {
 
 .form-hint {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   margin-top: 6px;
 }
 
@@ -783,22 +769,34 @@ onMounted(() => {
 .strength-bar {
   flex: 1;
   height: 4px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 2px;
   transition: background 0.3s;
 
-  &.active.weak { background: #EF4444; }
-  &.active.medium { background: #F59E0B; }
-  &.active.strong { background: #10B981; }
+  &.active.weak {
+    background: #ef4444;
+  }
+  &.active.medium {
+    background: #f59e0b;
+  }
+  &.active.strong {
+    background: #10b981;
+  }
 }
 
 .strength-text {
   font-size: 12px;
   margin-top: 4px;
 
-  &.weak { color: #EF4444; }
-  &.medium { color: #F59E0B; }
-  &.strong { color: #10B981; }
+  &.weak {
+    color: #ef4444;
+  }
+  &.medium {
+    color: #f59e0b;
+  }
+  &.strong {
+    color: #10b981;
+  }
 }
 
 /* 账号安全 */
@@ -812,7 +810,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 20px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 12px;
   gap: 16px;
 }
@@ -821,7 +819,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: #EFF6FF;
+  background: #eff6ff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -835,13 +833,13 @@ onMounted(() => {
 .security-title {
   font-size: 15px;
   font-weight: 500;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 4px;
 }
 
 .security-desc {
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .security-status {
@@ -850,13 +848,13 @@ onMounted(() => {
   border-radius: 6px;
 
   &.status-active {
-    background: #D1FAE5;
+    background: #d1fae5;
     color: #059669;
   }
 
   &.status-inactive {
-    background: #F3F4F6;
-    color: #6B7280;
+    background: #f3f4f6;
+    color: #6b7280;
   }
 }
 
@@ -866,13 +864,13 @@ onMounted(() => {
   font-size: 13px;
   cursor: pointer;
   background: white;
-  border: 1px solid #E5E7EB;
-  color: #4B5563;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #1E40AF;
-    color: #1E40AF;
+    border-color: #1e40af;
+    color: #1e40af;
   }
 }
 

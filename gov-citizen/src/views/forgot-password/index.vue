@@ -48,23 +48,14 @@
                 >
                   <template #prefix>💬</template>
                 </el-input>
-                <el-button
-                  class="sms-btn"
-                  :disabled="countdown > 0"
-                  @click="handleSendSms"
-                >
+                <el-button class="sms-btn" :disabled="countdown > 0" @click="handleSendSms">
                   {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
                 </el-button>
               </div>
             </el-form-item>
           </el-form>
 
-          <el-button
-            type="primary"
-            size="large"
-            class="btn-block"
-            @click="handleVerifyPhone"
-          >
+          <el-button type="primary" size="large" class="btn-block" @click="handleVerifyPhone">
             下一步
           </el-button>
 
@@ -88,9 +79,15 @@
                 <template #prefix>🔒</template>
               </el-input>
               <div class="password-strength">
-                <div :class="['strength-bar', { active: passwordStrength >= 1 }, strengthLevel]"></div>
-                <div :class="['strength-bar', { active: passwordStrength >= 2 }, strengthLevel]"></div>
-                <div :class="['strength-bar', { active: passwordStrength >= 3 }, strengthLevel]"></div>
+                <div
+                  :class="['strength-bar', { active: passwordStrength >= 1 }, strengthLevel]"
+                ></div>
+                <div
+                  :class="['strength-bar', { active: passwordStrength >= 2 }, strengthLevel]"
+                ></div>
+                <div
+                  :class="['strength-bar', { active: passwordStrength >= 3 }, strengthLevel]"
+                ></div>
               </div>
               <div class="form-hint">密码需包含字母和数字，长度8-20位</div>
             </el-form-item>
@@ -217,9 +214,7 @@ const passwordRules = {
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' }
   ],
-  confirmPassword: [
-    { validator: validateConfirmPassword, trigger: 'blur' }
-  ]
+  confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }]
 }
 
 // 密码强度
@@ -273,7 +268,7 @@ const handleResetPassword = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 20px;
 }
 
@@ -287,7 +282,7 @@ const handleResetPassword = async () => {
 }
 
 .forgot-header {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 40px;
   text-align: center;
   color: white;
@@ -342,12 +337,12 @@ const handleResetPassword = async () => {
     left: 50%;
     width: 100%;
     height: 2px;
-    background: #E5E7EB;
+    background: #e5e7eb;
   }
 
   &.active:not(:last-child)::after,
   &.completed:not(:last-child)::after {
-    background: #1E40AF;
+    background: #1e40af;
   }
 }
 
@@ -355,40 +350,40 @@ const handleResetPassword = async () => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #E5E7EB;
+  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   position: relative;
   z-index: 1;
 }
 
 .step-item.active .step-circle {
-  background: #1E40AF;
+  background: #1e40af;
   color: white;
 }
 
 .step-item.completed .step-circle {
-  background: #10B981;
+  background: #10b981;
   color: white;
 }
 
 .step-label {
   margin-top: 8px;
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .step-item.active .step-label {
-  color: #1E40AF;
+  color: #1e40af;
   font-weight: 500;
 }
 
 .step-item.completed .step-label {
-  color: #10B981;
+  color: #10b981;
 }
 
 /* 表单 */
@@ -413,7 +408,7 @@ const handleResetPassword = async () => {
 
 .form-hint {
   font-size: 12px;
-  color: #6B7280;
+  color: #6b7280;
   margin-top: 8px;
 }
 
@@ -422,7 +417,7 @@ const handleResetPassword = async () => {
   margin-top: 24px;
 
   a {
-    color: #3B82F6;
+    color: #3b82f6;
     font-size: 14px;
     text-decoration: none;
 
@@ -446,13 +441,19 @@ const handleResetPassword = async () => {
 .strength-bar {
   flex: 1;
   height: 4px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 2px;
   transition: background 0.3s;
 
-  &.active.weak { background: #EF4444; }
-  &.active.medium { background: #F59E0B; }
-  &.active.strong { background: #10B981; }
+  &.active.weak {
+    background: #ef4444;
+  }
+  &.active.medium {
+    background: #f59e0b;
+  }
+  &.active.strong {
+    background: #10b981;
+  }
 }
 
 /* 成功页面 */
@@ -469,13 +470,13 @@ const handleResetPassword = async () => {
 .success-title {
   font-size: 20px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 8px;
 }
 
 .success-desc {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 32px;
 }
 
