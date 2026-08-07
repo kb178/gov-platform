@@ -11,6 +11,48 @@ const routes = [
         name: 'Home',
         component: () => import('@/views/home/index.vue'),
         meta: { title: '首页' }
+      },
+      {
+        path: 'items',
+        name: 'Items',
+        component: () => import('@/views/items/index.vue'),
+        meta: { title: '事项办理' }
+      },
+      {
+        path: 'items/:id',
+        name: 'ItemDetail',
+        component: () => import('@/views/items/detail.vue'),
+        meta: { title: '事项详情' }
+      },
+      {
+        path: 'apply/:id',
+        name: 'Apply',
+        component: () => import('@/views/apply/index.vue'),
+        meta: { title: '在线申请', requireAuth: true }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: { title: '个人中心' }
+      },
+      {
+        path: 'progress',
+        name: 'Progress',
+        component: () => import('@/views/progress/index.vue'),
+        meta: { title: '办件进度' }
+      },
+      {
+        path: 'my-license',
+        name: 'MyLicense',
+        component: () => import('@/views/license/index.vue'),
+        meta: { title: '我的证照' }
+      },
+      {
+        path: 'verify',
+        name: 'Verify',
+        component: () => import('@/views/verify/index.vue'),
+        meta: { title: '实名认证' }
       }
     ]
   },
@@ -25,24 +67,6 @@ const routes = [
     name: 'Register',
     component: () => import('@/views/register/index.vue'),
     meta: { title: '注册', layout: 'blank' }
-  },
-  {
-    path: '/items',
-    name: 'Items',
-    component: () => import('@/views/items/index.vue'),
-    meta: { title: '事项办理' }
-  },
-  {
-    path: '/items/:id',
-    name: 'ItemDetail',
-    component: () => import('@/views/items/detail.vue'),
-    meta: { title: '事项详情' }
-  },
-  {
-    path: '/profile',
-    name: 'Profile',
-    component: () => import('@/views/profile/index.vue'),
-    meta: { title: '个人中心' }
   },
   {
     path: '/:pathMatch(.*)*',

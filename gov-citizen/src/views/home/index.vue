@@ -9,21 +9,19 @@
         </div>
         <div class="search-box">
           <div class="search-input-wrapper">
-            <el-input
+            <span class="search-icon">🔍</span>
+            <input
               v-model="searchKeyword"
+              type="text"
+              class="search-input"
               placeholder="搜索您需要办理的事项，如：身份证办理、营业执照..."
-              size="large"
               @keyup.enter="handleSearch"
               @focus="showHotSearch = true"
               @blur="hideHotSearch"
             >
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-button type="primary" size="large" class="search-btn" @click="handleSearch">
+            <button class="search-btn" @click="handleSearch">
               搜索
-            </el-button>
+            </button>
 
             <!-- 热门搜索 -->
             <div v-show="showHotSearch" class="hot-search-panel">
@@ -250,7 +248,7 @@
 import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Search, ArrowRight, Top } from '@element-plus/icons-vue'
+import { ArrowRight, Top } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -589,19 +587,47 @@ onUnmounted(() => {
 .search-input-wrapper {
   display: flex;
   position: relative;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
 
-  :deep(.el-input__wrapper) {
+  .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    z-index: 1;
+  }
+
+  .search-input {
     flex: 1;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-    border-radius: 8px 0 0 8px;
-    padding: 4px 16px;
+    height: 56px;
+    padding: 0 16px 0 48px;
+    border: none;
+    font-size: 16px;
+    outline: none;
+    background: white;
+
+    &::placeholder {
+      color: #9CA3AF;
+    }
   }
 
   .search-btn {
-    border-radius: 0 8px 8px 0;
-    padding: 0 32px;
+    width: 120px;
+    height: 56px;
+    background: #1E40AF;
+    color: white;
+    border: none;
     font-size: 16px;
     font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #1E3A8A;
+    }
   }
 }
 
@@ -610,7 +636,7 @@ onUnmounted(() => {
   position: absolute;
   top: 100%;
   left: 0;
-  right: 120px;
+  right: 0;
   background: white;
   border-radius: 0 0 8px 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);

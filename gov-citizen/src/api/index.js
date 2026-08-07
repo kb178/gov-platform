@@ -17,6 +17,7 @@ service.interceptors.request.use(
   (config) => {
     const userStore = useUserStore()
     if (userStore.token) {
+        //发请求带上token
       config.headers['Authorization'] = `Bearer ${userStore.token}`
     }
     return config

@@ -5,14 +5,10 @@
       <div class="user-sidebar">
         <div class="user-card">
           <div class="user-card-header">
-            <div class="user-avatar">
-              <el-avatar :size="80" :src="userInfo.avatar">
-                {{ userInfo.nickname?.charAt(0) || '👤' }}
-              </el-avatar>
-            </div>
-            <div class="user-info">
+            <div class="user-avatar">👤</div>
+            <div>
               <div class="user-name">{{ userInfo.nickname || '未设置昵称' }}</div>
-              <div class="user-phone">{{ userInfo.phone }}</div>
+              <div class="user-phone">{{ maskPhone(userInfo.phone) }}</div>
               <div class="user-verify-badge" v-if="userInfo.realNameStatus === 1">
                 ✅ 已实名认证
               </div>
@@ -21,15 +17,15 @@
           <div class="user-card-body">
             <div class="user-stats">
               <div class="user-stat" @click="router.push('/progress')">
-                <div class="user-stat-number">0</div>
+                <div class="user-stat-number">{{ stats.applyCount }}</div>
                 <div class="user-stat-label">我的办件</div>
               </div>
               <div class="user-stat" @click="router.push('/my-license')">
-                <div class="user-stat-number">0</div>
+                <div class="user-stat-number">{{ stats.licenseCount }}</div>
                 <div class="user-stat-label">我的证照</div>
               </div>
               <div class="user-stat" @click="router.push('/message')">
-                <div class="user-stat-number">0</div>
+                <div class="user-stat-number">{{ stats.messageCount }}</div>
                 <div class="user-stat-label">消息通知</div>
               </div>
             </div>
@@ -59,6 +55,22 @@
                 <span class="menu-text">账号安全</span>
                 <span class="menu-arrow">›</span>
               </div>
+              <div
+                class="menu-item"
+                @click="router.push('/verify')"
+              >
+                <span class="menu-icon">🆔</span>
+                <span class="menu-text">实名认证</span>
+                <span class="menu-arrow">›</span>
+              </div>
+              <div
+                class="menu-item"
+                @click="router.push('/message')"
+              >
+                <span class="menu-icon">🔔</span>
+                <span class="menu-text">消息设置</span>
+                <span class="menu-arrow">›</span>
+              </div>
             </div>
           </div>
         </div>
@@ -77,7 +89,7 @@
             <div class="verify-icon success">✅</div>
             <div class="verify-info">
               <div class="verify-title">已实名认证</div>
-              <div class="verify-desc">认证姓名：{{ userInfo.realName }}</div>
+              <div class="verify-desc">认证姓名：{{ userInfo.realName }} | 认证时间：{{ userInfo.verifyTime }}</div>
             </div>
           </div>
 
@@ -88,48 +100,79 @@
             label-width="100px"
             class="profile-form"
           >
-            <el-form-item label="昵称" prop="nickname">
+            <div class="form-row">
+              <el-form-item label="姓名" prop="realName">
+                <el-input
+                  v-model="profileForm.realName"
+                  disabled
+                  placeholder="实名认证后不可修改"
+                />
+                <div class="form-hint">实名认证后不可修改</div>
+              </el-form-item>
+              <el-form-item label="身份证号" prop="idCard">
+                <el-input
+                  v-model="profileForm.idCard"
+                  disabled
+                  placeholder="实名认证后不可修改"
+                />
+                <div class="form-hint">实名认证后不可修改</div>
+              </el-form-item>
+            </div>
+
+            <div class="form-row">
+              <el-form-item label="手机号" prop="phone">
+                <el-input
+                  v-model="profileForm.phone"
+                  placeholder="请输入手机号"
+                  maxlength="11"
+                />
+              </el-form-item>
+              <el-form-item label="邮箱" prop="email">
+                <el-input
+                  v-model="profileForm.email"
+                  placeholder="请输入邮箱"
+                />
+              </el-form-item>
+            </div>
+
+            <div class="form-row">
+              <el-form-item label="性别" prop="sex">
+                <el-select v-model="profileForm.sex" placeholder="请选择性别" style="width: 100%">
+                  <el-option label="男" :value="1" />
+                  <el-option label="女" :value="2" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="出生日期" prop="birthday">
+                <el-date-picker
+                  v-model="profileForm.birthday"
+                  type="date"
+                  placeholder="请选择出生日期"
+                  style="width: 100%"
+                  value-format="YYYY-MM-DD"
+                />
+              </el-form-item>
+            </div>
+
+            <el-form-item label="联系地址" prop="address">
               <el-input
-                v-model="profileForm.nickname"
-                placeholder="请输入昵称"
-                maxlength="30"
-                show-word-limit
+                v-model="profileForm.address"
+                placeholder="请输入联系地址"
               />
             </el-form-item>
 
-            <el-form-item label="手机号">
-              <el-input :value="userInfo.phone" disabled />
-              <div class="form-hint">手机号不可修改</div>
-            </el-form-item>
-
-            <el-form-item label="性别" prop="sex">
-              <el-select v-model="profileForm.sex" placeholder="请选择性别">
-                <el-option label="男" :value="1" />
-                <el-option label="女" :value="2" />
-                <el-option label="未知" :value="0" />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item label="邮箱" prop="email">
-              <el-input
-                v-model="profileForm.email"
-                placeholder="请输入邮箱"
-                maxlength="50"
-              />
-            </el-form-item>
-
-            <el-form-item label="头像">
-              <el-upload
-                class="avatar-uploader"
-                :show-file-list="false"
-                :before-upload="beforeAvatarUpload"
-                :http-request="handleAvatarUpload"
-              >
-                <el-avatar :size="100" :src="profileForm.avatar">
-                  {{ profileForm.nickname?.charAt(0) || '👤' }}
-                </el-avatar>
-                <div class="upload-tip">点击更换头像</div>
-              </el-upload>
+            <el-form-item label="紧急联系人">
+              <div class="emergency-contact">
+                <el-input
+                  v-model="profileForm.emergencyName"
+                  placeholder="联系人姓名"
+                  class="emergency-input"
+                />
+                <el-input
+                  v-model="profileForm.emergencyPhone"
+                  placeholder="联系人电话"
+                  class="emergency-input"
+                />
+              </div>
             </el-form-item>
 
             <el-form-item>
@@ -210,9 +253,10 @@
               <div class="security-icon">📱</div>
               <div class="security-info">
                 <div class="security-title">手机绑定</div>
-                <div class="security-desc">已绑定：{{ userInfo.phone }}</div>
+                <div class="security-desc">已绑定：{{ maskPhone(userInfo.phone) }}</div>
               </div>
               <span class="security-status status-active">已绑定</span>
+              <button class="security-action">更换手机</button>
             </div>
 
             <div class="security-item">
@@ -226,6 +270,27 @@
               <span :class="['security-status', userInfo.email ? 'status-active' : 'status-inactive']">
                 {{ userInfo.email ? '已绑定' : '未绑定' }}
               </span>
+              <button class="security-action">{{ userInfo.email ? '更换邮箱' : '立即绑定' }}</button>
+            </div>
+
+            <div class="security-item">
+              <div class="security-icon">💬</div>
+              <div class="security-info">
+                <div class="security-title">微信绑定</div>
+                <div class="security-desc">绑定后可使用微信快速登录</div>
+              </div>
+              <span class="security-status status-inactive">未绑定</span>
+              <button class="security-action">立即绑定</button>
+            </div>
+
+            <div class="security-item">
+              <div class="security-icon">💳</div>
+              <div class="security-info">
+                <div class="security-title">支付宝绑定</div>
+                <div class="security-desc">绑定后可使用支付宝快速登录</div>
+              </div>
+              <span class="security-status status-inactive">未绑定</span>
+              <button class="security-action">立即绑定</button>
             </div>
 
             <div class="security-item">
@@ -235,6 +300,16 @@
                 <div class="security-desc">开启后登录需要验证码验证</div>
               </div>
               <span class="security-status status-active">已开启</span>
+              <button class="security-action">设置</button>
+            </div>
+
+            <div class="security-item">
+              <div class="security-icon">📋</div>
+              <div class="security-info">
+                <div class="security-title">登录日志</div>
+                <div class="security-desc">查看账号登录历史记录</div>
+              </div>
+              <button class="security-action">查看</button>
             </div>
           </div>
         </div>
@@ -256,6 +331,13 @@ const userStore = useUserStore()
 // 当前激活的菜单
 const activeSection = ref('info')
 
+// 统计数据
+const stats = ref({
+  applyCount: 6,
+  licenseCount: 5,
+  messageCount: 3
+})
+
 // 用户信息
 const userInfo = ref({
   userId: '',
@@ -265,21 +347,28 @@ const userInfo = ref({
   sex: 0,
   email: '',
   realNameStatus: 0,
-  realName: ''
+  realName: '',
+  verifyTime: '2024-01-10'
 })
 
 // 个人信息表单
 const profileFormRef = ref()
 const profileForm = reactive({
-  nickname: '',
-  sex: 0,
-  email: '',
-  avatar: ''
+  realName: '张三',
+  idCard: '460100199001011234',
+  phone: '13800138000',
+  email: 'zhangsan@example.com',
+  sex: 1,
+  birthday: '1990-01-01',
+  address: '海南省海口市龙华区XX路XX号',
+  emergencyName: '李四',
+  emergencyPhone: '13900139000'
 })
 
 const profileRules = {
-  nickname: [
-    { max: 30, message: '昵称长度不能超过30个字符', trigger: 'blur' }
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
   ],
   email: [
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
@@ -341,10 +430,11 @@ const fetchUserInfo = async () => {
     const { data } = await getUserInfo()
     userInfo.value = data
     // 填充表单
-    profileForm.nickname = data.nickname || ''
-    profileForm.sex = data.sex || 0
+    profileForm.phone = data.phone || ''
     profileForm.email = data.email || ''
-    profileForm.avatar = data.avatar || ''
+    profileForm.sex = data.sex || 0
+    profileForm.realName = data.realName || ''
+    profileForm.idCard = data.idCard || ''
   } catch (error) {
     console.error('获取用户信息失败:', error)
   }
@@ -357,16 +447,17 @@ const handleSaveProfile = async () => {
     saving.value = true
 
     await updateUserInfo({
-      nickname: profileForm.nickname,
-      sex: profileForm.sex,
+      phone: profileForm.phone,
       email: profileForm.email,
-      avatar: profileForm.avatar
+      sex: profileForm.sex,
+      birthday: profileForm.birthday,
+      address: profileForm.address,
+      emergencyName: profileForm.emergencyName,
+      emergencyPhone: profileForm.emergencyPhone
     })
 
     ElMessage.success('保存成功')
-    // 刷新用户信息
     await fetchUserInfo()
-    // 更新 store 中的用户信息
     userStore.userInfo.nickname = profileForm.nickname
   } catch (error) {
     console.error('保存失败:', error)
@@ -405,7 +496,6 @@ const handleChangePassword = async () => {
     })
 
     ElMessage.success('密码修改成功')
-    // 清空表单
     passwordForm.oldPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
@@ -417,34 +507,12 @@ const handleChangePassword = async () => {
   }
 }
 
-// 头像上传前验证
-const beforeAvatarUpload = (file) => {
-  const isImage = file.type === 'image/jpeg' || file.type === 'image/png'
-  const isLt2M = file.size / 1024 / 1024 < 2
-
-  if (!isImage) {
-    ElMessage.error('头像只能是 JPG 或 PNG 格式')
-    return false
-  }
-  if (!isLt2M) {
-    ElMessage.error('头像大小不能超过 2MB')
-    return false
-  }
-  return true
+// 数据脱敏
+const maskPhone = (phone) => {
+  if (!phone) return '-'
+  return phone.replace(/^(.{3})(.*)(.{4})$/, '$1****$3')
 }
 
-// 头像上传
-const handleAvatarUpload = async (options) => {
-  // 这里需要调用上传接口，暂时使用本地预览
-  const file = options.file
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    profileForm.avatar = e.target.result
-  }
-  reader.readAsDataURL(file)
-}
-
-// 邮箱脱敏
 const maskEmail = (email) => {
   if (!email) return ''
   const [username, domain] = email.split('@')
@@ -490,11 +558,16 @@ onMounted(() => {
 }
 
 .user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 auto 16px;
-}
-
-.user-info {
-  text-align: center;
+  font-size: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
 .user-name {
@@ -528,7 +601,7 @@ onMounted(() => {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid #F3F4F6;
   margin-bottom: 20px;
 }
 
@@ -538,19 +611,19 @@ onMounted(() => {
   transition: color 0.2s;
 
   &:hover {
-    color: var(--primary);
+    color: #1E40AF;
   }
 }
 
 .user-stat-number {
   font-size: 20px;
   font-weight: 700;
-  color: var(--primary);
+  color: #1E40AF;
 }
 
 .user-stat-label {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: #6B7280;
   margin-top: 4px;
 }
 
@@ -567,18 +640,18 @@ onMounted(() => {
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
-  color: var(--text-regular);
+  color: #4B5563;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: var(--bg-hover);
-    color: var(--primary);
+    background: #F9FAFB;
+    color: #1E40AF;
   }
 
   &.active {
-    background: var(--primary-bg);
-    color: var(--primary);
+    background: #EFF6FF;
+    color: #1E40AF;
     font-weight: 500;
   }
 }
@@ -594,7 +667,7 @@ onMounted(() => {
 }
 
 .menu-arrow {
-  color: var(--text-secondary);
+  color: #6B7280;
 }
 
 /* 右侧内容 */
@@ -612,7 +685,7 @@ onMounted(() => {
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #1F2937;
     margin-bottom: 24px;
     display: flex;
     align-items: center;
@@ -630,7 +703,7 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: var(--bg-hover);
+  background: #F9FAFB;
   border-radius: 12px;
   margin-bottom: 24px;
 }
@@ -645,7 +718,7 @@ onMounted(() => {
   font-size: 24px;
 
   &.success {
-    background: var(--success-bg);
+    background: #D1FAE5;
   }
 }
 
@@ -656,40 +729,48 @@ onMounted(() => {
 .verify-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #1F2937;
   margin-bottom: 4px;
 }
 
 .verify-desc {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #6B7280;
 }
 
 /* 表单样式 */
 .profile-form {
-  max-width: 600px;
+  max-width: 100%;
 }
 
-.password-form {
-  max-width: 400px;
+.form-row {
+  display: flex;
+  gap: 24px;
+
+  .el-form-item {
+    flex: 1;
+  }
 }
 
 .form-hint {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: #6B7280;
   margin-top: 6px;
 }
 
-/* 头像上传 */
-.avatar-uploader {
-  text-align: center;
-  cursor: pointer;
+.emergency-contact {
+  display: flex;
+  gap: 16px;
+  width: 100%;
 
-  .upload-tip {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 8px;
+  .emergency-input {
+    flex: 1;
   }
+}
+
+/* 密码表单 */
+.password-form {
+  max-width: 400px;
 }
 
 /* 密码强度 */
@@ -702,22 +783,22 @@ onMounted(() => {
 .strength-bar {
   flex: 1;
   height: 4px;
-  background: var(--border-light);
+  background: #E5E7EB;
   border-radius: 2px;
   transition: background 0.3s;
 
-  &.active.weak { background: var(--danger); }
-  &.active.medium { background: var(--warning); }
-  &.active.strong { background: var(--success); }
+  &.active.weak { background: #EF4444; }
+  &.active.medium { background: #F59E0B; }
+  &.active.strong { background: #10B981; }
 }
 
 .strength-text {
   font-size: 12px;
   margin-top: 4px;
 
-  &.weak { color: var(--danger); }
-  &.medium { color: var(--warning); }
-  &.strong { color: var(--success); }
+  &.weak { color: #EF4444; }
+  &.medium { color: #F59E0B; }
+  &.strong { color: #10B981; }
 }
 
 /* 账号安全 */
@@ -731,7 +812,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 20px;
-  background: var(--bg-hover);
+  background: #F9FAFB;
   border-radius: 12px;
   gap: 16px;
 }
@@ -740,7 +821,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: var(--primary-bg);
+  background: #EFF6FF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -754,13 +835,13 @@ onMounted(() => {
 .security-title {
   font-size: 15px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #1F2937;
   margin-bottom: 4px;
 }
 
 .security-desc {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #6B7280;
 }
 
 .security-status {
@@ -769,13 +850,29 @@ onMounted(() => {
   border-radius: 6px;
 
   &.status-active {
-    background: var(--success-bg);
-    color: var(--success);
+    background: #D1FAE5;
+    color: #059669;
   }
 
   &.status-inactive {
-    background: var(--bg-hover);
-    color: var(--text-secondary);
+    background: #F3F4F6;
+    color: #6B7280;
+  }
+}
+
+.security-action {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  background: white;
+  border: 1px solid #E5E7EB;
+  color: #4B5563;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #1E40AF;
+    color: #1E40AF;
   }
 }
 
@@ -810,9 +907,23 @@ onMounted(() => {
     padding: 20px;
   }
 
-  .security-item {
+  .form-row {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 0;
+  }
+
+  .security-item {
+    flex-wrap: wrap;
+  }
+
+  .security-action {
+    width: 100%;
+    text-align: center;
+  }
+
+  .emergency-contact {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>
