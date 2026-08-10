@@ -23,6 +23,7 @@ CREATE TABLE `sys_user` (
   `real_name_status` TINYINT DEFAULT 0 COMMENT '实名认证状态（0未认证 1已认证）',
   `login_ip` VARCHAR(128) DEFAULT '' COMMENT '最后登录IP',
   `login_time` DATETIME DEFAULT NULL COMMENT '最后登录时间',
+  `remark` VARCHAR(500) DEFAULT '' COMMENT '备注',
   `create_by` VARCHAR(64) DEFAULT '' COMMENT '创建者',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_by` VARCHAR(64) DEFAULT '' COMMENT '更新者',
@@ -212,9 +213,9 @@ CREATE TABLE `sys_config` (
 -- 初始数据
 -- =============================================
 
--- 超级管理员
+-- 超级管理员（密码：admin123）
 INSERT INTO `sys_user` (`user_id`, `username`, `password`, `nickname`, `user_type`, `status`)
-VALUES (1, 'admin', '$2a$10$xxxxxxx', '超级管理员', 2, 0);
+VALUES (1, 'admin', '$2a$10$VQECfCqt3FI8MnkzIUCqH.sECWGJDFv5O3MJ3mORlBoVx3iYXBwwS', '超级管理员', 2, 0);
 
 -- 默认角色
 INSERT INTO `sys_role` (`role_id`, `role_name`, `role_key`, `sort_num`)
