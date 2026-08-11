@@ -9,6 +9,15 @@ export function login(data) {
   })
 }
 
+// 发送短信验证码
+export function sendCode(phone) {
+  return request({
+    url: '/admin/sendCode',
+    method: 'get',
+    params: { phone }
+  })
+}
+
 // 管理员登出
 export function logout() {
   return request({

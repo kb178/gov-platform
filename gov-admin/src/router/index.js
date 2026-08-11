@@ -202,7 +202,26 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title
     ? `${to.meta.title} - 海口政务管理后台`
     : '海口政务管理后台'
-  next()
+
+  const token = localStorage.getItem('admin_token')
+
+  // 已登录
+  if (token) {
+    if (to.path === '/login') {
+      // 已登录跳登录页，重定向到首页
+      next('/dashboard')
+    } else {
+      next()
+    }
+  } else {
+    // 未登录
+    if (to.path === '/login') {
+      next()
+    } else {
+      // 未登录访问其他页，跳转登录并记录来源
+      next({ path: '/login', query: { redirect: to.fullPath } })
+    }
+  }
 })
 
 export default router
