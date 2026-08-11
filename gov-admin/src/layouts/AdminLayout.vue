@@ -169,14 +169,17 @@ const handleLogout = async () => {
 <style lang="scss" scoped>
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .layout-aside {
   width: 220px;
+  height: 100vh;
   background: #304156;
   transition: width 0.3s;
   overflow: hidden;
+  flex-shrink: 0;
 
   &.is-collapse {
     width: 64px;
@@ -227,6 +230,7 @@ const handleLogout = async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .layout-header {
@@ -272,5 +276,6 @@ const handleLogout = async () => {
   padding: 24px;
   background: #f5f7fa;
   overflow-y: auto;
+  height: 0;
 }
 </style>

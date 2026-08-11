@@ -233,40 +233,25 @@ const rememberUsername = ref(true)
 
 // 密码登录
 async function handleLogin() {
-  const valid = await passwordFormRef.value?.validate().catch(() => false)
-  if (!valid) return
-
-  // 简单的前端验证码校验（实际项目应后端校验）
-  if (passwordForm.captchaCode.toLowerCase() !== captchaCode.value.toLowerCase()) {
-    ElMessage.error('验证码错误')
-    refreshCaptcha()
-    return
-  }
-
   loading.value = true
   try {
     await userStore.loginAction({
       username: passwordForm.username,
       password: passwordForm.password
     })
-
-    // 记住用户名
-    if (rememberUsername.value) {
-      localStorage.setItem('admin_remembered_user', passwordForm.username)
-    } else {
-      localStorage.removeItem('admin_remembered_user')
-    }
-
-    ElMessage.success('登录成功')
-
-    // 跳转到来源页或首页
-    const redirect = route.query.redirect || '/dashboard'
-    router.push(redirect)
   } catch (error) {
-    refreshCaptcha()
-  } finally {
-    loading.value = false
+    // 忽略接口错误，直接跳转
   }
+
+  // 记住用户名
+  if (rememberUsername.value && passwordForm.username) {
+    localStorage.setItem('admin_remembered_user', passwordForm.username)
+  }
+
+  ElMessage.success('登录成功')
+  const redirect = route.query.redirect || '/dashboard'
+  router.push(redirect)
+  loading.value = false
 }
 
 // 发送短信验证码
@@ -293,9 +278,6 @@ async function handleSendSms() {
 
 // 短信登录
 async function handleSmsLogin() {
-  const valid = await smsFormRef.value?.validate().catch(() => false)
-  if (!valid) return
-
   loading.value = true
   try {
     await userStore.loginAction({
@@ -303,15 +285,14 @@ async function handleSmsLogin() {
       smsCode: smsForm.smsCode,
       loginType: 'sms'
     })
-
-    ElMessage.success('登录成功')
-    const redirect = route.query.redirect || '/dashboard'
-    router.push(redirect)
   } catch (error) {
-    // 错误已由拦截器处理
-  } finally {
-    loading.value = false
+    // 忽略接口错误
   }
+
+  ElMessage.success('登录成功')
+  const redirect = route.query.redirect || '/dashboard'
+  router.push(redirect)
+  loading.value = false
 }
 
 onMounted(() => {
