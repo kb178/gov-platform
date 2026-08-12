@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
+
+
 /**
  * 操作日志 AOP 切面
  *
@@ -37,6 +39,8 @@ import java.util.regex.Pattern;
 @Aspect
 @Component
 public class LogAspect {
+    // TODO: @Log 注解和 LogAspect 后续下沉到 gov-common 模块
+    // 当第二个服务需要操作日志时再重构
 
     @Autowired
     private SysOperLogMapper operLogMapper;

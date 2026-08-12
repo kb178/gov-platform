@@ -12,11 +12,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author gov-platform
  */
 @SpringBootApplication
-@EnableDiscoveryClient
+@EnableDiscoveryClient     //nacos注册发现
 @EnableAsync
 @ComponentScan(basePackages = {
-    "com.haikou.government.system",
-    "com.haikou.government.common"
+    "com.haikou.government.system",   //自己写的代码
+    "com.haikou.government.common"    //公共模块
 })
 public class GovSystemApplication {
 

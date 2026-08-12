@@ -21,7 +21,7 @@ spring:
       routes:
         # 系统服务路由
         - id: gov-system
-          uri: lb://gov-system  # lb:// 表示从 Nacos 获取服务地址
+          uri: lb://gov-system   # lb:// = 从 Nacos 获取地址 + 负载均衡
           predicates:
             - Path=/system/**   # 匹配 /system/** 的请求
           filters:

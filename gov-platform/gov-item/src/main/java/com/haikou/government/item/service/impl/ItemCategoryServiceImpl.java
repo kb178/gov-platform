@@ -182,6 +182,8 @@ public class ItemCategoryServiceImpl extends ServiceImpl<ItemCategoryMapper, Ite
     private List<ItemCategoryVO> buildTree(List<ItemCategoryVO> allVOs, Long parentId) {
         List<ItemCategoryVO> tree = new ArrayList<>();
         for (ItemCategoryVO vo : allVOs) {
+            //1、第一次parentId = 0，判断出一级节点（父节点）
+            //2、递归进来后会根据一级节点的id，和所有节点的getParentId属性对比如果相等说明，是它的孩子
             if (parentId.equals(vo.getParentId())) {
                 // 递归查找子分类
                 List<ItemCategoryVO> children = buildTree(allVOs, vo.getCategoryId());

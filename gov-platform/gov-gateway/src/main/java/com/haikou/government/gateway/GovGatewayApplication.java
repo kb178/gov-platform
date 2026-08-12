@@ -75,7 +75,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @since 2026-08-02
  */
 @SpringBootApplication
-@EnableDiscoveryClient
+@EnableDiscoveryClient    //服务注册发现
 @ComponentScan(basePackages = {
     "com.haikou.government.gateway",   // 扫描 Gateway 自己的代码
     "com.haikou.government.common"     // 扫描公共模块的代码（JwtUtils 等）
