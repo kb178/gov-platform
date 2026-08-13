@@ -39,10 +39,8 @@ public class ItemSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 事项分类 - 测试阶段全部开放
                 .requestMatchers("/itemCategory/**").permitAll()
-                // 事项信息 - 公开查询
-                .requestMatchers("/itemInfo/list").permitAll()
-                .requestMatchers("/itemInfo/detail/**").permitAll()
-                .requestMatchers("/itemInfo/category/**").permitAll()
+                // 事项信息 - 测试阶段全部开放
+                .requestMatchers("/itemInfo/**").permitAll()
                 // 材料模板 - 公开查询
                 .requestMatchers("/itemMaterialTemplate/list").permitAll()
                 .requestMatchers("/itemMaterialTemplate/{materialId}").permitAll()
