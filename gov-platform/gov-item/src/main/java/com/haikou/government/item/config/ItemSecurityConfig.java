@@ -45,6 +45,10 @@ public class ItemSecurityConfig {
                 .requestMatchers("/itemMaterialTemplate/**").permitAll()
                 // 表单模板 - 测试阶段全部开放
                 .requestMatchers("/itemFormTemplate/**").permitAll()
+                // 事项材料关联 - 测试阶段全部开放
+                .requestMatchers("/itemMaterialRelation/**").permitAll()
+                // 事项收藏 - 测试阶段全部开放
+                .requestMatchers("/itemFavorite/**").permitAll()
                 // 其他接口需要认证
                 .anyRequest().authenticated()
             );
