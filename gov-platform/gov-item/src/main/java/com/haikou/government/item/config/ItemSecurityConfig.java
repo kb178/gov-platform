@@ -41,12 +41,10 @@ public class ItemSecurityConfig {
                 .requestMatchers("/itemCategory/**").permitAll()
                 // 事项信息 - 测试阶段全部开放
                 .requestMatchers("/itemInfo/**").permitAll()
-                // 材料模板 - 公开查询
-                .requestMatchers("/itemMaterialTemplate/list").permitAll()
-                .requestMatchers("/itemMaterialTemplate/{materialId}").permitAll()
-                // 表单模板 - 公开查询
-                .requestMatchers("/itemFormTemplate/item/**").permitAll()
-                .requestMatchers("/itemFormTemplate/{templateId}").permitAll()
+                // 材料模板 - 测试阶段全部开放
+                .requestMatchers("/itemMaterialTemplate/**").permitAll()
+                // 表单模板 - 测试阶段全部开放
+                .requestMatchers("/itemFormTemplate/**").permitAll()
                 // 其他接口需要认证
                 .anyRequest().authenticated()
             );
