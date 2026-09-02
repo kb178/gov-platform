@@ -10,6 +10,7 @@ export const useUserStore = defineStore('user', () => {
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
   const username = computed(() => userInfo.value?.username || '')
+  const userId = computed(() => userInfo.value?.userId || null)
 
   // 密码登录
   async function loginAction(loginForm) {
@@ -76,6 +77,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo,
     isLoggedIn,
     username,
+    userId,
     loginAction,
     loginBySmsAction,
     sendSmsCodeAction,

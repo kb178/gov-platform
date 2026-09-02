@@ -113,7 +113,13 @@
 
             <div class="form-row">
               <el-form-item label="手机号" prop="phone">
-                <el-input v-model="profileForm.phone" placeholder="请输入手机号" maxlength="11" />
+                <el-input
+                  v-model="profileForm.phone"
+                  placeholder="请输入手机号"
+                  maxlength="11"
+                  :disabled="userInfo.realNameStatus === 1"
+                />
+                <div v-if="userInfo.realNameStatus === 1" class="form-hint">实名认证后不可修改</div>
               </el-form-item>
               <el-form-item label="邮箱" prop="email">
                 <el-input v-model="profileForm.email" placeholder="请输入邮箱" />
@@ -121,41 +127,17 @@
             </div>
 
             <div class="form-row">
+              <el-form-item label="昵称" prop="nickname">
+                <el-input v-model="profileForm.nickname" placeholder="请输入昵称" />
+              </el-form-item>
               <el-form-item label="性别" prop="sex">
                 <el-select v-model="profileForm.sex" placeholder="请选择性别" style="width: 100%">
+                  <el-option label="未设置" :value="0" />
                   <el-option label="男" :value="1" />
                   <el-option label="女" :value="2" />
                 </el-select>
               </el-form-item>
-              <el-form-item label="出生日期" prop="birthday">
-                <el-date-picker
-                  v-model="profileForm.birthday"
-                  type="date"
-                  placeholder="请选择出生日期"
-                  style="width: 100%"
-                  value-format="YYYY-MM-DD"
-                />
-              </el-form-item>
             </div>
-
-            <el-form-item label="联系地址" prop="address">
-              <el-input v-model="profileForm.address" placeholder="请输入联系地址" />
-            </el-form-item>
-
-            <el-form-item label="紧急联系人">
-              <div class="emergency-contact">
-                <el-input
-                  v-model="profileForm.emergencyName"
-                  placeholder="联系人姓名"
-                  class="emergency-input"
-                />
-                <el-input
-                  v-model="profileForm.emergencyPhone"
-                  placeholder="联系人电话"
-                  class="emergency-input"
-                />
-              </div>
-            </el-form-item>
 
             <el-form-item>
               <el-button type="primary" :loading="saving" @click="handleSaveProfile">
@@ -340,28 +322,22 @@ const userInfo = ref({
   email: '',
   realNameStatus: 0,
   realName: '',
-  verifyTime: '2024-01-10'
+  verifyTime: ''
 })
 
 // 个人信息表单
 const profileFormRef = ref()
 const profileForm = reactive({
-  realName: '张三',
-  idCard: '460100199001011234',
-  phone: '13800138000',
-  email: 'zhangsan@example.com',
-  sex: 1,
-  birthday: '1990-01-01',
-  address: '海南省海口市龙华区XX路XX号',
-  emergencyName: '李四',
-  emergencyPhone: '13900139000'
+  nickname: '',
+  realName: '',
+  idCard: '',
+  phone: '',
+  email: '',
+  sex: 0
 })
 
 const profileRules = {
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
-  ],
+  phone: [],  // 手机号由后端脱敏返回，前端不验证格式
   email: [{ type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }]
 }
 
@@ -416,6 +392,7 @@ const fetchUserInfo = async () => {
     const { data } = await getUserInfo()
     userInfo.value = data
     // 填充表单
+    profileForm.nickname = data.nickname || ''
     profileForm.phone = data.phone || ''
     profileForm.email = data.email || ''
     profileForm.sex = data.sex || 0
@@ -433,13 +410,9 @@ const handleSaveProfile = async () => {
     saving.value = true
 
     await updateUserInfo({
-      phone: profileForm.phone,
+      nickname: profileForm.nickname,
       email: profileForm.email,
-      sex: profileForm.sex,
-      birthday: profileForm.birthday,
-      address: profileForm.address,
-      emergencyName: profileForm.emergencyName,
-      emergencyPhone: profileForm.emergencyPhone
+      sex: profileForm.sex
     })
 
     ElMessage.success('保存成功')
@@ -744,16 +717,6 @@ onMounted(() => {
   margin-top: 6px;
 }
 
-.emergency-contact {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-
-  .emergency-input {
-    flex: 1;
-  }
-}
-
 /* 密码表单 */
 .password-form {
   max-width: 400px;
@@ -917,11 +880,6 @@ onMounted(() => {
   .security-action {
     width: 100%;
     text-align: center;
-  }
-
-  .emergency-contact {
-    flex-direction: column;
-    gap: 12px;
   }
 }
 </style>

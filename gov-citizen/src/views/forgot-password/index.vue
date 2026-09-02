@@ -138,6 +138,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { sendSmsCode, resetPassword } from '@/api/user'
 
 const router = useRouter()
 
@@ -166,21 +167,25 @@ const phoneRules = {
 const countdown = ref(0)
 let timer = null
 
-const handleSendSms = () => {
+const handleSendSms = async () => {
   if (!phoneForm.phone || !/^1[3-9]\d{9}$/.test(phoneForm.phone)) {
     ElMessage.warning('请输入正确的手机号')
     return
   }
 
-  countdown.value = 60
-  ElMessage.success('验证码已发送到您的手机')
-
-  timer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) {
-      clearInterval(timer)
-    }
-  }, 1000)
+  try {
+    await sendSmsCode(phoneForm.phone)
+    ElMessage.success('验证码已发送到您的手机')
+    countdown.value = 60
+    timer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        clearInterval(timer)
+      }
+    }, 1000)
+  } catch (error) {
+    console.error('发送验证码失败:', error)
+  }
 }
 
 const handleVerifyPhone = async () => {
@@ -249,8 +254,12 @@ const handleResetPassword = async () => {
     await passwordFormRef.value.validate()
     submitting.value = true
 
-    // 模拟重置密码请求
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await resetPassword({
+      phone: phoneForm.phone,
+      code: phoneForm.smsCode,
+      newPassword: passwordForm.newPassword,
+      confirmPassword: passwordForm.confirmPassword
+    })
 
     currentStep.value = 2
     ElMessage.success('密码重置成功')

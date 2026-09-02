@@ -42,4 +42,7 @@ public class UserInfoVO {
 
     @Schema(description = "真实姓名（脱敏）", example = "张*三")
     private String realName;
+
+    @Schema(description = "实名认证时间", example = "2026-08-20 22:00:00")
+    private String verifyTime;
 }

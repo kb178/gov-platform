@@ -74,3 +74,29 @@ export function loginBySms(data) {
     data
   })
 }
+
+// 找回密码（重置密码）
+export function resetPassword(data) {
+  return request({
+    url: '/system/sysUser/resetPassword',
+    method: 'post',
+    data
+  })
+}
+
+// 实名认证
+export function realNameAuth(data) {
+  return request({
+    url: '/system/sysUser/realNameAuth',
+    method: 'post',
+    data
+  })
+}
+
+// 查询实名认证状态
+export function getRealNameStatus() {
+  return request({
+    url: '/system/sysUser/realNameStatus',
+    method: 'get'
+  })
+}

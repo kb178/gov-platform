@@ -110,6 +110,12 @@ public class SysUser extends BaseEntity {
     private Byte realNameStatus;
 
     /**
+     * 实名认证时间
+     */
+    @TableField("verify_time")
+    private LocalDateTime verifyTime;
+
+    /**
      * 最后登录IP
      */
     @TableField("login_ip")

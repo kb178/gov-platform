@@ -8,8 +8,8 @@
     <div class="search-bar">
       <el-input v-model="searchForm.roleName" placeholder="角色名称" clearable style="width: 180px" />
       <el-select v-model="searchForm.status" placeholder="状态" clearable style="width: 120px">
-        <el-option label="正常" :value="1" />
-        <el-option label="停用" :value="0" />
+        <el-option label="正常" :value="0" />
+        <el-option label="停用" :value="1" />
       </el-select>
       <el-button type="primary" @click="handleSearch">搜索</el-button>
       <el-button @click="resetSearch">重置</el-button>
@@ -20,18 +20,18 @@
       <span class="total">共 {{ tableData.length }} 个角色</span>
     </div>
 
-    <el-table :data="tableData" row-key="roleId">
+    <el-table :data="tableData" row-key="roleId" v-loading="loading">
       <el-table-column prop="roleId" label="角色编号" width="80" />
       <el-table-column prop="roleName" label="角色名称" width="140" />
       <el-table-column prop="roleKey" label="权限标识" width="160" />
       <el-table-column prop="sort" label="排序" width="80" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
-          <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="handleStatusChange(row)" />
+          <el-switch v-model="row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(row)" />
         </template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip />
-      <el-table-column prop="createTime" label="创建时间" width="120" />
+      <el-table-column prop="createTime" label="创建时间" width="170" />
       <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="showDialog(row)">编辑</el-button>
@@ -43,29 +43,29 @@
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '新增角色'" width="500px">
-      <el-form :model="roleForm" label-width="80px">
-        <el-form-item label="角色名称" required>
+      <el-form :model="roleForm" :rules="formRules" ref="formRef" label-width="80px">
+        <el-form-item label="角色名称" prop="roleName" required>
           <el-input v-model="roleForm.roleName" placeholder="请输入角色名称" />
         </el-form-item>
-        <el-form-item label="权限标识" required>
+        <el-form-item label="权限标识" prop="roleKey" required>
           <el-input v-model="roleForm.roleKey" placeholder="请输入权限标识" />
         </el-form-item>
-        <el-form-item label="排序">
+        <el-form-item label="排序" prop="sort">
           <el-input-number v-model="roleForm.sort" :min="0" :max="999" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态" prop="status">
           <el-radio-group v-model="roleForm.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">停用</el-radio>
+            <el-radio :value="0">正常</el-radio>
+            <el-radio :value="1">停用</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item label="备注" prop="remark">
           <el-input v-model="roleForm.remark" type="textarea" :rows="3" placeholder="请输入备注" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">确定</el-button>
+        <el-button type="primary" @click="handleSave" :loading="saving">确定</el-button>
       </template>
     </el-dialog>
 
@@ -82,94 +82,182 @@
       />
       <template #footer>
         <el-button @click="permDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSavePerm">确定</el-button>
+        <el-button type="primary" @click="handleSavePerm" :loading="savingPerm">确定</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getRoleList, addRole, updateRole, deleteRole as deleteRoleApi, assignRoleMenus } from '@/api/system'
+import { getMenuList } from '@/api/system'
+
+const loading = ref(false)
+const saving = ref(false)
+const savingPerm = ref(false)
+const tableData = ref([])
 
 const searchForm = reactive({ roleName: '', status: '' })
 
-const tableData = ref([
-  { roleId: 1, roleName: '超级管理员', roleKey: 'admin', sort: 1, status: 1, remark: '拥有所有权限', createTime: '2024-01-01' },
-  { roleId: 2, roleName: '局领导', roleKey: 'leader', sort: 2, status: 1, remark: '可查看所有数据和审批', createTime: '2024-01-01' },
-  { roleId: 3, roleName: '科室负责人', roleKey: 'dept_leader', sort: 3, status: 1, remark: '管理本科室业务', createTime: '2024-01-05' },
-  { roleId: 4, roleName: '审批人员', roleKey: 'approver', sort: 4, status: 1, remark: '处理审批业务', createTime: '2024-01-05' },
-  { roleId: 5, roleName: '窗口人员', roleKey: 'window', sort: 5, status: 1, remark: '前台受理业务', createTime: '2024-01-08' }
-])
-
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const roleForm = reactive({ roleName: '', roleKey: '', sort: 0, status: 1, remark: '' })
+const editingRoleId = ref(null)
+const formRef = ref(null)
 
-function showDialog(row) {
-  isEdit.value = !!row
-  if (row) {
-    Object.assign(roleForm, { roleName: row.roleName, roleKey: row.roleKey, sort: row.sort, status: row.status, remark: row.remark })
-  } else {
-    Object.assign(roleForm, { roleName: '', roleKey: '', sort: 0, status: 1, remark: '' })
-  }
-  dialogVisible.value = true
-}
+const roleForm = reactive({
+  roleName: '',
+  roleKey: '',
+  sort: 0,
+  status: 0,
+  remark: ''
+})
 
-function handleSave() {
-  if (!roleForm.roleName) return ElMessage.warning('请输入角色名称')
-  ElMessage.success(isEdit.value ? '角色更新成功' : '角色创建成功')
-  dialogVisible.value = false
-}
-
-function handleDelete(row) {
-  ElMessageBox.confirm(`确定要删除角色"${row.roleName}"吗？`, '警告', { type: 'error' }).then(() => {
-    ElMessage.success('删除成功')
-  }).catch(() => {})
-}
-
-function handleStatusChange(row) {
-  ElMessage.success(`角色已${row.status ? '启用' : '停用'}`)
+const formRules = {
+  roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
+  roleKey: [{ required: true, message: '请输入权限标识', trigger: 'blur' }]
 }
 
 // 权限分配
 const permDialogVisible = ref(false)
 const currentRole = ref(null)
-const checkedKeys = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+const checkedKeys = ref([])
+const permTreeRef = ref(null)
+const menuTree = ref([])
 
-const menuTree = ref([
-  { menuId: 1, menuName: '工作台', children: [] },
-  { menuId: 2, menuName: '审批管理', children: [
-    { menuId: 21, menuName: '待我审批' },
-    { menuId: 22, menuName: '已办事项' },
-    { menuId: 23, menuName: '流程监控' }
-  ]},
-  { menuId: 3, menuName: '事项管理', children: [
-    { menuId: 31, menuName: '事项分类' },
-    { menuId: 32, menuName: '事项列表' },
-    { menuId: 33, menuName: '办事指南' },
-    { menuId: 34, menuName: '表单模板' }
-  ]},
-  { menuId: 4, menuName: '系统管理', children: [
-    { menuId: 41, menuName: '用户管理' },
-    { menuId: 42, menuName: '角色管理' },
-    { menuId: 43, menuName: '部门管理' },
-    { menuId: 44, menuName: '菜单管理' }
-  ]}
-])
+onMounted(() => {
+  loadData()
+  loadMenuTree()
+})
+
+async function loadData() {
+  loading.value = true
+  try {
+    const res = await getRoleList()
+    let list = res.data || []
+    // 前端搜索过滤
+    if (searchForm.roleName) {
+      list = list.filter(item => item.roleName.includes(searchForm.roleName))
+    }
+    if (searchForm.status !== '') {
+      list = list.filter(item => item.status === searchForm.status)
+    }
+    tableData.value = list
+  } catch (error) {
+    console.error('加载角色列表失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadMenuTree() {
+  try {
+    const res = await getMenuList()
+    menuTree.value = res.data || []
+  } catch (error) {
+    console.error('加载菜单列表失败', error)
+  }
+}
+
+function handleSearch() {
+  loadData()
+}
+
+function resetSearch() {
+  Object.assign(searchForm, { roleName: '', status: '' })
+  loadData()
+}
+
+function showDialog(row) {
+  isEdit.value = !!row
+  if (row) {
+    editingRoleId.value = row.roleId
+    Object.assign(roleForm, {
+      roleName: row.roleName,
+      roleKey: row.roleKey,
+      sort: row.sort,
+      status: row.status,
+      remark: row.remark || ''
+    })
+  } else {
+    editingRoleId.value = null
+    Object.assign(roleForm, { roleName: '', roleKey: '', sort: 0, status: 0, remark: '' })
+  }
+  dialogVisible.value = true
+}
+
+async function handleSave() {
+  if (!formRef.value) return
+  await formRef.value.validate()
+
+  saving.value = true
+  try {
+    if (isEdit.value) {
+      await updateRole({ roleId: editingRoleId.value, ...roleForm })
+      ElMessage.success('角色更新成功')
+    } else {
+      await addRole(roleForm)
+      ElMessage.success('角色创建成功')
+    }
+    dialogVisible.value = false
+    loadData()
+  } catch (error) {
+    console.error('保存角色失败', error)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确定要删除角色"${row.roleName}"吗？`, '警告', { type: 'error' })
+    await deleteRoleApi(row.roleId)
+    ElMessage.success('删除成功')
+    loadData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除角色失败', error)
+    }
+  }
+}
+
+async function handleStatusChange(row) {
+  try {
+    await updateRole({ roleId: row.roleId, status: row.status })
+    ElMessage.success(`角色已${row.status === 0 ? '启用' : '停用'}`)
+  } catch (error) {
+    row.status = row.status === 0 ? 1 : 0
+    console.error('修改状态失败', error)
+  }
+}
 
 function showPermDialog(row) {
   currentRole.value = row
+  // 设置已选中的菜单ID
+  checkedKeys.value = row.menuIds || []
   permDialogVisible.value = true
 }
 
-function handleSavePerm() {
-  ElMessage.success('权限分配成功')
-  permDialogVisible.value = false
-}
+async function handleSavePerm() {
+  if (!permTreeRef.value) return
 
-function handleSearch() { ElMessage.info('搜索功能待对接接口') }
-function resetSearch() { Object.assign(searchForm, { roleName: '', status: '' }) }
+  savingPerm.value = true
+  try {
+    const checkedKeys = permTreeRef.value.getCheckedKeys()
+    const halfCheckedKeys = permTreeRef.value.getHalfCheckedKeys()
+    const menuIds = [...checkedKeys, ...halfCheckedKeys]
+
+    await assignRoleMenus(currentRole.value.roleId, menuIds)
+    ElMessage.success('权限分配成功')
+    permDialogVisible.value = false
+    loadData()
+  } catch (error) {
+    console.error('分配权限失败', error)
+  } finally {
+    savingPerm.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>

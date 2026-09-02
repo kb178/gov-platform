@@ -8,8 +8,8 @@
     <div class="search-bar">
       <el-input v-model="searchForm.deptName" placeholder="部门名称" clearable style="width: 180px" />
       <el-select v-model="searchForm.status" placeholder="状态" clearable style="width: 120px">
-        <el-option label="正常" :value="1" />
-        <el-option label="停用" :value="0" />
+        <el-option label="正常" :value="0" />
+        <el-option label="停用" :value="1" />
       </el-select>
       <el-button type="primary" @click="handleSearch">搜索</el-button>
       <el-button @click="resetSearch">重置</el-button>
@@ -21,17 +21,17 @@
       <span class="total">共 {{ deptCount }} 个部门</span>
     </div>
 
-    <el-table :data="tableData" row-key="deptId" :default-expand-all="isExpand" :tree-props="{ children: 'children' }">
+    <el-table :data="tableData" row-key="deptId" :default-expand-all="isExpand" :tree-props="{ children: 'children' }" v-loading="loading">
       <el-table-column prop="deptName" label="部门名称" min-width="220" />
       <el-table-column prop="sort" label="排序" width="80" />
       <el-table-column prop="leader" label="负责人" width="100" />
       <el-table-column prop="phone" label="联系电话" width="130" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
-          <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="handleStatusChange(row)" />
+          <el-switch v-model="row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(row)" />
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" width="120" />
+      <el-table-column prop="createTime" label="创建时间" width="170" />
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="showDialog(row)">编辑</el-button>
@@ -43,8 +43,8 @@
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑部门' : '新增部门'" width="500px">
-      <el-form :model="deptForm" label-width="80px">
-        <el-form-item label="上级部门">
+      <el-form :model="deptForm" :rules="formRules" ref="formRef" label-width="80px">
+        <el-form-item label="上级部门" prop="parentId">
           <el-tree-select
             v-model="deptForm.parentId"
             :data="treeData"
@@ -55,59 +55,44 @@
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="部门名称" required>
+        <el-form-item label="部门名称" prop="deptName" required>
           <el-input v-model="deptForm.deptName" placeholder="请输入部门名称" />
         </el-form-item>
-        <el-form-item label="负责人">
+        <el-form-item label="负责人" prop="leader">
           <el-input v-model="deptForm.leader" placeholder="请输入负责人" />
         </el-form-item>
-        <el-form-item label="联系电话">
+        <el-form-item label="联系电话" prop="phone">
           <el-input v-model="deptForm.phone" placeholder="请输入联系电话" />
         </el-form-item>
-        <el-form-item label="排序">
+        <el-form-item label="排序" prop="sort">
           <el-input-number v-model="deptForm.sort" :min="0" :max="999" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态" prop="status">
           <el-radio-group v-model="deptForm.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">停用</el-radio>
+            <el-radio :value="0">正常</el-radio>
+            <el-radio :value="1">停用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">确定</el-button>
+        <el-button type="primary" @click="handleSave" :loading="saving">确定</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getDeptList, addDept, updateDept, deleteDept as deleteDeptApi } from '@/api/system'
 
+const loading = ref(false)
+const saving = ref(false)
 const searchForm = reactive({ deptName: '', status: '' })
 const isExpand = ref(true)
-
-const tableData = ref([
-  {
-    deptId: 1, deptName: '海口市政府', sort: 1, leader: '张市长', phone: '0898-12345678', status: 1, createTime: '2024-01-01',
-    children: [
-      {
-        deptId: 11, deptName: '政务服务中心', sort: 1, leader: '李主任', phone: '0898-12345679', status: 1, createTime: '2024-01-01',
-        children: [
-          { deptId: 111, deptName: '综合窗口', sort: 1, leader: '王窗口', phone: '0898-12345680', status: 1, createTime: '2024-01-05' },
-          { deptId: 112, deptName: '审批科', sort: 2, leader: '赵审批', phone: '0898-12345681', status: 1, createTime: '2024-01-05' }
-        ]
-      },
-      { deptId: 12, deptName: '公安局', sort: 2, leader: '刘局长', phone: '0898-22345678', status: 1, createTime: '2024-01-01' },
-      { deptId: 13, deptName: '市场监管局', sort: 3, leader: '陈局长', phone: '0898-32345678', status: 1, createTime: '2024-01-01' },
-      { deptId: 14, deptName: '人社局', sort: 4, leader: '杨局长', phone: '0898-42345678', status: 1, createTime: '2024-01-01' },
-      { deptId: 15, deptName: '自然资源局', sort: 5, leader: '黄局长', phone: '0898-52345678', status: 1, createTime: '2024-01-01' },
-      { deptId: 16, deptName: '公积金中心', sort: 6, leader: '吴主任', phone: '0898-62345678', status: 1, createTime: '2024-01-01' }
-    ]
-  }
-])
+const tableData = ref([])
+const allData = ref([])
 
 const treeData = computed(() => tableData.value)
 const deptCount = computed(() => {
@@ -117,37 +102,141 @@ const deptCount = computed(() => {
   return count
 })
 
-function toggleExpand() { isExpand.value = !isExpand.value }
-
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const deptForm = reactive({ parentId: null, deptName: '', leader: '', phone: '', sort: 0, status: 1 })
+const editingDeptId = ref(null)
+const formRef = ref(null)
+
+const deptForm = reactive({
+  parentId: null,
+  deptName: '',
+  leader: '',
+  phone: '',
+  sort: 0,
+  status: 0
+})
+
+const formRules = {
+  deptName: [{ required: true, message: '请输入部门名称', trigger: 'blur' }]
+}
+
+onMounted(() => {
+  loadData()
+})
+
+async function loadData() {
+  loading.value = true
+  try {
+    const res = await getDeptList()
+    allData.value = res.data || []
+    filterData()
+  } catch (error) {
+    console.error('加载部门列表失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+function filterData() {
+  let list = [...allData.value]
+  if (searchForm.deptName) {
+    list = filterTree(list, item => item.deptName.includes(searchForm.deptName))
+  }
+  if (searchForm.status !== '') {
+    list = filterTree(list, item => item.status === searchForm.status)
+  }
+  tableData.value = list
+}
+
+function filterTree(tree, predicate) {
+  return tree.filter(item => {
+    if (item.children) {
+      item.children = filterTree(item.children, predicate)
+    }
+    return predicate(item) || (item.children && item.children.length > 0)
+  })
+}
+
+function toggleExpand() {
+  isExpand.value = !isExpand.value
+  // 重新加载表格以应用展开状态
+  const data = tableData.value
+  tableData.value = []
+  setTimeout(() => { tableData.value = data }, 0)
+}
+
+function handleSearch() {
+  filterData()
+}
+
+function resetSearch() {
+  Object.assign(searchForm, { deptName: '', status: '' })
+  filterData()
+}
 
 function showDialog(row, parentId) {
   isEdit.value = !!row
   if (row) {
-    Object.assign(deptForm, { parentId: null, deptName: row.deptName, leader: row.leader, phone: row.phone, sort: row.sort, status: row.status })
+    editingDeptId.value = row.deptId
+    Object.assign(deptForm, {
+      parentId: row.parentId || null,
+      deptName: row.deptName,
+      leader: row.leader || '',
+      phone: row.phone || '',
+      sort: row.sort,
+      status: row.status
+    })
   } else {
-    Object.assign(deptForm, { parentId: parentId || null, deptName: '', leader: '', phone: '', sort: 0, status: 1 })
+    editingDeptId.value = null
+    Object.assign(deptForm, { parentId: parentId || null, deptName: '', leader: '', phone: '', sort: 0, status: 0 })
   }
   dialogVisible.value = true
 }
 
-function handleSave() {
-  if (!deptForm.deptName) return ElMessage.warning('请输入部门名称')
-  ElMessage.success(isEdit.value ? '部门更新成功' : '部门创建成功')
-  dialogVisible.value = false
+async function handleSave() {
+  if (!formRef.value) return
+  await formRef.value.validate()
+
+  saving.value = true
+  try {
+    if (isEdit.value) {
+      await updateDept({ deptId: editingDeptId.value, ...deptForm })
+      ElMessage.success('部门更新成功')
+    } else {
+      await addDept(deptForm)
+      ElMessage.success('部门创建成功')
+    }
+    dialogVisible.value = false
+    loadData()
+  } catch (error) {
+    console.error('保存部门失败', error)
+  } finally {
+    saving.value = false
+  }
 }
 
-function handleDelete(row) {
-  ElMessageBox.confirm(`确定要删除部门"${row.deptName}"吗？`, '警告', { type: 'error' }).then(() => {
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确定要删除部门"${row.deptName}"吗？`, '警告', { type: 'error' })
+    await deleteDeptApi(row.deptId)
     ElMessage.success('删除成功')
-  }).catch(() => {})
+    loadData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除部门失败', error)
+    }
+  }
 }
 
-function handleStatusChange(row) { ElMessage.success(`部门已${row.status ? '启用' : '停用'}`) }
-function handleSearch() { ElMessage.info('搜索功能待对接接口') }
-function resetSearch() { Object.assign(searchForm, { deptName: '', status: '' }) }
+async function handleStatusChange(row) {
+  try {
+    await updateDept({ deptId: row.deptId, status: row.status })
+    ElMessage.success(`部门已${row.status === 0 ? '启用' : '停用'}`)
+  } catch (error) {
+    row.status = row.status === 0 ? 1 : 0
+    console.error('修改状态失败', error)
+  }
+}
 </script>
 
 <style lang="scss" scoped>

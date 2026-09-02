@@ -163,9 +163,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { realNameAuth, getRealNameStatus } from '@/api/user'
 
 const router = useRouter()
 
@@ -216,18 +217,41 @@ const handleSubmit = async () => {
   submitting.value = true
 
   try {
-    // 模拟认证请求
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await realNameAuth({
+      realName: authForm.realName,
+      idCard: authForm.idCard
+    })
 
     verifyTime.value = new Date().toLocaleString('zh-CN')
     authSuccess.value = true
     ElMessage.success('实名认证成功')
   } catch (error) {
-    ElMessage.error('认证失败，请稍后重试')
+    console.error('认证失败:', error)
   } finally {
     submitting.value = false
   }
 }
+
+// 查询认证状态
+const checkAuthStatus = async () => {
+  try {
+    const { data } = await getRealNameStatus()
+    if (data && data.status === 1) {
+      // 已认证，显示认证成功页面
+      authForm.realName = data.realName || ''
+      authForm.idCard = data.idCard || ''
+      verifyTime.value = data.verifyTime || ''
+      authSuccess.value = true
+    }
+  } catch (error) {
+    console.error('查询认证状态失败:', error)
+  }
+}
+
+// 页面加载时检查认证状态
+onMounted(() => {
+  checkAuthStatus()
+})
 
 // 数据脱敏
 const maskIdCard = idCard => {

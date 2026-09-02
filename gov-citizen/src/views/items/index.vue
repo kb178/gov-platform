@@ -159,6 +159,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getCategoryList, getItemList } from '@/api/item'
 
 const router = useRouter()
 const route = useRoute()
@@ -172,22 +173,44 @@ const handleSearch = () => {
 }
 
 // ========== 分类 ==========
-const activeCategory = ref('all')
+const activeCategory = ref(null)  // null 表示全部
 
 const categories = ref([
-  { id: 'all', name: '全部事项', icon: '📋', count: 1258 },
-  { id: 'household', name: '户籍办理', icon: '🏠', count: 186 },
-  { id: 'social', name: '社会保障', icon: '🏥', count: 245 },
-  { id: 'business', name: '工商登记', icon: '💼', count: 198 },
-  { id: 'fund', name: '公积金', icon: '🏦', count: 67 },
-  { id: 'education', name: '教育服务', icon: '🎓', count: 124 },
-  { id: 'traffic', name: '交通服务', icon: '🚗', count: 89 },
-  { id: 'estate', name: '不动产', icon: '🏠', count: 76 },
-  { id: 'marriage', name: '婚姻登记', icon: '💑', count: 32 },
-  { id: 'birth', name: '生育服务', icon: '👶', count: 45 },
-  { id: 'elderly', name: '养老助老', icon: '👴', count: 58 },
-  { id: 'other', name: '其他服务', icon: '📋', count: 138 }
+  { id: null, name: '全部事项', icon: '📋', count: 0 }
 ])
+
+// 加载分类列表
+const fetchCategories = async () => {
+  try {
+    const { data } = await getCategoryList()
+    if (data) {
+      // 映射图标
+      const iconMap = {
+        '户籍办理': '🏠',
+        '社会保障': '🏥',
+        '工商登记': '💼',
+        '公积金': '🏦',
+        '教育服务': '🎓',
+        '交通服务': '🚗',
+        '不动产': '🏠',
+        '婚姻登记': '💑',
+        '生育服务': '👶',
+        '养老助老': '👴'
+      }
+      const list = data.map(cat => ({
+        id: cat.categoryId,
+        name: cat.categoryName,
+        icon: iconMap[cat.categoryName] || '📋',
+        count: cat.itemCount || 0
+      }))
+      // 计算全部事项数量
+      const totalCount = list.reduce((sum, cat) => sum + cat.count, 0)
+      categories.value = [{ id: null, name: '全部事项', icon: '📋', count: totalCount }, ...list]
+    }
+  } catch (error) {
+    console.error('获取分类失败:', error)
+  }
+}
 
 const handleCategoryChange = id => {
   activeCategory.value = id
@@ -255,185 +278,52 @@ const displayPages = computed(() => {
   return pages
 })
 
-// 模拟数据
-const mockItems = [
-  {
-    id: 1,
-    name: '居民身份证办理',
-    icon: '📄',
-    desc: '本市户籍居民首次申领、换领、补领居民身份证',
-    dept: '公安局',
-    duration: '5个工作日',
-    count: '23,456',
-    isHot: true,
-    category: 'household',
-    filterType: 'personal'
-  },
-  {
-    id: 2,
-    name: '营业执照办理',
-    icon: '🏢',
-    desc: '企业设立、变更、注销登记，全程网上办理',
-    dept: '市场监督管理局',
-    duration: '1个工作日',
-    count: '18,923',
-    isHot: true,
-    category: 'business',
-    filterType: 'enterprise'
-  },
-  {
-    id: 3,
-    name: '不动产登记',
-    icon: '🏠',
-    desc: '不动产首次登记、转移登记、变更登记、注销登记',
-    dept: '自然资源和规划局',
-    duration: '3个工作日',
-    count: '12,456',
-    category: 'estate',
-    filterType: 'personal'
-  },
-  {
-    id: 4,
-    name: '机动车驾驶证补换领',
-    icon: '🚗',
-    desc: '驾驶证遗失补办、期满换证、损毁换证',
-    dept: '公安局交警支队',
-    duration: '1个工作日',
-    count: '9,876',
-    category: 'traffic',
-    filterType: 'personal'
-  },
-  {
-    id: 5,
-    name: '住房公积金提取',
-    icon: '🏦',
-    desc: '购房提取、租房提取、离退休提取等',
-    dept: '住房公积金管理中心',
-    duration: '3个工作日',
-    count: '8,765',
-    category: 'fund',
-    filterType: 'personal'
-  },
-  {
-    id: 6,
-    name: '基本医疗保险参保登记',
-    icon: '🏥',
-    desc: '城镇职工、城乡居民医疗保险参保登记',
-    dept: '医疗保障局',
-    duration: '即时办结',
-    count: '7,654',
-    category: 'social',
-    filterType: 'personal'
-  },
-  {
-    id: 7,
-    name: '食品经营许可证',
-    icon: '🍱',
-    desc: '食品销售、餐饮服务经营者需办理的许可证',
-    dept: '市场监督管理局',
-    duration: '5个工作日',
-    count: '6,543',
-    category: 'business',
-    filterType: 'enterprise'
-  },
-  {
-    id: 8,
-    name: '居住证办理',
-    icon: '📝',
-    desc: '非本市户籍人员在本市居住的居住登记和居住证办理',
-    dept: '公安局',
-    duration: '15个工作日',
-    count: '5,432',
-    category: 'household',
-    filterType: 'personal'
-  },
-  {
-    id: 9,
-    name: '结婚登记',
-    icon: '💑',
-    desc: '内地居民结婚登记、补领婚姻登记证',
-    dept: '民政局',
-    duration: '即时办结',
-    count: '4,321',
-    category: 'marriage',
-    filterType: 'personal'
-  },
-  {
-    id: 10,
-    name: '新生儿出生登记',
-    icon: '👶',
-    desc: '新生儿出生户口登记、出生医学证明办理',
-    dept: '公安局',
-    duration: '3个工作日',
-    count: '3,210',
-    category: 'birth',
-    filterType: 'personal'
-  },
-  {
-    id: 11,
-    name: '社保卡申领',
-    icon: '💳',
-    desc: '社会保障卡首次申领、补卡、换卡',
-    dept: '人力资源和社会保障局',
-    duration: '10个工作日',
-    count: '2,890',
-    category: 'social',
-    filterType: 'personal'
-  },
-  {
-    id: 12,
-    name: '企业变更登记',
-    icon: '📝',
-    desc: '企业名称、地址、经营范围等变更登记',
-    dept: '市场监督管理局',
-    duration: '3个工作日',
-    count: '2,567',
-    category: 'business',
-    filterType: 'enterprise'
-  }
-]
-
 // 获取列表数据
 const fetchItemList = async () => {
   loading.value = true
 
-  // 模拟接口请求
-  await new Promise(resolve => setTimeout(resolve, 300))
+  try {
+    const params = {
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    }
 
-  let filtered = [...mockItems]
+    // 分类筛选
+    if (activeCategory.value !== null) {
+      params.categoryId = activeCategory.value
+    }
 
-  // 分类筛选
-  if (activeCategory.value !== 'all') {
-    filtered = filtered.filter(item => item.category === activeCategory.value)
+    // 搜索关键词
+    if (searchKeyword.value) {
+      params.itemName = searchKeyword.value
+    }
+
+    // 只查询已发布的事项
+    params.status = 1
+
+    const { data } = await getItemList(params)
+
+    if (data) {
+      total.value = data.total || 0
+      // 映射后端数据到前端格式
+      itemList.value = (data.records || []).map(item => ({
+        id: item.itemId,
+        name: item.itemName,
+        icon: '📄',
+        desc: item.summary || '',
+        dept: item.deptName || '',
+        duration: item.processTime || '即时办结',
+        count: '0',
+        isHot: false,
+        categoryId: item.categoryId
+      }))
+    }
+  } catch (error) {
+    console.error('获取事项列表失败:', error)
+    ElMessage.error('获取事项列表失败')
+  } finally {
+    loading.value = false
   }
-
-  // 主题筛选
-  if (activeFilter.value !== 'all') {
-    filtered = filtered.filter(item => item.filterType === activeFilter.value)
-  }
-
-  // 搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    filtered = filtered.filter(
-      item => item.name.toLowerCase().includes(keyword) || item.desc.toLowerCase().includes(keyword)
-    )
-  }
-
-  // 排序
-  if (activeSort.value === 'hot') {
-    filtered.sort(
-      (a, b) => parseInt(b.count.replace(/,/g, '')) - parseInt(a.count.replace(/,/g, ''))
-    )
-  }
-
-  total.value = filtered.length
-  itemList.value = filtered.slice(
-    (currentPage.value - 1) * pageSize.value,
-    currentPage.value * pageSize.value
-  )
-
-  loading.value = false
 }
 
 // ========== 分页 ==========
@@ -449,6 +339,7 @@ const handleItemClick = item => {
   router.push(`/items/${item.id}`)
 }
 
+// 立即办理
 const handleApply = item => {
   if (!localStorage.getItem('token')) {
     ElMessage.warning('请先登录')
@@ -458,12 +349,16 @@ const handleApply = item => {
   router.push(`/apply/${item.id}`)
 }
 
-// ========== 初始化 ==========
+// 初始化
 onMounted(() => {
-  // 从 URL 获取分类参数
-  const category = route.query.category
-  if (category) {
-    activeCategory.value = category
+  fetchCategories()
+
+  // 从 URL 参数获取搜索关键词
+  if (route.query.keyword) {
+    searchKeyword.value = route.query.keyword
+  }
+  if (route.query.category) {
+    activeCategory.value = route.query.category
   }
 
   fetchItemList()

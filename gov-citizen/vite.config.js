@@ -37,6 +37,10 @@ export default defineConfig({
       '/system': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      '/item': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   },

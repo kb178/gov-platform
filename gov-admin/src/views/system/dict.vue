@@ -12,15 +12,19 @@
           <span>字典类型</span>
           <el-button type="primary" link size="small" @click="showTypeDialog()">新增</el-button>
         </div>
-        <div class="type-list">
+        <div class="type-list" v-loading="loadingTypes">
           <div
             v-for="item in dictTypes"
-            :key="item.id"
-            :class="['type-item', { active: activeType === item.id }]"
+            :key="item.dictId"
+            :class="['type-item', { active: activeType === item.dictId }]"
             @click="selectType(item)"
           >
-            <span class="type-name">{{ item.name }}</span>
-            <span class="type-key">{{ item.key }}</span>
+            <span class="type-name">{{ item.dictName }}</span>
+            <span class="type-key">{{ item.dictType }}</span>
+            <div class="type-actions">
+              <el-button type="primary" link size="small" @click.stop="showTypeDialog(item)">编辑</el-button>
+              <el-button type="danger" link size="small" @click.stop="handleDeleteType(item)">删除</el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -28,17 +32,17 @@
       <!-- 右侧字典数据 -->
       <div class="dict-data">
         <div class="toolbar">
-          <span class="current-type">当前类型：{{ currentType?.name || '-' }}</span>
+          <span class="current-type">当前类型：{{ currentType?.dictName || '-' }}</span>
           <el-button type="primary" size="small" @click="showDataDialog()" :disabled="!currentType">➕ 新增数据</el-button>
         </div>
 
-        <el-table :data="currentData">
-          <el-table-column prop="label" label="字典标签" min-width="140" />
-          <el-table-column prop="value" label="字典值" width="120" />
-          <el-table-column prop="sort" label="排序" width="80" />
+        <el-table :data="currentData" v-loading="loadingData">
+          <el-table-column prop="dictLabel" label="字典标签" min-width="140" />
+          <el-table-column prop="dictValue" label="字典值" width="120" />
+          <el-table-column prop="dictSort" label="排序" width="80" />
           <el-table-column label="状态" width="100">
             <template #default="{ row }">
-              <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="ElMessage.success('状态已更新')" />
+              <el-switch v-model="row.status" :active-value="0" :inactive-value="1" @change="handleDataStatusChange(row)" />
             </template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip />
@@ -54,122 +58,247 @@
 
     <!-- 字典类型弹窗 -->
     <el-dialog v-model="typeDialogVisible" :title="isEditType ? '编辑字典类型' : '新增字典类型'" width="450px">
-      <el-form :model="typeForm" label-width="80px">
-        <el-form-item label="类型名称" required>
-          <el-input v-model="typeForm.name" placeholder="请输入类型名称" />
+      <el-form :model="typeForm" :rules="typeFormRules" ref="typeFormRef" label-width="80px">
+        <el-form-item label="类型名称" prop="dictName" required>
+          <el-input v-model="typeForm.dictName" placeholder="请输入类型名称" />
         </el-form-item>
-        <el-form-item label="类型标识" required>
-          <el-input v-model="typeForm.key" placeholder="请输入类型标识" />
+        <el-form-item label="类型标识" prop="dictType" required>
+          <el-input v-model="typeForm.dictType" placeholder="请输入类型标识" />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item label="备注" prop="remark">
           <el-input v-model="typeForm.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="typeDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="ElMessage.success('保存成功'); typeDialogVisible = false">确定</el-button>
+        <el-button type="primary" @click="handleSaveType" :loading="savingType">确定</el-button>
       </template>
     </el-dialog>
 
     <!-- 字典数据弹窗 -->
     <el-dialog v-model="dataDialogVisible" :title="isEditData ? '编辑字典数据' : '新增字典数据'" width="450px">
-      <el-form :model="dataForm" label-width="80px">
-        <el-form-item label="字典标签" required>
-          <el-input v-model="dataForm.label" placeholder="请输入字典标签" />
+      <el-form :model="dataForm" :rules="dataFormRules" ref="dataFormRef" label-width="80px">
+        <el-form-item label="字典标签" prop="dictLabel" required>
+          <el-input v-model="dataForm.dictLabel" placeholder="请输入字典标签" />
         </el-form-item>
-        <el-form-item label="字典值" required>
-          <el-input v-model="dataForm.value" placeholder="请输入字典值" />
+        <el-form-item label="字典值" prop="dictValue" required>
+          <el-input v-model="dataForm.dictValue" placeholder="请输入字典值" />
         </el-form-item>
-        <el-form-item label="排序">
-          <el-input-number v-model="dataForm.sort" :min="0" :max="999" />
+        <el-form-item label="排序" prop="dictSort">
+          <el-input-number v-model="dataForm.dictSort" :min="0" :max="999" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态" prop="status">
           <el-radio-group v-model="dataForm.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">停用</el-radio>
+            <el-radio :value="0">正常</el-radio>
+            <el-radio :value="1">停用</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item label="备注" prop="remark">
           <el-input v-model="dataForm.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dataDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="ElMessage.success('保存成功'); dataDialogVisible = false">确定</el-button>
+        <el-button type="primary" @click="handleSaveData" :loading="savingData">确定</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getDictTypeList, addDictType, updateDictType, deleteDictType,
+  getDictDataByType, addDictData, updateDictData, deleteDictData
+} from '@/api/system'
 
-const dictTypes = ref([
-  { id: 1, name: '用户性别', key: 'sys_user_sex', remark: '用户性别列表' },
-  { id: 2, name: '系统状态', key: 'sys_normal_disable', remark: '系统状态列表' },
-  { id: 3, name: '事项状态', key: 'item_status', remark: '事项状态列表' },
-  { id: 4, name: '审批结果', key: 'approval_result', remark: '审批结果列表' },
-  { id: 5, name: '证件类型', key: 'cert_type', remark: '证件类型列表' }
-])
+const loadingTypes = ref(false)
+const loadingData = ref(false)
+const savingType = ref(false)
+const savingData = ref(false)
 
-const dictDataMap = {
-  1: [
-    { label: '男', value: '0', sort: 1, status: 1, remark: '' },
-    { label: '女', value: '1', sort: 2, status: 1, remark: '' },
-    { label: '未知', value: '2', sort: 3, status: 1, remark: '' }
-  ],
-  2: [
-    { label: '正常', value: '0', sort: 1, status: 1, remark: '' },
-    { label: '停用', value: '1', sort: 2, status: 1, remark: '' }
-  ],
-  3: [
-    { label: '已启用', value: '0', sort: 1, status: 1, remark: '' },
-    { label: '已停用', value: '1', sort: 2, status: 1, remark: '' },
-    { label: '草稿', value: '2', sort: 3, status: 1, remark: '' }
-  ],
-  4: [
-    { label: '通过', value: '0', sort: 1, status: 1, remark: '' },
-    { label: '驳回', value: '1', sort: 2, status: 1, remark: '' },
-    { label: '退回', value: '2', sort: 3, status: 1, remark: '' }
-  ],
-  5: [
-    { label: '身份证', value: '0', sort: 1, status: 1, remark: '' },
-    { label: '护照', value: '1', sort: 2, status: 1, remark: '' },
-    { label: '营业执照', value: '2', sort: 3, status: 1, remark: '' }
-  ]
-}
+const dictTypes = ref([])
+const dictDataMap = ref({})
 
-const activeType = ref(1)
-const currentType = computed(() => dictTypes.value.find(t => t.id === activeType.value))
-const currentData = computed(() => dictDataMap[activeType.value] || [])
+const activeType = ref(null)
+const currentType = computed(() => dictTypes.value.find(t => t.dictId === activeType.value))
+const currentData = computed(() => dictDataMap.value[activeType.value] || [])
 
-function selectType(item) { activeType.value = item.id }
-
+// 字典类型表单
 const typeDialogVisible = ref(false)
 const isEditType = ref(false)
-const typeForm = reactive({ name: '', key: '', remark: '' })
+const editingTypeId = ref(null)
+const typeFormRef = ref(null)
+const typeForm = reactive({ dictName: '', dictType: '', remark: '' })
+const typeFormRules = {
+  dictName: [{ required: true, message: '请输入类型名称', trigger: 'blur' }],
+  dictType: [{ required: true, message: '请输入类型标识', trigger: 'blur' }]
+}
 
+// 字典数据表单
+const dataDialogVisible = ref(false)
+const isEditData = ref(false)
+const editingDataId = ref(null)
+const dataFormRef = ref(null)
+const dataForm = reactive({ dictLabel: '', dictValue: '', dictSort: 0, status: 0, remark: '' })
+const dataFormRules = {
+  dictLabel: [{ required: true, message: '请输入字典标签', trigger: 'blur' }],
+  dictValue: [{ required: true, message: '请输入字典值', trigger: 'blur' }]
+}
+
+onMounted(() => {
+  loadDictTypes()
+})
+
+async function loadDictTypes() {
+  loadingTypes.value = true
+  try {
+    const res = await getDictTypeList()
+    dictTypes.value = res.data || []
+    if (dictTypes.value.length > 0 && !activeType.value) {
+      selectType(dictTypes.value[0])
+    }
+  } catch (error) {
+    console.error('加载字典类型失败', error)
+  } finally {
+    loadingTypes.value = false
+  }
+}
+
+async function loadDictData(dictType) {
+  loadingData.value = true
+  try {
+    const res = await getDictDataByType(dictType)
+    dictDataMap.value[activeType.value] = res.data || []
+  } catch (error) {
+    console.error('加载字典数据失败', error)
+  } finally {
+    loadingData.value = false
+  }
+}
+
+function selectType(item) {
+  activeType.value = item.dictId
+  if (!dictDataMap.value[item.dictId]) {
+    loadDictData(item.dictType)
+  }
+}
+
+// 字典类型操作
 function showTypeDialog(row) {
   isEditType.value = !!row
-  Object.assign(typeForm, row ? { name: row.name, key: row.key, remark: row.remark } : { name: '', key: '', remark: '' })
+  if (row) {
+    editingTypeId.value = row.dictId
+    Object.assign(typeForm, { dictName: row.dictName, dictType: row.dictType, remark: row.remark || '' })
+  } else {
+    editingTypeId.value = null
+    Object.assign(typeForm, { dictName: '', dictType: '', remark: '' })
+  }
   typeDialogVisible.value = true
 }
 
-const dataDialogVisible = ref(false)
-const isEditData = ref(false)
-const dataForm = reactive({ label: '', value: '', sort: 0, status: 1, remark: '' })
+async function handleSaveType() {
+  if (!typeFormRef.value) return
+  await typeFormRef.value.validate()
 
+  savingType.value = true
+  try {
+    if (isEditType.value) {
+      await updateDictType({ dictId: editingTypeId.value, ...typeForm })
+      ElMessage.success('字典类型更新成功')
+    } else {
+      await addDictType(typeForm)
+      ElMessage.success('字典类型创建成功')
+    }
+    typeDialogVisible.value = false
+    loadDictTypes()
+  } catch (error) {
+    console.error('保存字典类型失败', error)
+  } finally {
+    savingType.value = false
+  }
+}
+
+async function handleDeleteType(row) {
+  try {
+    await ElMessageBox.confirm(`确定要删除字典类型"${row.dictName}"吗？`, '警告', { type: 'error' })
+    await deleteDictType(row.dictId)
+    ElMessage.success('删除成功')
+    if (activeType.value === row.dictId) {
+      activeType.value = null
+    }
+    loadDictTypes()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除字典类型失败', error)
+    }
+  }
+}
+
+// 字典数据操作
 function showDataDialog(row) {
   isEditData.value = !!row
-  Object.assign(dataForm, row ? { label: row.label, value: row.value, sort: row.sort, status: row.status, remark: row.remark } : { label: '', value: '', sort: 0, status: 1, remark: '' })
+  if (row) {
+    editingDataId.value = row.dictCode
+    Object.assign(dataForm, {
+      dictLabel: row.dictLabel,
+      dictValue: row.dictValue,
+      dictSort: row.dictSort,
+      status: row.status,
+      remark: row.remark || ''
+    })
+  } else {
+    editingDataId.value = null
+    Object.assign(dataForm, { dictLabel: '', dictValue: '', dictSort: 0, status: 0, remark: '' })
+  }
   dataDialogVisible.value = true
 }
 
-function handleDeleteData(row) {
-  ElMessageBox.confirm('确定要删除该字典数据吗？', '警告', { type: 'error' }).then(() => {
+async function handleSaveData() {
+  if (!dataFormRef.value) return
+  await dataFormRef.value.validate()
+
+  savingData.value = true
+  try {
+    const submitData = { ...dataForm, dictType: currentType.value.dictType }
+    if (isEditData.value) {
+      await updateDictData({ dictCode: editingDataId.value, ...submitData })
+      ElMessage.success('字典数据更新成功')
+    } else {
+      await addDictData(submitData)
+      ElMessage.success('字典数据创建成功')
+    }
+    dataDialogVisible.value = false
+    loadDictData(currentType.value.dictType)
+  } catch (error) {
+    console.error('保存字典数据失败', error)
+  } finally {
+    savingData.value = false
+  }
+}
+
+async function handleDeleteData(row) {
+  try {
+    await ElMessageBox.confirm('确定要删除该字典数据吗？', '警告', { type: 'error' })
+    await deleteDictData(row.dictCode)
     ElMessage.success('删除成功')
-  }).catch(() => {})
+    loadDictData(currentType.value.dictType)
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除字典数据失败', error)
+    }
+  }
+}
+
+async function handleDataStatusChange(row) {
+  try {
+    await updateDictData({ dictCode: row.dictCode, status: row.status })
+    ElMessage.success('状态已更新')
+  } catch (error) {
+    row.status = row.status === 0 ? 1 : 0
+    console.error('修改状态失败', error)
+  }
 }
 </script>
 
@@ -211,13 +340,26 @@ function handleDeleteData(row) {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
 
-  &:hover { background: #F3F4F6; }
+  &:hover {
+    background: #F3F4F6;
+    .type-actions { opacity: 1; }
+  }
   &.active { background: #EFF6FF; color: #1E40AF; }
 
   .type-name { display: block; font-weight: 500; font-size: 14px; }
   .type-key { display: block; font-size: 12px; color: #9CA3AF; margin-top: 4px; }
   &.active .type-key { color: #3B82F6; }
+
+  .type-actions {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 }
 
 .dict-data {

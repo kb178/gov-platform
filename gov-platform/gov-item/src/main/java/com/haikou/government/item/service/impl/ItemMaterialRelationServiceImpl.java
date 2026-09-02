@@ -136,6 +136,7 @@ public class ItemMaterialRelationServiceImpl extends ServiceImpl<ItemMaterialRel
                 vo.setMaterialDesc(material.getMaterialDesc());
                 vo.setMaterialType(material.getMaterialType());
                 vo.setMaterialTypeText(getMaterialTypeText(material.getMaterialType()));
+                vo.setExampleUrl(material.getExampleUrl());
             }
         }
 

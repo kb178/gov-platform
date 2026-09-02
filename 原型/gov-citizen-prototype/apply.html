@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在线申请 - 海口政务服务</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .page-container {
+      margin-top: calc(var(--header-height) + 24px);
+      padding-bottom: 48px;
+    }
+
+    /* 步骤指示器 */
+    .steps-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .step-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: var(--border-light);
+      z-index: 0;
+    }
+
+    .step-item.active:not(:last-child)::after,
+    .step-item.completed:not(:last-child)::after {
+      background: var(--primary);
+    }
+
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s;
+    }
+
+    .step-item.active .step-circle {
+      background: var(--primary);
+      color: white;
+    }
+
+    .step-item.completed .step-circle {
+      background: var(--success);
+      color: white;
+    }
+
+    .step-label {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .step-item.active .step-label {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .step-item.completed .step-label {
+      color: var(--success);
+    }
+
+    /* 主体布局 */
+    .apply-layout {
+      display: flex;
+      gap: 24px;
+    }
+
+    .apply-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .apply-sidebar {
+      width: 300px;
+      flex-shrink: 0;
+    }
+
+    /* 表单卡片 */
+    .form-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .form-card h3 .icon {
+      font-size: 22px;
+    }
+
+    /* 表单行 */
+    .form-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    /* 上传区域 */
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-area:hover {
+      border-color: var(--primary-lighter);
+      background: var(--primary-bg);
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .upload-text {
+      font-size: 14px;
+      color: var(--text-regular);
+      margin-bottom: 4px;
+    }
+
+    .upload-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* 已上传文件 */
+    .uploaded-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .uploaded-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-hover);
+      border-radius: 8px;
+    }
+
+    .uploaded-icon {
+      font-size: 24px;
+    }
+
+    .uploaded-info {
+      flex: 1;
+    }
+
+    .uploaded-name {
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .uploaded-size {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .uploaded-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .uploaded-actions button {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-preview {
+      background: var(--primary-bg);
+      color: var(--primary);
+    }
+
+    .btn-preview:hover {
+      background: var(--primary-lighter);
+    }
+
+    .btn-delete {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .btn-delete:hover {
+      background: #FECACA;
+    }
+
+    /* 材料清单 */
+    .material-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-hover);
+      border-radius: 8px;
+    }
+
+    .checklist-item.required {
+      border-left: 3px solid var(--danger);
+    }
+
+    .checklist-item.optional {
+      border-left: 3px solid var(--text-secondary);
+    }
+
+    .checklist-item.uploaded {
+      border-left: 3px solid var(--success);
+      background: var(--success-bg);
+    }
+
+    .checklist-checkbox {
+      margin-top: 2px;
+    }
+
+    .checklist-checkbox input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    .checklist-info {
+      flex: 1;
+    }
+
+    .checklist-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .checklist-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .checklist-status {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .checklist-status.required {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .checklist-status.optional {
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+    }
+
+    .checklist-status.uploaded {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    /* 底部操作栏 */
+    .action-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+      position: sticky;
+      bottom: 24px;
+    }
+
+    .action-left {
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-right {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* 右侧边栏 */
+    .sidebar-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .sidebar-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .applicant-info {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      font-size: 14px;
+    }
+
+    .info-row .label {
+      width: 70px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .info-row .value {
+      flex: 1;
+      color: var(--text-primary);
+    }
+
+    /* 进度提示 */
+    .progress-tips {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tip-item {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .tip-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--primary-bg);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .tip-text {
+      color: var(--text-regular);
+      line-height: 1.6;
+    }
+
+    /* 提交确认弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 480px;
+      width: 90%;
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    /* 成功页面 */
+    .success-page {
+      display: none;
+      text-align: center;
+      padding: 80px 40px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .success-page.show {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .success-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .success-info {
+      background: var(--bg-hover);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: left;
+      margin-bottom: 32px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .success-info-item {
+      display: flex;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .success-info-item .label {
+      width: 80px;
+      color: var(--text-secondary);
+    }
+
+    .success-info-item .value {
+      flex: 1;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .apply-layout {
+        flex-direction: column;
+      }
+
+      .apply-sidebar {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .steps {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .step-item:not(:last-child)::after {
+        display: none;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .action-bar {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .action-left,
+      .action-right {
+        width: 100%;
+      }
+
+      .action-left .btn,
+      .action-right .btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部导航 -->
+  <header class="header">
+    <div class="container">
+      <a href="index.html" class="header-logo">
+        <div class="logo-icon">🏛️</div>
+        <span>海口政务服务</span>
+      </a>
+
+      <nav class="header-nav">
+        <a href="index.html">首页</a>
+        <a href="item-list.html" class="active">事项办理</a>
+        <a href="progress.html">进度查询</a>
+        <a href="my-license.html">我的证照</a>
+      </nav>
+
+      <div class="header-user" onclick="location.href='profile.html'">
+        <div class="avatar">张</div>
+        <span class="username">张三</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-container">
+    <div class="container">
+      <!-- 步骤指示器 -->
+      <div class="steps-bar">
+        <div class="steps">
+          <div class="step-item active">
+            <div class="step-circle">1</div>
+            <div class="step-label">填写信息</div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle">2</div>
+            <div class="step-label">上传材料</div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle">3</div>
+            <div class="step-label">确认提交</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主体布局 -->
+      <div class="apply-layout" id="applyForm">
+        <!-- 左侧表单 -->
+        <div class="apply-main">
+          <!-- 基本信息 -->
+          <div class="form-card">
+            <h3>
+              <span class="icon">👤</span>
+              基本信息
+            </h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">
+                  姓名 <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" value="张三" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  身份证号 <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" value="460100199001011234" readonly>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">
+                  手机号 <span class="required">*</span>
+                </label>
+                <input type="tel" class="form-input" value="13800138000" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  联系地址 <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" placeholder="请输入联系地址">
+              </div>
+            </div>
+          </div>
+
+          <!-- 业务信息 -->
+          <div class="form-card">
+            <h3>
+              <span class="icon">📋</span>
+              业务信息
+            </h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">
+                  申请类型 <span class="required">*</span>
+                </label>
+                <select class="form-input form-select">
+                  <option value="">请选择申请类型</option>
+                  <option value="first">首次申领</option>
+                  <option value="renew" selected>换领</option>
+                  <option value="replace">补领</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  领取方式 <span class="required">*</span>
+                </label>
+                <select class="form-input form-select">
+                  <option value="self" selected>本人领取</option>
+                  <option value="mail">邮寄送达</option>
+                  <option value="agent">代领</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">
+                  领取地点 <span class="required">*</span>
+                </label>
+                <select class="form-input form-select">
+                  <option value="">请选择领取地点</option>
+                  <option value="1" selected>海口市公安局户政大厅</option>
+                  <option value="2">龙华区政务服务中心</option>
+                  <option value="3">美兰区政务服务中心</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  有效期 <span class="required">*</span>
+                </label>
+                <select class="form-input form-select">
+                  <option value="10" selected>10年</option>
+                  <option value="20">20年</option>
+                  <option value="long">长期</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">备注说明</label>
+              <textarea class="form-input form-textarea" placeholder="如有特殊情况请在此说明（选填）"></textarea>
+            </div>
+          </div>
+
+          <!-- 材料上传 -->
+          <div class="form-card">
+            <h3>
+              <span class="icon">📎</span>
+              材料上传
+            </h3>
+
+            <div class="material-checklist">
+              <div class="checklist-item required uploaded">
+                <div class="checklist-checkbox">
+                  <input type="checkbox" checked>
+                </div>
+                <div class="checklist-info">
+                  <div class="checklist-name">居民户口簿</div>
+                  <div class="checklist-desc">请上传户口簿首页和本人页照片</div>
+                </div>
+                <span class="checklist-status uploaded">已上传</span>
+              </div>
+
+              <div class="checklist-item required uploaded">
+                <div class="checklist-checkbox">
+                  <input type="checkbox" checked>
+                </div>
+                <div class="checklist-info">
+                  <div class="checklist-name">本人近期免冠照片</div>
+                  <div class="checklist-desc">白底彩色照片，可现场拍摄</div>
+                </div>
+                <span class="checklist-status uploaded">已上传</span>
+              </div>
+
+              <div class="checklist-item optional">
+                <div class="checklist-checkbox">
+                  <input type="checkbox">
+                </div>
+                <div class="checklist-info">
+                  <div class="checklist-name">原居民身份证</div>
+                  <div class="checklist-desc">换领时需要提供原件照片</div>
+                </div>
+                <span class="checklist-status optional">待上传</span>
+              </div>
+            </div>
+
+            <div class="upload-area" style="margin-top: 24px;">
+              <div class="upload-icon">📤</div>
+              <div class="upload-text">点击或拖拽文件到此区域上传</div>
+              <div class="upload-hint">支持 jpg、png、pdf 格式，单个文件不超过 10MB</div>
+            </div>
+
+            <div class="uploaded-list">
+              <div class="uploaded-item">
+                <span class="uploaded-icon">🖼️</span>
+                <div class="uploaded-info">
+                  <div class="uploaded-name">户口簿首页.jpg</div>
+                  <div class="uploaded-size">2.3 MB</div>
+                </div>
+                <div class="uploaded-actions">
+                  <button class="btn-preview">预览</button>
+                  <button class="btn-delete">删除</button>
+                </div>
+              </div>
+              <div class="uploaded-item">
+                <span class="uploaded-icon">🖼️</span>
+                <div class="uploaded-info">
+                  <div class="uploaded-name">户口簿本人页.jpg</div>
+                  <div class="uploaded-size">1.8 MB</div>
+                </div>
+                <div class="uploaded-actions">
+                  <button class="btn-preview">预览</button>
+                  <button class="btn-delete">删除</button>
+                </div>
+              </div>
+              <div class="uploaded-item">
+                <span class="uploaded-icon">🖼️</span>
+                <div class="uploaded-info">
+                  <div class="uploaded-name">免冠照片.jpg</div>
+                  <div class="uploaded-size">1.2 MB</div>
+                </div>
+                <div class="uploaded-actions">
+                  <button class="btn-preview">预览</button>
+                  <button class="btn-delete">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部操作栏 -->
+          <div class="action-bar">
+            <div class="action-left">
+              <button class="btn btn-outline">暂存草稿</button>
+            </div>
+            <div class="action-right">
+              <button class="btn btn-outline" onclick="goBack()">上一步</button>
+              <button class="btn btn-primary" onclick="showConfirm()">提交申请</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <div class="apply-sidebar">
+          <!-- 申请人信息 -->
+          <div class="sidebar-card">
+            <h3>👤 申请人信息</h3>
+            <div class="applicant-info">
+              <div class="info-row">
+                <span class="label">姓名：</span>
+                <span class="value">张三</span>
+              </div>
+              <div class="info-row">
+                <span class="label">身份证：</span>
+                <span class="value">460100****1234</span>
+              </div>
+              <div class="info-row">
+                <span class="label">手机号：</span>
+                <span class="value">138****8000</span>
+              </div>
+              <div class="info-row">
+                <span class="label">认证状态：</span>
+                <span class="value" style="color: var(--success);">已实名认证</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 申请事项 -->
+          <div class="sidebar-card">
+            <h3>📋 申请事项</h3>
+            <div class="applicant-info">
+              <div class="info-row">
+                <span class="label">事项：</span>
+                <span class="value">居民身份证办理</span>
+              </div>
+              <div class="info-row">
+                <span class="label">部门：</span>
+                <span class="value">公安局</span>
+              </div>
+              <div class="info-row">
+                <span class="label">时限：</span>
+                <span class="value" style="color: var(--primary);">5个工作日</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 办理提示 -->
+          <div class="sidebar-card">
+            <h3>💡 办理提示</h3>
+            <div class="progress-tips">
+              <div class="tip-item">
+                <div class="tip-icon">1</div>
+                <div class="tip-text">请确保填写的信息真实有效</div>
+              </div>
+              <div class="tip-item">
+                <div class="tip-icon">2</div>
+                <div class="tip-text">上传材料需清晰完整</div>
+              </div>
+              <div class="tip-item">
+                <div class="tip-icon">3</div>
+                <div class="tip-text">提交后可在"我的办件"查看进度</div>
+              </div>
+              <div class="tip-item">
+                <div class="tip-icon">4</div>
+                <div class="tip-text">如有疑问请拨打 0898-12345</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 提交确认弹窗 -->
+      <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+          <div class="modal-header">
+            <div class="modal-icon">❓</div>
+            <div class="modal-title">确认提交申请</div>
+            <div class="modal-desc">提交后将进入审核流程，请确认信息填写无误</div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeConfirm()">返回修改</button>
+            <button class="btn btn-primary" onclick="submitApply()">确认提交</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成功页面 -->
+      <div class="success-page" id="successPage">
+        <div class="success-icon">✅</div>
+        <div class="success-title">申请提交成功！</div>
+        <div class="success-desc">您的申请已成功提交，请耐心等待审核</div>
+        <div class="success-info">
+          <div class="success-info-item">
+            <span class="label">办件编号：</span>
+            <span class="value">BJ20240115001234</span>
+          </div>
+          <div class="success-info-item">
+            <span class="label">申请事项：</span>
+            <span class="value">居民身份证办理</span>
+          </div>
+          <div class="success-info-item">
+            <span class="label">提交时间：</span>
+            <span class="value">2024-01-15 14:30:00</span>
+          </div>
+          <div class="success-info-item">
+            <span class="label">预计完成：</span>
+            <span class="value">2024-01-20</span>
+          </div>
+        </div>
+        <div class="success-actions">
+          <a href="progress.html" class="btn btn-primary">查看办件进度</a>
+          <a href="index.html" class="btn btn-outline">返回首页</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>关于我们</h4>
+          <p>海口市政务服务平台</p>
+          <p>打造智慧政务，服务百姓生活</p>
+        </div>
+        <div class="footer-section">
+          <h4>联系方式</h4>
+          <p>服务热线：0898-12345</p>
+          <p>工作时间：周一至周五 9:00-17:00</p>
+        </div>
+        <div class="footer-section">
+          <h4>友情链接</h4>
+          <a href="#">海南省人民政府</a><br>
+          <a href="#">海口市人民政府</a><br>
+          <a href="#">国家政务服务平台</a>
+        </div>
+        <div class="footer-section">
+          <h4>帮助中心</h4>
+          <a href="#">常见问题</a><br>
+          <a href="#">操作指南</a><br>
+          <a href="#">意见反馈</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 海口市政务服务平台 版权所有 | 琼ICP备XXXXXXXX号</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 显示确认弹窗
+    function showConfirm() {
+      document.getElementById('confirmModal').classList.add('show');
+    }
+
+    // 关闭确认弹窗
+    function closeConfirm() {
+      document.getElementById('confirmModal').classList.remove('show');
+    }
+
+    // 提交申请
+    function submitApply() {
+      closeConfirm();
+      document.getElementById('applyForm').style.display = 'none';
+      document.getElementById('successPage').classList.add('show');
+    }
+
+    // 返回上一步
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

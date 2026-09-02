@@ -98,22 +98,19 @@ router.beforeEach((to, from, next) => {
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - 海口政务服务平台` : '海口政务服务平台'
 
-  // TODO: 测试阶段暂时关闭登录拦截，上线前恢复
-  next()
+  // 登录鉴权
+  const token = localStorage.getItem('token')
+  const publicPaths = ['/login', '/register', '/forgot-password']
 
-  // // 登录鉴权
-  // const token = localStorage.getItem('token')
-  // const publicPaths = ['/login', '/register']
-  //
-  // if (!publicPaths.includes(to.path) && !token) {
-  //   // 未登录访问需要登录的页面，跳转到登录页
-  //   next('/login')
-  // } else if (to.path === '/login' && token) {
-  //   // 已登录访问登录页，跳转到首页
-  //   next('/')
-  // } else {
-  //   next()
-  // }
+  if (!publicPaths.includes(to.path) && !token) {
+    // 未登录访问需要登录的页面，跳转到登录页
+    next('/login')
+  } else if (to.path === '/login' && token) {
+    // 已登录访问登录页，跳转到首页
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router

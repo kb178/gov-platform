@@ -64,7 +64,15 @@ public class ItemCategoryServiceImpl extends ServiceImpl<ItemCategoryMapper, Ite
 
         List<ItemCategory> list = this.list(wrapper);
         return list.stream()
-                .map(this::convertToVO)
+                .map(category -> {
+                    ItemCategoryVO vo = convertToVO(category);
+                    // 统计该分类下的事项数量
+                    Long itemCount = itemInfoMapper.selectCount(new LambdaQueryWrapper<ItemInfo>()
+                            .eq(ItemInfo::getCategoryId, category.getCategoryId())
+                            .eq(ItemInfo::getStatus, (byte) 1)); // 只统计已发布的
+                    vo.setItemCount(itemCount.intValue());
+                    return vo;
+                })
                 .collect(Collectors.toList());
     }
 

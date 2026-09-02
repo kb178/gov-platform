@@ -34,6 +34,9 @@ public class ItemMaterialRelationVO implements Serializable {
     @Schema(description = "材料说明")
     private String materialDesc;
 
+    @Schema(description = "示例图片URL")
+    private String exampleUrl;
+
     @Schema(description = "材料类型（0纸质 1电子版 2两者都要）")
     private Byte materialType;
 

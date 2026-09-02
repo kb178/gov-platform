@@ -199,70 +199,145 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getItemDetail, getItemMaterials, checkFavorite, addFavorite, removeFavorite } from '@/api/item'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 
 // 收藏状态
 const isCollected = ref(false)
 
-// 模拟事项详情数据
+// 事项详情数据
 const itemDetail = ref({
-  id: 1,
-  name: '居民身份证办理',
+  id: 0,
+  name: '',
   icon: '📄',
-  dept: '公安局',
-  category: 'household',
-  categoryName: '户籍办理',
-  duration: '5个工作日',
-  count: '23,456',
-  rating: 98.5,
-  fee: '首次申领免费，换领20元，补领40元',
-  method: '网上预约 + 线下办理',
-  phone: '0898-12345',
-  supervisorPhone: '0898-6666XXXX',
-  conditions: [
-    '具有海口市户籍的居民',
-    '年满16周岁的中国公民',
-    '未满16周岁的公民，由监护人代为申请',
-    '首次申领、换领、补领居民身份证'
-  ],
-  materials: [
-    { name: '居民户口簿', required: true, note: '原件' },
-    { name: '本人近期免冠照片', required: true, note: '白底彩色照片', tip: '可现场拍摄' },
-    { name: '原居民身份证', required: false, note: '换领时需要' },
-    { name: '监护人身份证', required: false, note: '未满16周岁需要' }
-  ],
-  steps: [
-    { title: '在线申请', desc: '登录政务服务平台，在线填写申请表，上传相关材料照片' },
-    { title: '窗口受理', desc: '工作人员审核材料，确认无误后受理申请' },
-    { title: '人像采集', desc: '到指定地点进行人像采集和指纹录入' },
-    { title: '证件制作', desc: '公安机关制作居民身份证' },
-    { title: '领取证件', desc: '到受理点领取或选择邮寄送达' }
-  ],
+  dept: '',
+  category: '',
+  categoryName: '',
+  duration: '',
+  count: '0',
+  rating: 0,
+  fee: '',
+  method: '',
+  phone: '',
+  supervisorPhone: '',
+  conditions: [],
+  materials: [],
+  steps: [],
   location: {
-    name: '海口市公安局户政大厅',
-    address: '海口市龙华区滨海大道XXX号',
-    phone: '0898-6666XXXX',
-    hours: '周一至周五 9:00-12:00 14:00-17:00',
-    traffic: '乘坐XX路公交到XX站下车'
+    name: '',
+    address: '',
+    phone: '',
+    hours: '',
+    traffic: ''
   },
-  faqs: [
-    { question: '身份证办理需要多长时间？', answer: '一般需要5个工作日。' },
-    { question: '可以异地办理身份证吗？', answer: '可以，但需要提供相关证明材料。' },
-    { question: '身份证丢失如何补办？', answer: '携带户口簿到户籍所在地派出所办理。' },
-    { question: '临时身份证怎么办理？', answer: '到户籍所在地派出所申请，当天可取。' }
-  ],
-  relatedItems: [
-    { id: 2, name: '户口迁移', icon: '🏠' },
-    { id: 3, name: '居住证办理', icon: '📋' },
-    { id: 4, name: '出生登记', icon: '👶' }
-  ]
+  faqs: [],
+  relatedItems: []
 })
+
+// 加载状态
+const loading = ref(true)
+
+// 获取事项详情
+const fetchItemDetail = async () => {
+  loading.value = true
+  try {
+    const itemId = route.params.id
+
+    // 并行请求事项详情和材料列表
+    const [detailRes, materialsRes] = await Promise.all([
+      getItemDetail(itemId),
+      getItemMaterials(itemId).catch(() => ({ data: [] }))
+    ])
+
+    if (detailRes.data) {
+      const data = detailRes.data
+      // 映射材料数据
+      const materials = (materialsRes.data || []).map(m => ({
+        name: m.materialName,
+        required: m.required === 1,
+        note: m.materialDesc || m.remark || '',
+        tip: ''
+      }))
+
+      // 映射后端数据到前端格式
+      itemDetail.value = {
+        id: data.itemId,
+        name: data.itemName,
+        icon: '📄',
+        dept: data.deptName || '',
+        category: data.categoryId?.toString() || '',
+        categoryName: data.categoryName || '',
+        duration: data.processTime || '即时办结',
+        count: '0',
+        rating: 0,
+        fee: data.feeStandard || '免费',
+        method: data.supportOnline === 1 ? '网上办理' : '窗口办理',
+        phone: data.contactPhone || '',
+        supervisorPhone: '',
+        // 解析办理条件（HTML转纯文本）
+        conditions: data.applyCondition ? parseHtmlToText(data.applyCondition) : ['暂无办理条件'],
+        materials: materials,
+        // 解析办理流程（HTML转步骤）
+        steps: data.processFlow ? parseHtmlToSteps(data.processFlow) : [{ title: '提交申请', desc: '在线提交申请材料' }],
+        location: {
+          name: data.deptName || '',
+          address: data.processLocation || '',
+          phone: data.contactPhone || '',
+          hours: '周一至周五 9:00-12:00 14:00-17:00',
+          traffic: ''
+        },
+        faqs: [
+          { question: '办理需要多长时间？', answer: data.processTime || '即时办结' },
+          { question: '收费标准是什么？', answer: data.feeStandard || '免费' }
+        ],
+        relatedItems: []
+      }
+    }
+  } catch (error) {
+    console.error('获取事项详情失败:', error)
+    ElMessage.error('获取事项详情失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 解析HTML为文本数组
+const parseHtmlToText = (html) => {
+  if (!html) return []
+  // 简单解析，去掉HTML标签后按行分割
+  const text = html.replace(/<[^>]+>/g, '').trim()
+  return text.split(/[,，;；\n]/).filter(item => item.trim()).map(item => item.trim())
+}
+
+// 解析HTML为步骤
+const parseHtmlToSteps = (html) => {
+  if (!html) return []
+  const text = html.replace(/<[^>]+>/g, '').trim()
+  const lines = text.split(/[,，;；\n]/).filter(item => item.trim())
+  return lines.map((line, index) => ({
+    title: `步骤${index + 1}`,
+    desc: line.trim()
+  }))
+}
+
+// 检查收藏状态
+const checkFavoriteStatus = async () => {
+  if (!userStore.isLoggedIn) return
+  try {
+    const { data } = await checkFavorite(userStore.userId, route.params.id)
+    isCollected.value = data || false
+  } catch (error) {
+    console.error('检查收藏状态失败:', error)
+  }
+}
 
 // 立即办理
 const handleApply = () => {
-  if (!localStorage.getItem('token')) {
+  if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录')
     router.push('/login')
     return
@@ -271,9 +346,27 @@ const handleApply = () => {
 }
 
 // 收藏切换
-const toggleCollect = () => {
-  isCollected.value = !isCollected.value
-  ElMessage.success(isCollected.value ? '收藏成功' : '已取消收藏')
+const toggleCollect = async () => {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    if (isCollected.value) {
+      await removeFavorite({ userId: userStore.userId, itemId: route.params.id })
+      isCollected.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await addFavorite({ userId: userStore.userId, itemId: route.params.id })
+      isCollected.value = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+    ElMessage.error('操作失败')
+  }
 }
 
 // 分享
@@ -293,8 +386,8 @@ const goToDetail = id => {
 
 // 初始化
 onMounted(() => {
-  // 实际项目中根据 route.params.id 获取数据
-  console.log('事项ID:', route.params.id)
+  fetchItemDetail()
+  checkFavoriteStatus()
 })
 </script>
 

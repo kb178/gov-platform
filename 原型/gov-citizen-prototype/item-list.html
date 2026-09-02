@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事项办理 - 海口政务服务</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .page-container {
+      margin-top: calc(var(--header-height) + 24px);
+      padding-bottom: 48px;
+    }
+
+    /* 页面标题 */
+    .page-banner {
+      background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+      padding: 32px 0;
+      color: white;
+    }
+
+    .page-banner h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .page-banner p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* 搜索栏 */
+    .search-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: -24px;
+      position: relative;
+      z-index: 10;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-input-wrap input {
+      width: 100%;
+      height: 44px;
+      padding: 0 16px 0 44px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input-wrap input:focus {
+      border-color: var(--primary-light);
+    }
+
+    .search-input-wrap .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: var(--text-placeholder);
+    }
+
+    .search-btn {
+      width: 100px;
+      height: 44px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .search-btn:hover {
+      background: var(--primary-light);
+    }
+
+    /* 主体布局 */
+    .main-layout {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    /* 左侧分类 */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+    }
+
+    .category-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .category-header {
+      padding: 16px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-list {
+      padding: 8px 0;
+    }
+
+    .category-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      gap: 10px;
+    }
+
+    .category-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .category-item.active {
+      background: var(--primary-bg);
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .category-item .cat-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .category-item .cat-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .category-item .cat-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .category-item.active .cat-count {
+      background: rgba(30, 64, 175, 0.1);
+      color: var(--primary);
+    }
+
+    /* 右侧内容 */
+    .content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 筛选条件 */
+    .filter-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .filter-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-tag {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-hover);
+      color: var(--text-regular);
+    }
+
+    .filter-tag:hover {
+      color: var(--primary);
+    }
+
+    .filter-tag.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* 排序和结果数 */
+    .result-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .result-count {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .result-count span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .sort-options {
+      display: flex;
+      gap: 16px;
+    }
+
+    .sort-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .sort-item:hover {
+      color: var(--text-primary);
+    }
+
+    .sort-item.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* 事项列表 */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .item-card:hover {
+      border-color: var(--primary-lighter);
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+      transform: translateX(4px);
+    }
+
+    .item-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      background: var(--primary-bg);
+    }
+
+    .item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-title .hot-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .item-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .item-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .item-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .item-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .item-btn {
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .item-btn-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    .item-btn-primary:hover {
+      background: var(--primary-light);
+    }
+
+    .item-btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .item-btn-outline:hover {
+      background: var(--primary-bg);
+    }
+
+    /* 分页 */
+    .pagination-wrap {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      padding: 80px 40px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state .empty-title {
+      font-size: 16px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .empty-state .empty-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .main-layout {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+
+      .category-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .category-item {
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: var(--bg-hover);
+      }
+
+      .category-item.active {
+        background: var(--primary);
+        color: white;
+      }
+
+      .category-item .cat-count {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .search-row {
+        flex-direction: column;
+      }
+
+      .search-btn {
+        width: 100%;
+      }
+
+      .item-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .item-actions {
+        flex-direction: row;
+        width: 100%;
+      }
+
+      .item-btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部导航 -->
+  <header class="header">
+    <div class="container">
+      <a href="index.html" class="header-logo">
+        <div class="logo-icon">🏛️</div>
+        <span>海口政务服务</span>
+      </a>
+
+      <nav class="header-nav">
+        <a href="index.html">首页</a>
+        <a href="item-list.html" class="active">事项办理</a>
+        <a href="progress.html">进度查询</a>
+        <a href="my-license.html">我的证照</a>
+      </nav>
+
+      <div class="header-user" onclick="location.href='profile.html'">
+        <div class="avatar">张</div>
+        <span class="username">张三</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 页面横幅 -->
+  <div class="page-banner">
+    <div class="container">
+      <h2>事项办理</h2>
+      <p>在线办理各类政务服务事项</p>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <div class="container">
+      <!-- 搜索栏 -->
+      <div class="search-bar">
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="搜索事项名称，如：身份证、营业执照...">
+          </div>
+          <button class="search-btn">搜 索</button>
+        </div>
+      </div>
+
+      <!-- 主体布局 -->
+      <div class="main-layout">
+        <!-- 左侧分类 -->
+        <div class="sidebar">
+          <div class="category-card">
+            <div class="category-header">
+              <span>📂</span> 事项分类
+            </div>
+            <div class="category-list">
+              <div class="category-item active">
+                <span class="cat-icon">📋</span>
+                <span class="cat-name">全部事项</span>
+                <span class="cat-count">1258</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">🏠</span>
+                <span class="cat-name">户籍办理</span>
+                <span class="cat-count">186</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">🏥</span>
+                <span class="cat-name">社会保障</span>
+                <span class="cat-count">245</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">💼</span>
+                <span class="cat-name">工商登记</span>
+                <span class="cat-count">198</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">🏦</span>
+                <span class="cat-name">公积金</span>
+                <span class="cat-count">67</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">🎓</span>
+                <span class="cat-name">教育服务</span>
+                <span class="cat-count">124</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">🚗</span>
+                <span class="cat-name">交通服务</span>
+                <span class="cat-count">89</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">🏠</span>
+                <span class="cat-name">不动产</span>
+                <span class="cat-count">76</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">💑</span>
+                <span class="cat-name">婚姻登记</span>
+                <span class="cat-count">32</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">👶</span>
+                <span class="cat-name">生育服务</span>
+                <span class="cat-count">45</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">👴</span>
+                <span class="cat-name">养老助老</span>
+                <span class="cat-count">58</span>
+              </div>
+              <div class="category-item">
+                <span class="cat-icon">📋</span>
+                <span class="cat-name">其他服务</span>
+                <span class="cat-count">138</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧内容 -->
+        <div class="content">
+          <!-- 筛选条件 -->
+          <div class="filter-bar">
+            <span class="filter-label">主题：</span>
+            <div class="filter-tags">
+              <span class="filter-tag active">全部</span>
+              <span class="filter-tag">个人办事</span>
+              <span class="filter-tag">企业办事</span>
+              <span class="filter-tag">社会组织</span>
+            </div>
+          </div>
+
+          <!-- 结果统计和排序 -->
+          <div class="result-bar">
+            <div class="result-count">
+              共找到 <span>1258</span> 个事项
+            </div>
+            <div class="sort-options">
+              <span class="sort-item active">默认排序</span>
+              <span class="sort-item">热度优先</span>
+              <span class="sort-item">最新发布</span>
+            </div>
+          </div>
+
+          <!-- 事项列表 -->
+          <div class="item-list">
+            <a href="item-detail.html" class="item-card">
+              <div class="item-icon">📄</div>
+              <div class="item-info">
+                <div class="item-title">
+                  居民身份证办理
+                  <span class="hot-badge">热门</span>
+                </div>
+                <div class="item-desc">本市户籍居民首次申领、换领、补领居民身份证</div>
+                <div class="item-meta">
+                  <span>🏛️ 公安局</span>
+                  <span>⏱️ 5个工作日</span>
+                  <span>📊 已办理 23,456 件</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <span class="item-btn item-btn-primary">立即办理</span>
+                <span class="item-btn item-btn-outline">查看详情</span>
+              </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+              <div class="item-icon">🏢</div>
+              <div class="item-info">
+                <div class="item-title">
+                  营业执照办理
+                  <span class="hot-badge">热门</span>
+                </div>
+                <div class="item-desc">企业设立、变更、注销登记，全程网上办理</div>
+                <div class="item-meta">
+                  <span>🏛️ 市场监督管理局</span>
+                  <span>⏱️ 1个工作日</span>
+                  <span>📊 已办理 18,923 件</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <span class="item-btn item-btn-primary">立即办理</span>
+                <span class="item-btn item-btn-outline">查看详情</span>
+              </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+              <div class="item-icon">🏠</div>
+              <div class="item-info">
+                <div class="item-title">不动产登记</div>
+                <div class="item-desc">不动产首次登记、转移登记、变更登记、注销登记</div>
+                <div class="item-meta">
+                  <span>🏛️ 自然资源和规划局</span>
+                  <span>⏱️ 3个工作日</span>
+                  <span>📊 已办理 12,456 件</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <span class="item-btn item-btn-primary">立即办理</span>
+                <span class="item-btn item-btn-outline">查看详情</span>
+              </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+              <div class="item-icon">🚗</div>
+              <div class="item-info">
+                <div class="item-title">机动车驾驶证补换领</div>
+                <div class="item-desc">驾驶证遗失补办、期满换证、损毁换证</div>
+                <div class="item-meta">
+                  <span>🏛️ 公安局交警支队</span>
+                  <span>⏱️ 1个工作日</span>
+                  <span>📊 已办理 9,876 件</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <span class="item-btn item-btn-primary">立即办理</span>
+                <span class="item-btn item-btn-outline">查看详情</span>
+              </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+              <div class="item-icon">🏦</div>
+              <div class="item-info">
+                <div class="item-title">住房公积金提取</div>
+                <div class="item-desc">购房提取、租房提取、离退休提取等</div>
+                <div class="item-meta">
+                  <span>🏛️ 住房公积金管理中心</span>
+                  <span>⏱️ 3个工作日</span>
+                  <span>📊 已办理 8,765 件</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <span class="item-btn item-btn-primary">立即办理</span>
+                <span class="item-btn item-btn-outline">查看详情</span>
+              </div>
+            </a>
+
+            <a href="item-detail.html" class="item-card">
+              <div class="item-icon">🏥</div>
+              <div class="item-info">
+                <div class="item-title">基本医疗保险参保登记</div>
+                <div class="item-desc">城镇职工、城乡居民医疗保险参保登记</div>
+                <div class="item-meta">
+                  <span>🏛️ 医疗保障局</span>
+                  <span>⏱️ 即时办结</span>
+                  <span>📊 已办理 7,654 件</span>
+                </div>
+              </div>
+              <div class="item-actions">
+                <span class="item-btn item-btn-primary">立即办理</span>
+                <span class="item-btn item-btn-outline">查看详情</span>
+              </div>
+            </a>
+          </div>
+
+          <!-- 分页 -->
+          <div class="pagination-wrap">
+            <div class="pagination">
+              <span class="page-btn">‹</span>
+              <span class="page-btn active">1</span>
+              <span class="page-btn">2</span>
+              <span class="page-btn">3</span>
+              <span class="page-btn">4</span>
+              <span class="page-btn">5</span>
+              <span class="page-btn">...</span>
+              <span class="page-btn">26</span>
+              <span class="page-btn">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>关于我们</h4>
+          <p>海口市政务服务平台</p>
+          <p>打造智慧政务，服务百姓生活</p>
+        </div>
+        <div class="footer-section">
+          <h4>联系方式</h4>
+          <p>服务热线：0898-12345</p>
+          <p>工作时间：周一至周五 9:00-17:00</p>
+        </div>
+        <div class="footer-section">
+          <h4>友情链接</h4>
+          <a href="#">海南省人民政府</a><br>
+          <a href="#">海口市人民政府</a><br>
+          <a href="#">国家政务服务平台</a>
+        </div>
+        <div class="footer-section">
+          <h4>帮助中心</h4>
+          <a href="#">常见问题</a><br>
+          <a href="#">操作指南</a><br>
+          <a href="#">意见反馈</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 海口市政务服务平台 版权所有 | 琼ICP备XXXXXXXX号</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 分类切换
+    document.querySelectorAll('.category-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 筛选标签切换
+    document.querySelectorAll('.filter-tag').forEach(tag => {
+      tag.addEventListener('click', function() {
+        this.parentElement.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 排序切换
+    document.querySelectorAll('.sort-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.sort-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 分页切换
+    document.querySelectorAll('.page-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        if (this.textContent === '‹' || this.textContent === '›' || this.textContent === '...') return;
+        document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实名认证 - 海口政务服务</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .page-container {
+      margin-top: calc(var(--header-height) + 24px);
+      padding-bottom: 48px;
+    }
+
+    /* 认证卡片 */
+    .auth-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .auth-header {
+      background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .auth-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 40px;
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .auth-body {
+      padding: 40px;
+    }
+
+    /* 认证状态 */
+    .auth-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: var(--bg-hover);
+      border-radius: 12px;
+      margin-bottom: 32px;
+    }
+
+    .auth-status-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .auth-status-icon.success {
+      background: var(--success-bg);
+    }
+
+    .auth-status-icon.pending {
+      background: var(--warning-bg);
+    }
+
+    .auth-status-info {
+      flex: 1;
+    }
+
+    .auth-status-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .auth-status-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* 步骤指示器 */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 40px;
+    }
+
+    .step-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: var(--border-light);
+    }
+
+    .step-item.active:not(:last-child)::after,
+    .step-item.completed:not(:last-child)::after {
+      background: var(--primary);
+    }
+
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-item.active .step-circle {
+      background: var(--primary);
+      color: white;
+    }
+
+    .step-item.completed .step-circle {
+      background: var(--success);
+      color: white;
+    }
+
+    .step-label {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .step-item.active .step-label {
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .step-item.completed .step-label {
+      color: var(--success);
+    }
+
+    /* 表单 */
+    .auth-form {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-label .required {
+      color: var(--danger);
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-placeholder);
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .form-error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .form-group.error .form-input {
+      border-color: var(--danger);
+    }
+
+    .form-group.error .form-error {
+      display: block;
+    }
+
+    /* 认证协议 */
+    .auth-agreement {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .auth-agreement input {
+      margin-top: 4px;
+    }
+
+    .auth-agreement label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .auth-agreement a {
+      color: var(--primary-light);
+    }
+
+    /* 按钮 */
+    .auth-actions {
+      text-align: center;
+    }
+
+    .btn-auth {
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* 认证成功 */
+    .auth-success {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--success-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 40px;
+    }
+
+    .success-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .success-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .success-info {
+      background: var(--bg-hover);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: left;
+      margin-bottom: 32px;
+    }
+
+    .success-info-item {
+      display: flex;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .success-info-item .label {
+      width: 80px;
+      color: var(--text-secondary);
+    }
+
+    .success-info-item .value {
+      flex: 1;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* 提示信息 */
+    .auth-tips {
+      margin-top: 32px;
+      padding: 20px;
+      background: var(--primary-bg);
+      border-radius: 8px;
+    }
+
+    .auth-tips h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .auth-tips ul {
+      list-style: none;
+    }
+
+    .auth-tips li {
+      font-size: 13px;
+      color: var(--text-regular);
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .auth-tips li::before {
+      content: '•';
+      position: absolute;
+      left: 8px;
+      color: var(--primary);
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .auth-header {
+        padding: 32px 24px;
+      }
+
+      .auth-body {
+        padding: 24px;
+      }
+
+      .steps {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .step-item:not(:last-child)::after {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部导航 -->
+  <header class="header">
+    <div class="container">
+      <a href="index.html" class="header-logo">
+        <div class="logo-icon">🏛️</div>
+        <span>海口政务服务</span>
+      </a>
+
+      <nav class="header-nav">
+        <a href="index.html">首页</a>
+        <a href="item-list.html">事项办理</a>
+        <a href="progress.html">进度查询</a>
+        <a href="my-license.html">我的证照</a>
+      </nav>
+
+      <div class="header-user" onclick="location.href='profile.html'">
+        <div class="avatar">张</div>
+        <span class="username">张三</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-container">
+    <div class="container">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-icon">🆔</div>
+          <div class="auth-title">实名认证</div>
+          <div class="auth-subtitle">认证后可享受完整的政务服务功能</div>
+        </div>
+
+        <div class="auth-body">
+          <!-- 认证前 - 表单 -->
+          <div id="authForm">
+            <!-- 步骤指示器 -->
+            <div class="steps">
+              <div class="step-item completed">
+                <div class="step-circle">✓</div>
+                <div class="step-label">填写信息</div>
+              </div>
+              <div class="step-item active">
+                <div class="step-circle">2</div>
+                <div class="step-label">身份验证</div>
+              </div>
+              <div class="step-item">
+                <div class="step-circle">3</div>
+                <div class="step-label">认证完成</div>
+              </div>
+            </div>
+
+            <form class="auth-form" onsubmit="submitAuth(event)">
+              <div class="form-group">
+                <label class="form-label">
+                  真实姓名 <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" placeholder="请输入您的真实姓名" id="realName">
+                <div class="form-error">请输入真实姓名</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  身份证号码 <span class="required">*</span>
+                </label>
+                <input type="text" class="form-input" placeholder="请输入18位身份证号码" maxlength="18" id="idCard">
+                <div class="form-error">请输入正确的身份证号码</div>
+                <div class="form-hint">请确保信息准确，认证后不可修改</div>
+              </div>
+
+              <div class="auth-agreement">
+                <input type="checkbox" id="agreement" checked>
+                <label for="agreement">
+                  我已阅读并同意
+                  <a href="#">《实名认证服务协议》</a>
+                  和
+                  <a href="#">《个人信息保护政策》</a>
+                </label>
+              </div>
+
+              <div class="auth-actions">
+                <button type="submit" class="btn btn-primary btn-auth">立即认证</button>
+              </div>
+            </form>
+
+            <div class="auth-tips">
+              <h4>💡 认证提示</h4>
+              <ul>
+                <li>认证信息将严格保密，仅用于政务服务办理</li>
+                <li>认证通过后，姓名和身份证号不可修改</li>
+                <li>如信息有误，请联系客服 0898-12345</li>
+                <li>认证过程中遇到问题可查看帮助中心</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 认证成功 -->
+          <div id="authSuccess" style="display: none;">
+            <div class="auth-success">
+              <div class="success-icon">✅</div>
+              <div class="success-title">实名认证成功！</div>
+              <div class="success-desc">您已完成实名认证，可以享受完整的政务服务功能</div>
+
+              <div class="success-info">
+                <div class="success-info-item">
+                  <span class="label">姓名：</span>
+                  <span class="value">张三</span>
+                </div>
+                <div class="success-info-item">
+                  <span class="label">身份证：</span>
+                  <span class="value">460100****1234</span>
+                </div>
+                <div class="success-info-item">
+                  <span class="label">认证时间：</span>
+                  <span class="value">2024-01-15 14:30:00</span>
+                </div>
+              </div>
+
+              <div class="success-actions">
+                <a href="index.html" class="btn btn-primary">返回首页</a>
+                <a href="profile.html" class="btn btn-outline">查看个人信息</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>关于我们</h4>
+          <p>海口市政务服务平台</p>
+          <p>打造智慧政务，服务百姓生活</p>
+        </div>
+        <div class="footer-section">
+          <h4>联系方式</h4>
+          <p>服务热线：0898-12345</p>
+          <p>工作时间：周一至周五 9:00-17:00</p>
+        </div>
+        <div class="footer-section">
+          <h4>友情链接</h4>
+          <a href="#">海南省人民政府</a><br>
+          <a href="#">海口市人民政府</a><br>
+          <a href="#">国家政务服务平台</a>
+        </div>
+        <div class="footer-section">
+          <h4>帮助中心</h4>
+          <a href="#">常见问题</a><br>
+          <a href="#">操作指南</a><br>
+          <a href="#">意见反馈</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 海口市政务服务平台 版权所有 | 琼ICP备XXXXXXXX号</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 提交认证
+    function submitAuth(e) {
+      e.preventDefault();
+
+      const realName = document.getElementById('realName').value;
+      const idCard = document.getElementById('idCard').value;
+      const agreement = document.getElementById('agreement').checked;
+
+      // 重置错误
+      document.querySelectorAll('.form-group').forEach(g => g.classList.remove('error'));
+
+      // 验证
+      let hasError = false;
+
+      if (!realName) {
+        document.getElementById('realName').closest('.form-group').classList.add('error');
+        hasError = true;
+      }
+
+      if (!idCard || !/^\d{17}[\dXx]$/.test(idCard)) {
+        document.getElementById('idCard').closest('.form-group').classList.add('error');
+        hasError = true;
+      }
+
+      if (!agreement) {
+        alert('请同意实名认证服务协议');
+        return;
+      }
+
+      if (hasError) return;
+
+      // 模拟认证成功
+      document.getElementById('authForm').style.display = 'none';
+      document.getElementById('authSuccess').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

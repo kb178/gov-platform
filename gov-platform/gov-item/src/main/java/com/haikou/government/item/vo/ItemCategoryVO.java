@@ -38,6 +38,9 @@ public class ItemCategoryVO {
     @Schema(description = "备注")
     private String remark;
 
+    @Schema(description = "该分类下的事项数量")
+    private Integer itemCount;
+
     @Schema(description = "创建者")
     private String createBy;
 
