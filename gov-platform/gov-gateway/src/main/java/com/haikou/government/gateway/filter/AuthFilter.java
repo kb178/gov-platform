@@ -43,8 +43,16 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private static final List<String> WHITE_LIST = Arrays.asList(
             "/system/sysUser/sendCode",    // 发送验证码
             "/system/sysUser/register",     // 用户注册
-            "/system/sysUser/login",        // 密码登录
+            "/system/sysUser/login",        // 密码登录（政务端）
             "/system/sysUser/smsLogin",     // 验证码登录
+            "/system/sysUser/adminLogin",   // 管理员登录
+            "/system/sysUser/resetPassword", // 找回密码（重置密码）
+            "/item/itemCategory/list",      // 事项分类列表
+            "/item/itemCategory/tree",      // 事项分类树
+            "/item/itemInfo/list",          // 事项列表
+            "/item/itemInfo/",              // 事项详情
+            "/item/itemFormTemplate/",      // 表单模板
+            "/item/itemMaterialRelation/",  // 材料列表
             "/doc.html",                    // Knife4j 接口文档
             "/webjars/",                    // Knife4j 静态资源
             "/swagger-resources/",          // Swagger 资源

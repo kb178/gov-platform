@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login, logout, getUserInfo } from '@/api/user'
+import { adminLogin, getUserInfo } from '@/api/user'
+import { ElMessage } from 'element-plus'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -11,50 +12,74 @@ export const useUserStore = defineStore('user', () => {
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value)
-  const username = computed(() => userInfo.value?.username || '')
-  const nickname = computed(() => userInfo.value?.nickname || '')
+  const username = computed(() => userInfo.value?.userName || '')
+  const nickname = computed(() => userInfo.value?.nickName || '')
   const avatar = computed(() => userInfo.value?.avatar || '')
 
-  // 登录
+  // 管理员登录（用户名+密码）
   async function loginAction(loginForm) {
     try {
-      const { data } = await login(loginForm)
-      token.value = data.token
-      localStorage.setItem('admin_token', data.token)
-      await getUserInfoAction()
+      const { data } = await adminLogin(loginForm)
+
+      // 保存token
+      token.value = data.accessToken
+      localStorage.setItem('admin_token', data.accessToken)
+
+      // 保存基本用户信息
+      userInfo.value = {
+        userId: data.userId,
+        userName: data.username,
+        nickName: data.nickname
+      }
+
       return data
     } catch (error) {
-      // 后端未启动时，使用模拟Token保证前端可跳转
-      const mockToken = 'mock_token_' + Date.now()
-      token.value = mockToken
-      localStorage.setItem('admin_token', mockToken)
-      userInfo.value = {
-        username: loginForm.username || 'admin',
-        nickname: '系统管理员',
-        avatar: ''
-      }
-      roles.value = ['admin']
-      permissions.value = ['*:*:*']
-      return { token: mockToken }
+      // 登录失败，清除状态
+      resetState()
+      throw error
     }
   }
 
   // 获取用户信息
   async function getUserInfoAction() {
-    const { data } = await getUserInfo()
-    userInfo.value = data.user
-    roles.value = data.roles || []
-    permissions.value = data.permissions || []
-    return data
+    try {
+      const res = await getUserInfo()
+      const data = res.data
+
+      userInfo.value = {
+        userId: data.userId,
+        userName: data.userName,
+        nickName: data.nickName,
+        avatar: data.avatar,
+        phone: data.phone,
+        email: data.email,
+        sex: data.sex,
+        deptId: data.deptId,
+        deptName: data.deptName,
+        userType: data.userType
+      }
+
+      roles.value = data.roles || []
+      permissions.value = data.permissions || []
+
+      return data
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      // 如果获取失败，使用基础信息
+      if (!userInfo.value) {
+        userInfo.value = {
+          userName: 'admin',
+          nickName: '用户'
+        }
+      }
+      roles.value = ['admin']
+      permissions.value = ['*:*:*']
+    }
   }
 
   // 登出
   async function logoutAction() {
-    try {
-      await logout()
-    } finally {
-      resetState()
-    }
+    resetState()
   }
 
   // 重置状态

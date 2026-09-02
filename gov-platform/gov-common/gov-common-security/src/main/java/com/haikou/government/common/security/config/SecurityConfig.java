@@ -38,6 +38,7 @@ public class SecurityConfig {
                         "/sysUser/register",
                         "/sysUser/login",
                         "/sysUser/smsLogin",
+                        "/sysUser/adminLogin",
                         "/sysUser/resetPassword",
                         "/doc.html",
                         "/webjars/**",

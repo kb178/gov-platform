@@ -1,35 +1,18 @@
 import request from './index'
 
-// 管理员登录
-export function login(data) {
+// 管理员登录（用户名+密码）
+export function adminLogin(data) {
   return request({
-    url: '/admin/login',
+    url: '/system/sysUser/adminLogin',
     method: 'post',
     data
   })
 }
 
-// 发送短信验证码
-export function sendCode(phone) {
-  return request({
-    url: '/admin/sendCode',
-    method: 'get',
-    params: { phone }
-  })
-}
-
-// 管理员登出
-export function logout() {
-  return request({
-    url: '/admin/logout',
-    method: 'post'
-  })
-}
-
-// 获取管理员信息
+// 获取当前用户信息
 export function getUserInfo() {
   return request({
-    url: '/admin/info',
+    url: '/system/sysUser/info',
     method: 'get'
   })
 }
@@ -37,7 +20,51 @@ export function getUserInfo() {
 // 修改密码
 export function updatePassword(data) {
   return request({
-    url: '/admin/password',
+    url: '/system/sysUser/changePassword',
+    method: 'post',
+    data
+  })
+}
+
+// 找回密码
+export function resetPassword(data) {
+  return request({
+    url: '/system/sysUser/resetPassword',
+    method: 'post',
+    data
+  })
+}
+
+// 手机号注册
+export function register(data) {
+  return request({
+    url: '/system/sysUser/register',
+    method: 'post',
+    data
+  })
+}
+
+// 实名认证
+export function realNameAuth(data) {
+  return request({
+    url: '/system/sysUser/realNameAuth',
+    method: 'post',
+    data
+  })
+}
+
+// 查询实名认证状态
+export function getRealNameStatus() {
+  return request({
+    url: '/system/sysUser/realNameStatus',
+    method: 'get'
+  })
+}
+
+// 修改个人信息
+export function updateUserInfo(data) {
+  return request({
+    url: '/system/sysUser/info',
     method: 'put',
     data
   })

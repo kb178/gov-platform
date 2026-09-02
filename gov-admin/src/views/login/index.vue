@@ -32,44 +32,25 @@
           <p>请输入您的账号信息登录系统</p>
         </div>
 
-        <!-- 登录方式切换 -->
-        <div class="login-tabs">
-          <div
-            class="login-tab"
-            :class="{ active: loginType === 'password' }"
-            @click="loginType = 'password'"
-          >
-            密码登录
-          </div>
-          <div
-            class="login-tab"
-            :class="{ active: loginType === 'sms' }"
-            @click="loginType = 'sms'"
-          >
-            验证码登录
-          </div>
-        </div>
-
-        <!-- 密码登录表单 -->
+        <!-- 登录表单 -->
         <el-form
-          v-show="loginType === 'password'"
-          ref="passwordFormRef"
-          :model="passwordForm"
-          :rules="passwordRules"
+          ref="loginFormRef"
+          :model="loginForm"
+          :rules="loginRules"
           size="large"
           @keyup.enter="handleLogin"
         >
           <el-form-item prop="username">
             <el-input
-              v-model="passwordForm.username"
-              placeholder="请输入用户名/工号"
+              v-model="loginForm.username"
+              placeholder="请输入用户名"
               :prefix-icon="User"
             />
           </el-form-item>
 
           <el-form-item prop="password">
             <el-input
-              v-model="passwordForm.password"
+              v-model="loginForm.password"
               type="password"
               placeholder="请输入密码"
               :prefix-icon="Lock"
@@ -77,24 +58,8 @@
             />
           </el-form-item>
 
-          <el-form-item prop="captchaCode">
-            <div class="captcha-row">
-              <el-input
-                v-model="passwordForm.captchaCode"
-                placeholder="请输入验证码"
-                :prefix-icon="Key"
-                @keyup.enter="handleLogin"
-              />
-              <div class="captcha-img" @click="refreshCaptcha">
-                <span v-if="!captchaUrl">{{ captchaCode }}</span>
-                <img v-else :src="captchaUrl" alt="验证码" />
-              </div>
-            </div>
-          </el-form-item>
-
           <div class="form-options">
             <el-checkbox v-model="rememberUsername">记住用户名</el-checkbox>
-            <el-link type="primary" :underline="false">忘记密码？</el-link>
           </div>
 
           <el-button
@@ -102,53 +67,6 @@
             :loading="loading"
             class="btn-login"
             @click="handleLogin"
-          >
-            登 录
-          </el-button>
-        </el-form>
-
-        <!-- 验证码登录表单 -->
-        <el-form
-          v-show="loginType === 'sms'"
-          ref="smsFormRef"
-          :model="smsForm"
-          :rules="smsRules"
-          size="large"
-          @keyup.enter="handleSmsLogin"
-        >
-          <el-form-item prop="phone">
-            <el-input
-              v-model="smsForm.phone"
-              placeholder="请输入手机号"
-              :prefix-icon="Iphone"
-              maxlength="11"
-            />
-          </el-form-item>
-
-          <el-form-item prop="smsCode">
-            <div class="captcha-row">
-              <el-input
-                v-model="smsForm.smsCode"
-                placeholder="请输入验证码"
-                :prefix-icon="Key"
-                @keyup.enter="handleSmsLogin"
-              />
-              <el-button
-                :disabled="smsCountdown > 0"
-                class="btn-sms"
-                @click="handleSendSms"
-              >
-                {{ smsCountdown > 0 ? `${smsCountdown}s后重试` : '获取验证码' }}
-              </el-button>
-            </div>
-          </el-form-item>
-
-          <el-button
-            type="primary"
-            :loading="loading"
-            class="btn-login"
-            style="margin-top: 28px"
-            @click="handleSmsLogin"
           >
             登 录
           </el-button>
@@ -166,142 +84,67 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Key, Iphone } from '@element-plus/icons-vue'
+import { Lock, User } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { sendCode } from '@/api/user'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-// 登录方式：password / sms
-const loginType = ref('password')
 const loading = ref(false)
 
-// 密码登录表单
-const passwordFormRef = ref(null)
-const passwordForm = reactive({
+// 登录表单
+const loginFormRef = ref(null)
+const loginForm = reactive({
   username: '',
-  password: '',
-  captchaCode: ''
+  password: ''
 })
 
-const passwordRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-  captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
-}
-
-// 验证码（前端生成的简单验证码，实际项目应后端生成图片）
-const captchaCode = ref('')
-const captchaUrl = ref('')
-
-function generateCaptcha() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-  let code = ''
-  for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  captchaCode.value = code
-}
-
-function refreshCaptcha() {
-  generateCaptcha()
-}
-
-// 短信登录表单
-const smsFormRef = ref(null)
-const smsForm = reactive({
-  phone: '',
-  smsCode: ''
-})
-
-const smsRules = {
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+const loginRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
-  smsCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+  ]
 }
-
-// 短信倒计时
-const smsCountdown = ref(0)
-let countdownTimer = null
 
 // 记住用户名
 const rememberUsername = ref(true)
 
-// 密码登录
+// 登录
 async function handleLogin() {
+  if (!loginFormRef.value) return
+  await loginFormRef.value.validate()
+
   loading.value = true
   try {
     await userStore.loginAction({
-      username: passwordForm.username,
-      password: passwordForm.password
+      username: loginForm.username,
+      password: loginForm.password
     })
-  } catch (error) {
-    // 忽略接口错误，直接跳转
-  }
 
-  // 记住用户名
-  if (rememberUsername.value && passwordForm.username) {
-    localStorage.setItem('admin_remembered_user', passwordForm.username)
-  }
+    // 记住用户名
+    if (rememberUsername.value && loginForm.username) {
+      localStorage.setItem('admin_remembered_username', loginForm.username)
+    }
 
-  ElMessage.success('登录成功')
-  const redirect = route.query.redirect || '/dashboard'
-  router.push(redirect)
-  loading.value = false
-}
-
-// 发送短信验证码
-async function handleSendSms() {
-  const valid = await smsFormRef.value?.validateField('phone').catch(() => false)
-  if (!valid) return
-
-  try {
-    await sendCode(smsForm.phone)
-    ElMessage.success('验证码已发送')
-
-    // 开始倒计时
-    smsCountdown.value = 60
-    countdownTimer = setInterval(() => {
-      smsCountdown.value--
-      if (smsCountdown.value <= 0) {
-        clearInterval(countdownTimer)
-      }
-    }, 1000)
+    ElMessage.success('登录成功')
+    const redirect = route.query.redirect || '/dashboard'
+    router.push(redirect)
   } catch (error) {
     // 错误已由拦截器处理
+  } finally {
+    loading.value = false
   }
-}
-
-// 短信登录
-async function handleSmsLogin() {
-  loading.value = true
-  try {
-    await userStore.loginAction({
-      phone: smsForm.phone,
-      smsCode: smsForm.smsCode,
-      loginType: 'sms'
-    })
-  } catch (error) {
-    // 忽略接口错误
-  }
-
-  ElMessage.success('登录成功')
-  const redirect = route.query.redirect || '/dashboard'
-  router.push(redirect)
-  loading.value = false
 }
 
 onMounted(() => {
-  generateCaptcha()
-
   // 恢复记住的用户名
-  const rememberedUser = localStorage.getItem('admin_remembered_user')
-  if (rememberedUser) {
-    passwordForm.username = rememberedUser
+  const rememberedUsername = localStorage.getItem('admin_remembered_username')
+  if (rememberedUsername) {
+    loginForm.username = rememberedUsername
   }
 })
 </script>
@@ -444,100 +287,6 @@ onMounted(() => {
   p {
     font-size: 14px;
     color: #6B7280;
-  }
-}
-
-/* 登录方式切换 */
-.login-tabs {
-  display: flex;
-  margin-bottom: 32px;
-  background: #F0F2F5;
-  border-radius: 8px;
-  padding: 4px;
-}
-
-.login-tab {
-  flex: 1;
-  text-align: center;
-  padding: 10px 0;
-  font-size: 14px;
-  color: #6B7280;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-
-  &:hover {
-    color: #1E40AF;
-  }
-
-  &.active {
-    background: #fff;
-    color: #1E40AF;
-    font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* 验证码行 */
-.captcha-row {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-
-  .el-input {
-    flex: 1;
-  }
-}
-
-.captcha-img {
-  height: 40px;
-  min-width: 120px;
-  padding: 0 16px;
-  background: #EFF6FF;
-  border: 1px solid #93C5FD;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1E40AF;
-  letter-spacing: 4px;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #DBEAFE;
-  }
-
-  img {
-    height: 100%;
-    object-fit: contain;
-  }
-}
-
-.btn-sms {
-  height: 40px;
-  min-width: 120px;
-  background: #EFF6FF;
-  border: 1px solid #93C5FD;
-  border-radius: 8px;
-  color: #1E40AF;
-  font-weight: 500;
-  white-space: nowrap;
-
-  &:hover {
-    background: #DBEAFE;
-    border-color: #3B82F6;
-    color: #1E40AF;
-  }
-
-  &:disabled {
-    background: #F3F4F6;
-    border-color: #E5E7EB;
-    color: #9CA3AF;
-    cursor: not-allowed;
   }
 }
 

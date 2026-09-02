@@ -4,6 +4,7 @@ import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.security.utils.SecurityUtils;
 import com.haikou.government.system.annotation.Log;
+import com.haikou.government.system.dto.AdminLoginDTO;
 import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
@@ -95,6 +96,20 @@ public class SysUserController {
     @PostMapping("/smsLogin")
     public R<LoginVO> smsLogin(@Valid @RequestBody SmsLoginDTO smsLoginDTO) {
         LoginVO loginVO = sysUserService.smsLogin(smsLoginDTO);
+        return R.ok(loginVO);
+    }
+
+    /**
+     * 管理员登录
+     *
+     * @param adminLoginDTO 登录参数（用户名 + 密码）
+     * @return LoginVO 登录成功信息
+     */
+    @Log(title = "管理员登录", businessType = BusinessType.QUERY)
+    @Operation(summary = "管理员登录", description = "管理端使用用户名和密码登录，仅限工作人员账号")
+    @PostMapping("/adminLogin")
+    public R<LoginVO> adminLogin(@Valid @RequestBody AdminLoginDTO adminLoginDTO) {
+        LoginVO loginVO = sysUserService.adminLogin(adminLoginDTO);
         return R.ok(loginVO);
     }
 

@@ -11,16 +11,7 @@ import com.haikou.government.common.security.utils.PasswordUtils;
 import com.haikou.government.system.domain.SysUser;
 import com.haikou.government.system.domain.SysLoginLog;
 import com.haikou.government.system.domain.SysUserRole;
-import com.haikou.government.system.dto.ChangePasswordDTO;
-import com.haikou.government.system.dto.LoginDTO;
-import com.haikou.government.system.dto.RealNameDTO;
-import com.haikou.government.system.dto.RegisterDTO;
-import com.haikou.government.system.dto.ResetPasswordDTO;
-import com.haikou.government.system.dto.SmsLoginDTO;
-import com.haikou.government.system.dto.UpdateUserDTO;
-import com.haikou.government.system.dto.UserAddDTO;
-import com.haikou.government.system.dto.UserQueryDTO;
-import com.haikou.government.system.dto.UserUpdateDTO;
+import com.haikou.government.system.dto.*;
 import com.haikou.government.system.vo.LoginVO;
 import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.vo.UserInfoVO;
@@ -38,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -116,7 +108,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 密码登录
+     * 密码登录（政务端 - 手机号+密码）
      *
      * @param loginDTO 登录参数（手机号 + 密码）
      * @return LoginVO 登录成功信息
@@ -244,6 +236,83 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
+     * 管理员登录（用户名+密码）
+     *
+     * @param adminLoginDTO 登录参数（用户名 + 密码）
+     * @return LoginVO 登录成功信息
+     */
+    @Override
+    public LoginVO adminLogin(AdminLoginDTO adminLoginDTO) {
+        String username = adminLoginDTO.getUsername();
+        String failKey = LOGIN_FAIL_KEY + "admin:" + username;
+
+        // ========== 第一步：从 ThreadLocal 获取客户端IP ==========
+        String loginIp = HttpRequestHolder.getClientIp();
+
+        // ========== 第二步：检查登录失败锁定 ==========
+        Integer failCount = redisUtils.get(failKey);
+        if (failCount != null && failCount >= MAX_FAIL_COUNT) {
+            log.warn("管理员登录失败：用户名 {} 已被锁定，失败次数 {}", username, failCount);
+            throw new BusinessException("登录失败次数过多，请" + LOCK_MINUTES + "分钟后再试");
+        }
+
+        // ========== 第三步：根据用户名查询用户 ==========
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getUsername, username);
+        SysUser user = baseMapper.selectOne(queryWrapper);
+
+        // ========== 第四步：校验用户是否存在 ==========
+        if (user == null) {
+            incrementFailCount(failKey);
+            saveLoginLog(username, loginIp, false, "用户名不存在");
+            log.warn("管理员登录失败：用户名 {} 不存在，IP {}", username, loginIp);
+            throw new BusinessException("用户名或密码错误");
+        }
+
+        // ========== 第五步：校验密码是否正确 ==========
+        if (!PasswordUtils.matches(adminLoginDTO.getPassword(), user.getPassword())) {
+            incrementFailCount(failKey);
+            saveLoginLog(username, loginIp, false, "密码错误");
+            log.warn("管理员登录失败：用户 {} 密码错误，IP {}", username, loginIp);
+            throw new BusinessException("用户名或密码错误");
+        }
+
+        // ========== 第六步：校验账号状态 ==========
+        if (user.getStatus() != null && user.getStatus() == 1) {
+            saveLoginLog(username, loginIp, false, "账号已停用");
+            log.warn("管理员登录失败：用户 {} 已被停用，IP {}", username, loginIp);
+            throw new BusinessException("账号已被停用，请联系超级管理员");
+        }
+
+        // ========== 第七步：校验用户类型（必须是工作人员） ==========
+        if (user.getUserType() == null || user.getUserType() != 2) {
+            saveLoginLog(username, loginIp, false, "非工作人员账号");
+            log.warn("管理员登录失败：用户 {} 不是工作人员，IP {}", username, loginIp);
+            throw new BusinessException("该账号无管理权限");
+        }
+
+        // ========== 第八步：登录成功，清除失败次数 ==========
+        redisUtils.delete(failKey);
+
+        // ========== 第九步：生成 JWT Token ==========
+        String uuid = java.util.UUID.randomUUID().toString().replace("-", "");
+        String token = jwtUtils.createToken(user.getUserId(), user.getUsername(), uuid);
+
+        // ========== 第十步：记录登录日志 ==========
+        saveLoginLog(username, loginIp, true, "管理员登录成功");
+        log.info("管理员 {} 登录成功，IP {}", username, loginIp);
+
+        // ========== 第十一步：构建返回对象 ==========
+        return LoginVO.builder()
+                .accessToken(token)
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .nickname(user.getNickname())
+                .userType(user.getUserType())
+                .build();
+    }
+
+    /**
      * 增加登录失败次数
      */
     private void incrementFailCount(String failKey) {
@@ -320,6 +389,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setRealName(realNameDTO.getRealName());
         user.setIdCard(realNameDTO.getIdCard());
         user.setRealNameStatus((byte) 1);
+        user.setVerifyTime(LocalDateTime.now());
 
         // 5. 保存到数据库
         boolean result = updateById(user);
@@ -348,6 +418,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .status(user.getRealNameStatus() != null ? user.getRealNameStatus() : (byte) 0)
                 .realName(maskRealName(user.getRealName()))
                 .idCard(maskIdCard(user.getIdCard()))
+                .verifyTime(user.getVerifyTime() != null ? user.getVerifyTime().toString().replace("T", " ") : null)
                 .build();
     }
 
@@ -434,13 +505,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 2. 构建返回结果
         return UserInfoVO.builder()
                 .userId(user.getUserId())
-                .phone(maskPhone(user.getPhone()))
+                .phone(maskPhone(user.getPhone()))  // 返回脱敏手机号
                 .nickname(user.getNickname())
                 .avatar(user.getAvatar())
                 .sex(user.getSex())
                 .email(user.getEmail())
                 .realNameStatus(user.getRealNameStatus() != null ? user.getRealNameStatus() : (byte) 0)
                 .realName(maskRealName(user.getRealName()))
+                .verifyTime(user.getVerifyTime() != null ? user.getVerifyTime().toString().replace("T", " ") : null)
                 .build();
     }
 

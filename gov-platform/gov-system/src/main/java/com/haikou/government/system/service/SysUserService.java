@@ -2,6 +2,7 @@ package com.haikou.government.system.service;
 
 import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.system.domain.SysUser;
+import com.haikou.government.system.dto.AdminLoginDTO;
 import com.haikou.government.system.dto.ChangePasswordDTO;
 import com.haikou.government.system.dto.LoginDTO;
 import com.haikou.government.system.dto.RealNameDTO;
@@ -51,6 +52,14 @@ public interface SysUserService extends IService<SysUser> {
      * @return LoginVO 登录成功信息（包含 Token）
      */
     LoginVO smsLogin(SmsLoginDTO smsLoginDTO);
+
+    /**
+     * 管理员登录（用户名+密码）
+     *
+     * @param adminLoginDTO 登录参数（用户名 + 密码）
+     * @return LoginVO 登录成功信息（包含 Token）
+     */
+    LoginVO adminLogin(AdminLoginDTO adminLoginDTO);
 
     /**
      * 实名认证
