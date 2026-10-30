@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>消息通知 - 海口政务服务</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .page-container {
+      margin-top: calc(var(--header-height) + 24px);
+      padding-bottom: 48px;
+    }
+
+    /* 页面标题 */
+    .page-banner {
+      background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+      padding: 32px 0;
+      color: white;
+    }
+
+    .page-banner h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .page-banner p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* 统计卡片 */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: -32px;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .stat-icon.blue { background: var(--primary-bg); }
+    .stat-icon.orange { background: var(--warning-bg); }
+    .stat-icon.green { background: var(--success-bg); }
+
+    .stat-info {
+      flex: 1;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* 筛选和操作栏 */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filter-tab {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-regular);
+    }
+
+    .filter-tab:hover {
+      border-color: var(--primary-lighter);
+      color: var(--primary);
+    }
+
+    .filter-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-action {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-regular);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* 消息列表 */
+    .message-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 4px solid transparent;
+    }
+
+    .message-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .message-card.unread {
+      border-left-color: var(--primary);
+      background: #FAFBFF;
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .message-type {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .message-type-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .type-system { background: var(--primary-bg); }
+    .type-approval { background: var(--success-bg); }
+    .type-notice { background: var(--warning-bg); }
+    .type-license { background: var(--info-bg); }
+
+    .message-type-text {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .type-system { background: var(--primary-bg); color: var(--primary); }
+    .type-approval { background: var(--success-bg); color: var(--success); }
+    .type-notice { background: var(--warning-bg); color: var(--warning); }
+    .type-license { background: var(--info-bg); color: var(--info); }
+
+    .message-time {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .message-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .message-card.unread .message-title {
+      font-weight: 600;
+    }
+
+    .message-content {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .message-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .message-link {
+      font-size: 13px;
+      color: var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .message-link:hover {
+      color: var(--primary);
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .msg-btn {
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .msg-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    /* 未读标记 */
+    .unread-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    /* 分页 */
+    .pagination-wrap {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      padding: 80px 40px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state .empty-title {
+      font-size: 16px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .empty-state .empty-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* 消息详情弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      max-width: 560px;
+      width: 90%;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg-hover);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-message-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .modal-message-content {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-regular);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      padding: 24px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .modal-footer .btn {
+      flex: 1;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+
+      .action-bar {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .filter-tabs {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部导航 -->
+  <header class="header">
+    <div class="container">
+      <a href="index.html" class="header-logo">
+        <div class="logo-icon">🏛️</div>
+        <span>海口政务服务</span>
+      </a>
+
+      <nav class="header-nav">
+        <a href="index.html">首页</a>
+        <a href="item-list.html">事项办理</a>
+        <a href="progress.html">进度查询</a>
+        <a href="my-license.html">我的证照</a>
+      </nav>
+
+      <div class="header-user" onclick="location.href='profile.html'">
+        <div class="avatar">张</div>
+        <span class="username">张三</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 页面横幅 -->
+  <div class="page-banner">
+    <div class="container">
+      <h2>消息通知</h2>
+      <p>查看系统通知和办件进度提醒</p>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <div class="container">
+      <!-- 统计卡片 -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon blue">📬</div>
+          <div class="stat-info">
+            <div class="stat-number">15</div>
+            <div class="stat-label">全部消息</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">📨</div>
+          <div class="stat-info">
+            <div class="stat-number">3</div>
+            <div class="stat-label">未读消息</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="stat-number">12</div>
+            <div class="stat-label">已读消息</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 筛选和操作栏 -->
+      <div class="action-bar">
+        <div class="filter-tabs">
+          <span class="filter-tab active">全部</span>
+          <span class="filter-tab">系统通知</span>
+          <span class="filter-tab">审批通知</span>
+          <span class="filter-tab">证照通知</span>
+          <span class="filter-tab">公告</span>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-action" onclick="markAllRead()">✓ 全部已读</button>
+        </div>
+      </div>
+
+      <!-- 消息列表 -->
+      <div class="message-list">
+        <!-- 未读消息1 -->
+        <div class="message-card unread" onclick="showDetail(this)">
+          <div class="message-header">
+            <div class="message-type">
+              <div class="message-type-icon type-approval">✅</div>
+              <span class="message-type-text type-approval">审批通知</span>
+            </div>
+            <span class="message-time">2024-01-15 16:30</span>
+          </div>
+          <div class="message-title">
+            <span class="unread-dot"></span>
+            您的居民身份证换领申请已受理
+          </div>
+          <div class="message-content">
+            尊敬的用户，您提交的"居民身份证换领"申请（办件编号：BJ20240115001234）已由海口市公安局户政大厅受理，预计5个工作日内完成审核，请耐心等待。
+          </div>
+          <div class="message-footer">
+            <span class="message-link">查看详情 →</span>
+            <div class="message-actions">
+              <span class="msg-btn" onclick="event.stopPropagation(); markRead(this)">标为已读</span>
+              <span class="msg-btn" onclick="event.stopPropagation(); deleteMessage(this)">删除</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 未读消息2 -->
+        <div class="message-card unread" onclick="showDetail(this)">
+          <div class="message-header">
+            <div class="message-type">
+              <div class="message-type-icon type-license">📜</div>
+              <span class="message-type-text type-license">证照通知</span>
+            </div>
+            <span class="message-time">2024-01-15 10:00</span>
+          </div>
+          <div class="message-title">
+            <span class="unread-dot"></span>
+            您的居住证即将到期，请及时续签
+          </div>
+          <div class="message-content">
+            尊敬的用户，您的居住证（证照号：460100202301...）将于2024年06月01日到期，请在到期前30日内办理续签手续，以免影响正常使用。
+          </div>
+          <div class="message-footer">
+            <span class="message-link" href="my-license.html">查看证照 →</span>
+            <div class="message-actions">
+              <span class="msg-btn" onclick="event.stopPropagation(); markRead(this)">标为已读</span>
+              <span class="msg-btn" onclick="event.stopPropagation(); deleteMessage(this)">删除</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 未读消息3 -->
+        <div class="message-card unread" onclick="showDetail(this)">
+          <div class="message-header">
+            <div class="message-type">
+              <div class="message-type-icon type-notice">📢</div>
+              <span class="message-type-text type-notice">系统公告</span>
+            </div>
+            <span class="message-time">2024-01-14 09:00</span>
+          </div>
+          <div class="message-title">
+            <span class="unread-dot"></span>
+            关于2024年春节假期政务服务大厅放假通知
+          </div>
+          <div class="message-content">
+            根据国务院办公厅通知精神，2024年春节假期安排如下：2月10日至17日放假调休，共8天。2月4日（星期日）、2月18日（星期日）上班。放假期间，线上服务正常运行。
+          </div>
+          <div class="message-footer">
+            <span class="message-link">查看详情 →</span>
+            <div class="message-actions">
+              <span class="msg-btn" onclick="event.stopPropagation(); markRead(this)">标为已读</span>
+              <span class="msg-btn" onclick="event.stopPropagation(); deleteMessage(this)">删除</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 已读消息 -->
+        <div class="message-card" onclick="showDetail(this)">
+          <div class="message-header">
+            <div class="message-type">
+              <div class="message-type-icon type-approval">✅</div>
+              <span class="message-type-text type-approval">审批通知</span>
+            </div>
+            <span class="message-time">2024-01-12 16:30</span>
+          </div>
+          <div class="message-title">您的不动产登记申请已办结</div>
+          <div class="message-content">
+            尊敬的用户，您提交的"不动产登记"申请（办件编号：BJ20240110003456）已审核通过并办结，请登录平台下载电子证照。
+          </div>
+          <div class="message-footer">
+            <span class="message-link">查看详情 →</span>
+            <div class="message-actions">
+              <span class="msg-btn" onclick="event.stopPropagation(); deleteMessage(this)">删除</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="message-card" onclick="showDetail(this)">
+          <div class="message-header">
+            <div class="message-type">
+              <div class="message-type-icon type-system">⚙️</div>
+              <span class="message-type-text type-system">系统通知</span>
+            </div>
+            <span class="message-time">2024-01-10 14:00</span>
+          </div>
+          <div class="message-title">实名认证成功</div>
+          <div class="message-content">
+            恭喜您，实名认证已通过！现在您可以享受完整的政务服务功能，包括在线申请、进度查询、证照管理等。
+          </div>
+          <div class="message-footer">
+            <span class="message-link">查看详情 →</span>
+            <div class="message-actions">
+              <span class="msg-btn" onclick="event.stopPropagation(); deleteMessage(this)">删除</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="message-card" onclick="showDetail(this)">
+          <div class="message-header">
+            <div class="message-type">
+              <div class="message-type-icon type-approval">❌</div>
+              <span class="message-type-text type-approval">审批通知</span>
+            </div>
+            <span class="message-time">2024-01-09 15:00</span>
+          </div>
+          <div class="message-title">您的食品经营许可证申请被驳回</div>
+          <div class="message-content">
+            尊敬的用户，您提交的"食品经营许可证"申请（办件编号：BJ20240108007890）因材料不全被驳回，请补充相关材料后重新提交申请。
+          </div>
+          <div class="message-footer">
+            <span class="message-link">查看详情 →</span>
+            <div class="message-actions">
+              <span class="msg-btn" onclick="event.stopPropagation(); deleteMessage(this)">删除</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <span class="page-btn">‹</span>
+          <span class="page-btn active">1</span>
+          <span class="page-btn">2</span>
+          <span class="page-btn">›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 消息详情弹窗 -->
+  <div class="modal-overlay" id="messageModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">消息详情</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-message-info">
+          <span>📅 2024-01-15 16:30</span>
+          <span>📂 审批通知</span>
+        </div>
+        <div class="modal-message-content">
+          <p>尊敬的用户，您提交的"居民身份证换领"申请（办件编号：BJ20240115001234）已由海口市公安局户政大厅受理，预计5个工作日内完成审核，请耐心等待。</p>
+          <br>
+          <p>您可以通过以下方式查询办理进度：</p>
+          <p>1. 登录政务服务平台，进入"我的办件"查看</p>
+          <p>2. 拨打咨询热线：0898-12345</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">关闭</button>
+        <a href="progress.html" class="btn btn-primary">查看办件进度</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>关于我们</h4>
+          <p>海口市政务服务平台</p>
+          <p>打造智慧政务，服务百姓生活</p>
+        </div>
+        <div class="footer-section">
+          <h4>联系方式</h4>
+          <p>服务热线：0898-12345</p>
+          <p>工作时间：周一至周五 9:00-17:00</p>
+        </div>
+        <div class="footer-section">
+          <h4>友情链接</h4>
+          <a href="#">海南省人民政府</a><br>
+          <a href="#">海口市人民政府</a><br>
+          <a href="#">国家政务服务平台</a>
+        </div>
+        <div class="footer-section">
+          <h4>帮助中心</h4>
+          <a href="#">常见问题</a><br>
+          <a href="#">操作指南</a><br>
+          <a href="#">意见反馈</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 海口市政务服务平台 版权所有 | 琼ICP备XXXXXXXX号</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 筛选切换
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 显示消息详情
+    function showDetail(card) {
+      card.classList.remove('unread');
+      const dot = card.querySelector('.unread-dot');
+      if (dot) dot.style.display = 'none';
+      document.getElementById('messageModal').classList.add('show');
+    }
+
+    // 关闭弹窗
+    function closeModal() {
+      document.getElementById('messageModal').classList.remove('show');
+    }
+
+    // 标为已读
+    function markRead(btn) {
+      const card = btn.closest('.message-card');
+      card.classList.remove('unread');
+      const dot = card.querySelector('.unread-dot');
+      if (dot) dot.style.display = 'none';
+    }
+
+    // 全部已读
+    function markAllRead() {
+      document.querySelectorAll('.message-card').forEach(card => {
+        card.classList.remove('unread');
+        const dot = card.querySelector('.unread-dot');
+        if (dot) dot.style.display = 'none';
+      });
+    }
+
+    // 删除消息
+    function deleteMessage(btn) {
+      if (confirm('确定要删除这条消息吗？')) {
+        const card = btn.closest('.message-card');
+        card.style.opacity = '0';
+        setTimeout(() => card.remove(), 300);
+      }
+    }
+  </script>
+</body>
+</html>

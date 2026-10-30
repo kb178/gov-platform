@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 海口政务服务</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #60A5FA 100%);
+    }
+
+    /* 左侧品牌区域 */
+    .login-brand {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-brand::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+      animation: float 15s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, -30px); }
+    }
+
+    .brand-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 40px;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .brand-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 48px;
+    }
+
+    .brand-features {
+      display: flex;
+      gap: 48px;
+    }
+
+    .feature-item {
+      text-align: center;
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 24px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* 右侧登录表单 */
+    .login-form-wrapper {
+      width: 520px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+    }
+
+    .login-form {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-header {
+      margin-bottom: 40px;
+    }
+
+    .login-header h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .login-header p {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    /* 登录方式切换 */
+    .login-tabs {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 16px;
+    }
+
+    .login-tab {
+      font-size: 15px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding-bottom: 16px;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .login-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .login-tab.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .login-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -17px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary);
+    }
+
+    /* 表单区域 */
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-group .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-placeholder);
+      font-size: 18px;
+    }
+
+    .input-group .form-input {
+      padding-left: 40px;
+    }
+
+    .sms-btn {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 32px;
+      padding: 0 16px;
+      background: var(--primary-bg);
+      color: var(--primary);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .sms-btn:hover {
+      background: var(--primary-lighter);
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .form-links {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+      justify-content: center;
+    }
+
+    .form-links a {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .form-links a:hover {
+      color: var(--primary);
+    }
+
+    /* 第三方登录 */
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 32px 0;
+      color: var(--text-placeholder);
+      font-size: 13px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    .divider span {
+      padding: 0 16px;
+    }
+
+    .third-party-login {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .third-party-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      font-size: 24px;
+    }
+
+    .third-party-btn:hover {
+      border-color: var(--primary-lighter);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .third-party-btn.wechat { color: #07C160; }
+    .third-party-btn.alipay { color: #1677FF; }
+
+    /* 底部协议 */
+    .agreement {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .agreement a {
+      color: var(--primary-light);
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .login-brand {
+        display: none;
+      }
+
+      .login-form-wrapper {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-form-wrapper {
+        padding: 40px 24px;
+      }
+
+      .brand-features {
+        flex-direction: column;
+        gap: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <!-- 左侧品牌区域 -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <div class="brand-logo">🏛️</div>
+        <h1 class="brand-title">海口政务服务</h1>
+        <p class="brand-subtitle">让数据多跑路，让群众少跑腿</p>
+
+        <div class="brand-features">
+          <div class="feature-item">
+            <div class="feature-icon">📱</div>
+            <div class="feature-text">掌上办事</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-text">高效审批</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-text">安全可靠</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧登录表单 -->
+    <div class="login-form-wrapper">
+      <div class="login-form">
+        <div class="login-header">
+          <h2>欢迎登录</h2>
+          <p>登录后享受更多政务服务</p>
+        </div>
+
+        <!-- 登录方式切换 -->
+        <div class="login-tabs">
+          <div class="login-tab active" onclick="switchTab('password')">密码登录</div>
+          <div class="login-tab" onclick="switchTab('sms')">验证码登录</div>
+        </div>
+
+        <!-- 密码登录 -->
+        <div id="password-form" class="form-section active">
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-icon">📱</span>
+              <input type="tel" class="form-input" placeholder="请输入手机号" maxlength="11">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-icon">🔒</span>
+              <input type="password" class="form-input" placeholder="请输入密码">
+            </div>
+          </div>
+
+          <div class="form-options">
+            <label class="form-check">
+              <input type="checkbox" checked>
+              <span>记住密码</span>
+            </label>
+            <a href="forgot-password.html" style="font-size: 14px;">忘记密码？</a>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block">登 录</button>
+        </div>
+
+        <!-- 验证码登录 -->
+        <div id="sms-form" class="form-section">
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-icon">📱</span>
+              <input type="tel" class="form-input" placeholder="请输入手机号" maxlength="11">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-icon">💬</span>
+              <input type="text" class="form-input" placeholder="请输入验证码" maxlength="6">
+              <button class="sms-btn" onclick="sendSms(this)">获取验证码</button>
+            </div>
+          </div>
+
+          <div class="form-options">
+            <label class="form-check">
+              <input type="checkbox" checked>
+              <span>记住登录状态</span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block">登 录</button>
+        </div>
+
+        <!-- 注册链接 -->
+        <div class="form-links">
+          <span>还没有账号？</span>
+          <a href="register.html">立即注册</a>
+        </div>
+
+        <!-- 第三方登录 -->
+        <div class="divider">
+          <span>其他登录方式</span>
+        </div>
+
+        <div class="third-party-login">
+          <button class="third-party-btn wechat" title="微信登录">
+            💬
+          </button>
+          <button class="third-party-btn alipay" title="支付宝登录">
+            💳
+          </button>
+        </div>
+
+        <!-- 用户协议 -->
+        <div class="agreement">
+          登录即表示同意
+          <a href="#">《用户服务协议》</a>
+          和
+          <a href="#">《隐私政策》</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 切换登录方式
+    function switchTab(type) {
+      // 更新标签状态
+      document.querySelectorAll('.login-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // 更新表单显示
+      document.querySelectorAll('.form-section').forEach(form => {
+        form.classList.remove('active');
+      });
+      document.getElementById(type + '-form').classList.add('active');
+    }
+
+    // 发送验证码
+    function sendSms(btn) {
+      let countdown = 60;
+      btn.disabled = true;
+      btn.textContent = countdown + 's后重试';
+
+      const timer = setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          clearInterval(timer);
+          btn.disabled = false;
+          btn.textContent = '获取验证码';
+        } else {
+          btn.textContent = countdown + 's后重试';
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

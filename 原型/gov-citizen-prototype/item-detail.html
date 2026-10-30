@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>居民身份证办理 - 海口政务服务</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .page-container {
+      margin-top: calc(var(--header-height) + 24px);
+      padding-bottom: 48px;
+    }
+
+    /* 面包屑 */
+    .breadcrumb {
+      margin-bottom: 24px;
+    }
+
+    /* 主体布局 */
+    .detail-layout {
+      display: flex;
+      gap: 24px;
+    }
+
+    /* 左侧内容 */
+    .detail-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 事项头部 */
+    .item-header {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .item-header-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .item-icon-large {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: var(--primary-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      flex-shrink: 0;
+    }
+
+    .item-title-area {
+      flex: 1;
+    }
+
+    .item-title-area h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .item-tags {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .item-tag {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .item-tag.dept {
+      background: var(--info-bg);
+      color: var(--info);
+    }
+
+    .item-tag.type {
+      background: var(--primary-bg);
+      color: var(--primary);
+    }
+
+    .item-meta-info {
+      display: flex;
+      gap: 24px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .item-meta-info span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .item-actions-bar {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-apply {
+      height: 48px;
+      padding: 0 40px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .btn-collect {
+      height: 48px;
+      padding: 0 24px;
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-regular);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-collect:hover {
+      border-color: var(--primary-lighter);
+      color: var(--primary);
+    }
+
+    .btn-collect.collected {
+      color: var(--warning);
+      border-color: var(--warning);
+    }
+
+    /* 内容区块 */
+    .content-section {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-title .icon {
+      font-size: 22px;
+    }
+
+    /* 办理条件 */
+    .condition-list {
+      list-style: none;
+    }
+
+    .condition-list li {
+      position: relative;
+      padding: 12px 0 12px 28px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-regular);
+    }
+
+    .condition-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      top: 14px;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* 所需材料 */
+    .material-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .material-table th,
+    .material-table td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .material-table th {
+      background: var(--bg-hover);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .material-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .material-table td {
+      font-size: 14px;
+      color: var(--text-regular);
+    }
+
+    .material-required {
+      color: var(--danger);
+      font-weight: 500;
+    }
+
+    .material-optional {
+      color: var(--text-secondary);
+    }
+
+    .material-note {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* 办理流程 */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .flow-step {
+      display: flex;
+      gap: 20px;
+      position: relative;
+    }
+
+    .flow-step:not(:last-child) {
+      padding-bottom: 32px;
+    }
+
+    .flow-step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border-light);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-content {
+      flex: 1;
+      padding-top: 8px;
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* 办理地点 */
+    .location-card {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      background: var(--bg-hover);
+      border-radius: 8px;
+    }
+
+    .location-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--primary-bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .location-info h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .location-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .location-info .address {
+      color: var(--primary-light);
+      cursor: pointer;
+    }
+
+    .location-info .address:hover {
+      text-decoration: underline;
+    }
+
+    /* 右侧边栏 */
+    .detail-sidebar {
+      width: 320px;
+      flex-shrink: 0;
+    }
+
+    /* 办理信息卡片 */
+    .info-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .info-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-item {
+      display: flex;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 14px;
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      width: 80px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .info-value {
+      flex: 1;
+      color: var(--text-primary);
+    }
+
+    .info-value.highlight {
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* 常见问题 */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .faq-item {
+      padding: 14px 16px;
+      background: var(--bg-hover);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .faq-item:hover {
+      background: var(--primary-bg);
+    }
+
+    .faq-question {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .faq-question::after {
+      content: '>';
+      color: var(--text-secondary);
+    }
+
+    /* 相关事项 */
+    .related-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .related-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .related-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .related-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary-bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .related-name {
+      font-size: 14px;
+      color: var(--text-regular);
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .detail-layout {
+        flex-direction: column;
+      }
+
+      .detail-sidebar {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .item-header-top {
+        flex-direction: column;
+      }
+
+      .item-meta-info {
+        flex-wrap: wrap;
+      }
+
+      .item-actions-bar {
+        flex-direction: column;
+      }
+
+      .btn-apply,
+      .btn-collect {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .location-card {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 头部导航 -->
+  <header class="header">
+    <div class="container">
+      <a href="index.html" class="header-logo">
+        <div class="logo-icon">🏛️</div>
+        <span>海口政务服务</span>
+      </a>
+
+      <nav class="header-nav">
+        <a href="index.html">首页</a>
+        <a href="item-list.html" class="active">事项办理</a>
+        <a href="progress.html">进度查询</a>
+        <a href="my-license.html">我的证照</a>
+      </nav>
+
+      <div class="header-user" onclick="location.href='profile.html'">
+        <div class="avatar">张</div>
+        <span class="username">张三</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-container">
+    <div class="container">
+      <!-- 面包屑 -->
+      <div class="breadcrumb">
+        <a href="index.html">首页</a>
+        <span class="separator">/</span>
+        <a href="item-list.html">事项办理</a>
+        <span class="separator">/</span>
+        <a href="item-list.html?category=household">户籍办理</a>
+        <span class="separator">/</span>
+        <span class="current">居民身份证办理</span>
+      </div>
+
+      <!-- 主体布局 -->
+      <div class="detail-layout">
+        <!-- 左侧内容 -->
+        <div class="detail-main">
+          <!-- 事项头部 -->
+          <div class="item-header">
+            <div class="item-header-top">
+              <div class="item-icon-large">📄</div>
+              <div class="item-title-area">
+                <h1>居民身份证办理</h1>
+                <div class="item-tags">
+                  <span class="item-tag dept">公安局</span>
+                  <span class="item-tag type">户籍办理</span>
+                </div>
+                <div class="item-meta-info">
+                  <span>⏱️ 办理时限：5个工作日</span>
+                  <span>📊 已办理 23,456 件</span>
+                  <span>⭐ 好评率 98.5%</span>
+                </div>
+              </div>
+            </div>
+            <div class="item-actions-bar">
+              <a href="apply.html" class="btn btn-primary btn-apply">立即办理</a>
+              <button class="btn-collect" onclick="toggleCollect(this)">
+                <span>☆</span> 收藏
+              </button>
+              <button class="btn-collect">
+                <span>📤</span> 分享
+              </button>
+            </div>
+          </div>
+
+          <!-- 办理条件 -->
+          <div class="content-section">
+            <h3 class="section-title">
+              <span class="icon">📋</span>
+              办理条件
+            </h3>
+            <ul class="condition-list">
+              <li>具有海口市户籍的居民</li>
+              <li>年满16周岁的中国公民</li>
+              <li>未满16周岁的公民，由监护人代为申请</li>
+              <li>首次申领、换领、补领居民身份证</li>
+            </ul>
+          </div>
+
+          <!-- 所需材料 -->
+          <div class="content-section">
+            <h3 class="section-title">
+              <span class="icon">📎</span>
+              所需材料
+            </h3>
+            <table class="material-table">
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>材料名称</th>
+                  <th>要求</th>
+                  <th>备注</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>居民户口簿</td>
+                  <td><span class="material-required">必需</span></td>
+                  <td>原件</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>本人近期免冠照片</td>
+                  <td><span class="material-required">必需</span></td>
+                  <td>
+                    白底彩色照片
+                    <div class="material-note">可现场拍摄</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>原居民身份证</td>
+                  <td><span class="material-optional">换领时需要</span></td>
+                  <td>原件</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>监护人身份证</td>
+                  <td><span class="material-optional">未满16周岁需要</span></td>
+                  <td>原件及复印件</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 办理流程 -->
+          <div class="content-section">
+            <h3 class="section-title">
+              <span class="icon">🔄</span>
+              办理流程
+            </h3>
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <div class="step-title">在线申请</div>
+                  <div class="step-desc">登录政务服务平台，在线填写申请表，上传相关材料照片</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <div class="step-title">窗口受理</div>
+                  <div class="step-desc">工作人员审核材料，确认无误后受理申请</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <div class="step-title">人像采集</div>
+                  <div class="step-desc">到指定地点进行人像采集和指纹录入</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                  <div class="step-title">证件制作</div>
+                  <div class="step-desc">公安机关制作居民身份证</div>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                  <div class="step-title">领取证件</div>
+                  <div class="step-desc">到受理点领取或选择邮寄送达</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 办理地点 -->
+          <div class="content-section">
+            <h3 class="section-title">
+              <span class="icon">📍</span>
+              办理地点
+            </h3>
+            <div class="location-card">
+              <div class="location-icon">🏛️</div>
+              <div class="location-info">
+                <h4>海口市公安局户政大厅</h4>
+                <p>
+                  <span class="address">📍 海口市龙华区滨海大道XXX号</span><br>
+                  📞 电话：0898-6666XXXX<br>
+                  🕐 工作时间：周一至周五 9:00-12:00 14:00-17:00<br>
+                  🚌 交通：乘坐XX路公交到XX站下车
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <div class="detail-sidebar">
+          <!-- 办理信息 -->
+          <div class="info-card">
+            <h3>📌 办理信息</h3>
+            <div class="info-item">
+              <span class="info-label">办理时限</span>
+              <span class="info-value highlight">5个工作日</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">收费标准</span>
+              <span class="info-value">首次申领免费，换领20元，补领40元</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">办理方式</span>
+              <span class="info-value">网上预约 + 线下办理</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">咨询电话</span>
+              <span class="info-value highlight">0898-12345</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">监督电话</span>
+              <span class="info-value">0898-6666XXXX</span>
+            </div>
+          </div>
+
+          <!-- 常见问题 -->
+          <div class="info-card">
+            <h3>❓ 常见问题</h3>
+            <div class="faq-list">
+              <div class="faq-item">
+                <div class="faq-question">身份证办理需要多长时间？</div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">可以异地办理身份证吗？</div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">身份证丢失如何补办？</div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">临时身份证怎么办理？</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 相关事项 -->
+          <div class="info-card">
+            <h3>🔗 相关事项</h3>
+            <div class="related-list">
+              <a href="item-detail.html" class="related-item">
+                <div class="related-icon">🏠</div>
+                <span class="related-name">户口迁移</span>
+              </a>
+              <a href="item-detail.html" class="related-item">
+                <div class="related-icon">📋</div>
+                <span class="related-name">居住证办理</span>
+              </a>
+              <a href="item-detail.html" class="related-item">
+                <div class="related-icon">👶</div>
+                <span class="related-name">出生登记</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>关于我们</h4>
+          <p>海口市政务服务平台</p>
+          <p>打造智慧政务，服务百姓生活</p>
+        </div>
+        <div class="footer-section">
+          <h4>联系方式</h4>
+          <p>服务热线：0898-12345</p>
+          <p>工作时间：周一至周五 9:00-17:00</p>
+        </div>
+        <div class="footer-section">
+          <h4>友情链接</h4>
+          <a href="#">海南省人民政府</a><br>
+          <a href="#">海口市人民政府</a><br>
+          <a href="#">国家政务服务平台</a>
+        </div>
+        <div class="footer-section">
+          <h4>帮助中心</h4>
+          <a href="#">常见问题</a><br>
+          <a href="#">操作指南</a><br>
+          <a href="#">意见反馈</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 海口市政务服务平台 版权所有 | 琼ICP备XXXXXXXX号</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 收藏切换
+    function toggleCollect(btn) {
+      btn.classList.toggle('collected');
+      if (btn.classList.contains('collected')) {
+        btn.innerHTML = '<span>★</span> 已收藏';
+      } else {
+        btn.innerHTML = '<span>☆</span> 收藏';
+      }
+    }
+  </script>
+</body>
+</html>
