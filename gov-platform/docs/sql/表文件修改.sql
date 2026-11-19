@@ -1,4 +1,4 @@
-
-# 用户表添加一个实名认证时间
-ALTER TABLE gov_system.sys_user
-    ADD COLUMN verify_time DATETIME COMMENT '实名认证时间' AFTER real_name_status;
+-- =============================================
+-- 表文件修改记录
+-- （历史修改已整合到建表语句中，此文件留空备用）
+-- =============================================
