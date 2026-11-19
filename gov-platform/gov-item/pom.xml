@@ -70,6 +70,10 @@
         </dependency>
         <dependency>
             <groupId>com.haikou</groupId>
+            <artifactId>gov-common-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.haikou</groupId>
             <artifactId>gov-common-mybatis</artifactId>
         </dependency>
     </dependencies>

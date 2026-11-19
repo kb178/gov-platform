@@ -2,6 +2,7 @@ package com.haikou.government.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.haikou.government.common.core.exception.BusinessException;
+import com.haikou.government.common.redis.utils.RedisUtils;
 import com.haikou.government.item.domain.ItemCategory;
 import com.haikou.government.item.domain.ItemInfo;
 import com.haikou.government.item.dto.ItemCategoryDTO;
@@ -33,22 +34,47 @@ public class ItemCategoryServiceImpl extends ServiceImpl<ItemCategoryMapper, Ite
     @Autowired
     private ItemInfoMapper itemInfoMapper;
 
+    @Autowired
+    private RedisUtils redisUtils;
+
+    /** 分类树缓存 key */
+    private static final String CATEGORY_TREE_CACHE_KEY = "item:category:tree";
+
+    /** 分类树缓存有效期（秒）— 30分钟 */
+    private static final long CATEGORY_TREE_CACHE_TTL = 1800;
+
     /**
-     * 查询分类树形列表
+     * 查询分类树形列表（带缓存）
+     *
+     * 缓存策略：读多写少，分类变动少但查询频繁
+     * - 查询时先查 Redis，命中直接返回
+     * - 未命中查库，结果写入 Redis（30分钟过期）
+     * - 新增/修改/删除分类时清除缓存
      */
     @Override
     public List<ItemCategoryVO> getCategoryTree() {
-        // 查询所有分类
+        // 1. 先查缓存
+        List<ItemCategoryVO> cached = redisUtils.get(CATEGORY_TREE_CACHE_KEY);
+        if (cached != null) {
+            log.debug("分类树命中缓存");
+            return cached;
+        }
+
+        // 2. 缓存未命中，查数据库
         List<ItemCategory> allCategories = this.list(new LambdaQueryWrapper<ItemCategory>()
                 .orderByAsc(ItemCategory::getSortNum));
 
-        // 转换为VO列表
+        // 3. 转换为VO列表并构建树形结构
         List<ItemCategoryVO> allVOs = allCategories.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
+        List<ItemCategoryVO> tree = buildTree(allVOs, 0L);
 
-        // 构建树形结构
-        return buildTree(allVOs, 0L);
+        // 4. 写入缓存
+        redisUtils.set(CATEGORY_TREE_CACHE_KEY, tree, CATEGORY_TREE_CACHE_TTL);
+        log.debug("分类树已写入缓存");
+
+        return tree;
     }
 
     /**
@@ -101,6 +127,9 @@ public class ItemCategoryServiceImpl extends ServiceImpl<ItemCategoryMapper, Ite
         BeanUtils.copyProperties(dto, category);
         this.save(category);
 
+        // 清除分类树缓存
+        redisUtils.delete(CATEGORY_TREE_CACHE_KEY);
+
         log.info("新增事项分类成功: categoryId={}, categoryName={}", category.getCategoryId(), category.getCategoryName());
         return true;
     }
@@ -133,6 +162,9 @@ public class ItemCategoryServiceImpl extends ServiceImpl<ItemCategoryMapper, Ite
         BeanUtils.copyProperties(dto, category);
         this.updateById(category);
 
+        // 清除分类树缓存
+        redisUtils.delete(CATEGORY_TREE_CACHE_KEY);
+
         log.info("修改事项分类成功: categoryId={}", categoryId);
         return true;
     }
@@ -164,6 +196,9 @@ public class ItemCategoryServiceImpl extends ServiceImpl<ItemCategoryMapper, Ite
 
         // 删除分类
         this.removeById(categoryId);
+
+        // 清除分类树缓存
+        redisUtils.delete(CATEGORY_TREE_CACHE_KEY);
 
         log.info("删除事项分类成功: categoryId={}, categoryName={}", categoryId, category.getCategoryName());
         return true;
