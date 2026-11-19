@@ -482,7 +482,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         boolean success = updateById(user);
 
         if (success) {
-            log.info("用户修改密码成功，userId={}", userId);
+            // 6. 修改密码成功后，将当前 Token 拉黑，强制重新登录
+            String currentToken = HttpRequestHolder.getCurrentToken();
+            if (currentToken != null) {
+                long remaining = jwtUtils.getTokenRemainingSeconds(currentToken);
+                redisUtils.addToTokenBlacklist(currentToken, remaining);
+                log.info("用户修改密码成功，已拉黑当前 Token，userId={}", userId);
+            }
         }
 
         return success;

@@ -64,4 +64,21 @@ public class HttpRequestHolder {
         }
         return IpUtils.getClientIp(request);
     }
+
+    /**
+     * 获取当前请求的 JWT Token（不含 Bearer 前缀）
+     *
+     * @return Token 字符串，未携带返回 null
+     */
+    public static String getCurrentToken() {
+        HttpServletRequest request = REQUEST_HOLDER.get();
+        if (request == null) {
+            return null;
+        }
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
 }

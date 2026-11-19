@@ -2,6 +2,7 @@ package com.haikou.government.common.security.filter;
 
 import com.haikou.government.common.core.utils.JwtUtils;
 import com.haikou.government.common.core.utils.StringUtils;
+import com.haikou.government.common.redis.utils.RedisUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +36,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private RedisUtils redisUtils;
 
     /**
      * Token 请求头名称
@@ -81,6 +85,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             // 解析 Token，验证签名是否正确
             jwtUtils.parseToken(token);
+
+            // ========== 3.5 检查 Token 是否在黑名单中 ==========
+            if (redisUtils.isTokenBlacklisted(token)) {
+                log.warn("Token 已被拉黑（用户已退出/改密/被封禁）");
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // ========== 4. 获取用户信息 ==========
             Long userId = jwtUtils.getUserIdFromToken(token);

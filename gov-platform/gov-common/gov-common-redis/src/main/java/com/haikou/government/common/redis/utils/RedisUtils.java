@@ -209,4 +209,53 @@ public class RedisUtils {
     public Long sSize(String key) {
         return redisTemplate.opsForSet().size(key);
     }
+
+    // ============================ Token 黑名单 ============================
+
+    /** Token 黑名单 key 前缀 */
+    private static final String TOKEN_BLACKLIST_PREFIX = "token:blacklist:";
+
+    /**
+     * 将 Token 加入黑名单（主动失效）
+     *
+     * 使用场景：退出登录、修改密码、账号被封禁时调用
+     * TTL 设为 Token 剩余有效期，到期后自动从 Redis 清除（此时 Token 本身也过期了）
+     *
+     * @param token            JWT Token 字符串
+     * @param remainingSeconds Token 剩余有效期（秒）
+     */
+    public void addToTokenBlacklist(String token, long remainingSeconds) {
+        if (token == null || remainingSeconds <= 0) {
+            return;
+        }
+        String key = TOKEN_BLACKLIST_PREFIX + token;
+        redisTemplate.opsForValue().set(key, "1", remainingSeconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 判断 Token 是否在黑名单中
+     *
+     * @param token JWT Token 字符串
+     * @return true=已拉黑（应拒绝），false=正常
+     */
+    public boolean isTokenBlacklisted(String token) {
+        if (token == null) {
+            return false;
+        }
+        String key = TOKEN_BLACKLIST_PREFIX + token;
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
+
+    /**
+     * 将 Token 从黑名单中移除（一般不需要调用，TTL 会自动清理）
+     *
+     * @param token JWT Token 字符串
+     */
+    public void removeFromTokenBlacklist(String token) {
+        if (token == null) {
+            return;
+        }
+        String key = TOKEN_BLACKLIST_PREFIX + token;
+        redisTemplate.delete(key);
+    }
 }

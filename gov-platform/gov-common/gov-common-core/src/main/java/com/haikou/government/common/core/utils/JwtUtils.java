@@ -112,4 +112,23 @@ public class JwtUtils {
             return true;
         }
     }
+
+    /**
+     * 获取 Token 剩余有效期（秒）
+     *
+     * 用于设置黑名单 TTL，让黑名单和 Token 一起过期
+     *
+     * @param token JWT Token
+     * @return 剩余秒数，已过期返回 0
+     */
+    public long getTokenRemainingSeconds(String token) {
+        try {
+            Claims claims = parseToken(token);
+            Date expiration = claims.getExpiration();
+            long remaining = (expiration.getTime() - System.currentTimeMillis()) / 1000;
+            return Math.max(remaining, 0);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }
