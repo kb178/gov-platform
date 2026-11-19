@@ -36,4 +36,13 @@ public class SecurityUtils {
     public static Long getCurrentUserIdOrNull() {
         return JwtAuthFilter.getCurrentUserId();
     }
+
+    /**
+     * 获取当前登录用户名
+     *
+     * @return 用户名，未登录返回 null
+     */
+    public static String getCurrentUsername() {
+        return JwtAuthFilter.getCurrentUsername();
+    }
 }

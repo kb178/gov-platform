@@ -142,4 +142,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
+    /**
+     * 获取当前登录用户名
+     *
+     * 从 Security 上下文中获取用户名（principal）
+     *
+     * @return 用户名，未登录返回 null
+     */
+    public static String getCurrentUsername() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof String) {
+            return (String) authentication.getPrincipal();
+        }
+        return null;
+    }
 }

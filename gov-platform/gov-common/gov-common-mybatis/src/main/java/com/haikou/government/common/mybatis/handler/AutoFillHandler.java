@@ -1,6 +1,7 @@
 package com.haikou.government.common.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.haikou.government.common.security.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,9 @@ public class AutoFillHandler implements MetaObjectHandler {
 
     /**
      * 插入时自动填充
+     *
+     * 填充字段：createTime、updateTime、delFlag、createBy、updateBy
+     * 只有实体中存在的字段才会填充（hasSetter 判断）
      */
     @Override
     public void insertFill(MetaObject metaObject) {
@@ -25,8 +29,7 @@ public class AutoFillHandler implements MetaObjectHandler {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // 使用 strictInsertFill 需要字段有 @TableField(fill = FieldFill.INSERT) 注解
-        // 这里改用直接判断字段是否存在并设置值的方式
+        // 时间和删除标志
         if (metaObject.hasSetter("createTime")) {
             this.setFieldValByName("createTime", now, metaObject);
         }
@@ -37,16 +40,22 @@ public class AutoFillHandler implements MetaObjectHandler {
             this.setFieldValByName("delFlag", 0, metaObject);
         }
 
-        // TODO: 从 SecurityContext 获取当前用户，填充 createBy 和 updateBy
-        // String username = SecurityUtils.getCurrentUsername();
-        // if (username != null) {
-        //     this.setFieldValByName("createBy", username, metaObject);
-        //     this.setFieldValByName("updateBy", username, metaObject);
-        // }
+        // 创建人和更新人（从 Security 上下文获取当前登录用户名）
+        String username = SecurityUtils.getCurrentUsername();
+        if (username != null) {
+            if (metaObject.hasSetter("createBy")) {
+                this.setFieldValByName("createBy", username, metaObject);
+            }
+            if (metaObject.hasSetter("updateBy")) {
+                this.setFieldValByName("updateBy", username, metaObject);
+            }
+        }
     }
 
     /**
      * 更新时自动填充
+     *
+     * 填充字段：updateTime、updateBy
      */
     @Override
     public void updateFill(MetaObject metaObject) {
@@ -56,10 +65,10 @@ public class AutoFillHandler implements MetaObjectHandler {
             this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
         }
 
-        // TODO: 从 SecurityContext 获取当前用户，填充 updateBy
-        // String username = SecurityUtils.getCurrentUsername();
-        // if (username != null) {
-        //     this.setFieldValByName("updateBy", username, metaObject);
-        // }
+        // 更新人（从 Security 上下文获取当前登录用户名）
+        String username = SecurityUtils.getCurrentUsername();
+        if (username != null && metaObject.hasSetter("updateBy")) {
+            this.setFieldValByName("updateBy", username, metaObject);
+        }
     }
 }

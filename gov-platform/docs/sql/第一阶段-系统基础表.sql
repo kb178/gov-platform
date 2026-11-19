@@ -21,6 +21,7 @@ CREATE TABLE `sys_user` (
   `dept_id` BIGINT DEFAULT NULL COMMENT '部门ID（工作人员才有）',
   `status` TINYINT DEFAULT 0 COMMENT '状态（0正常 1停用）',
   `real_name_status` TINYINT DEFAULT 0 COMMENT '实名认证状态（0未认证 1已认证）',
+  `verify_time` DATETIME DEFAULT NULL COMMENT '实名认证时间',
   `login_ip` VARCHAR(128) DEFAULT '' COMMENT '最后登录IP',
   `login_time` DATETIME DEFAULT NULL COMMENT '最后登录时间',
   `remark` VARCHAR(500) DEFAULT '' COMMENT '备注',
