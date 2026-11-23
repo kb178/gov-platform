@@ -57,22 +57,20 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void accept(ApprovalActionDTO dto, Long operatorId, String operatorName) {
-        // 加分布式锁，防止两个人同时受理
+        // 先查状态，状态不对直接拦住，不用上锁
+        Application app = getById(dto.getApplicationId());
+        checkStatus(app, ApprovalStatusEnum.PENDING);
+
+        // 状态没问题，再上锁防止并发
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            Application app = getById(dto.getApplicationId());
-            checkStatus(app, ApprovalStatusEnum.PENDING);
-
-            // 乐观锁更新状态
             updateStatus(app, ApprovalStatusEnum.REVIEWING, dto.getVersion());
 
-            // 记受理时间
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
             update.setAcceptTime(LocalDateTime.now());
             applicationMapper.updateById(update);
 
-            // 写审批记录
             saveRecord(dto.getApplicationId(), "窗口受理", operatorId, operatorName,
                     (byte) 1, dto.getOpinion());
 
@@ -92,14 +90,13 @@ public class ApprovalServiceImpl implements ApprovalService {
             throw new BusinessException("不予受理必须填写原因");
         }
 
+        Application app = getById(dto.getApplicationId());
+        checkStatus(app, ApprovalStatusEnum.PENDING);
+
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            Application app = getById(dto.getApplicationId());
-            checkStatus(app, ApprovalStatusEnum.PENDING);
-
             updateStatus(app, ApprovalStatusEnum.REJECTED, dto.getVersion());
 
-            // 记驳回原因
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
             update.setRejectReason(dto.getOpinion());
@@ -122,11 +119,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reviewPass(ApprovalActionDTO dto, Long operatorId, String operatorName) {
+        Application app = getById(dto.getApplicationId());
+        checkStatus(app, ApprovalStatusEnum.REVIEWING);
+
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            Application app = getById(dto.getApplicationId());
-            checkStatus(app, ApprovalStatusEnum.REVIEWING);
-
             updateStatus(app, ApprovalStatusEnum.APPROVING, dto.getVersion());
 
             saveRecord(dto.getApplicationId(), "科室审核", operatorId, operatorName,
@@ -146,14 +143,13 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void approve(ApprovalActionDTO dto, Long operatorId, String operatorName) {
+        Application app = getById(dto.getApplicationId());
+        checkStatus(app, ApprovalStatusEnum.APPROVING);
+
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            Application app = getById(dto.getApplicationId());
-            checkStatus(app, ApprovalStatusEnum.APPROVING);
-
             updateStatus(app, ApprovalStatusEnum.APPROVED, dto.getVersion());
 
-            // 记办结时间
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
             update.setFinishTime(LocalDateTime.now());
@@ -182,19 +178,17 @@ public class ApprovalServiceImpl implements ApprovalService {
             throw new BusinessException("驳回必须填写原因");
         }
 
+        Application app = getById(dto.getApplicationId());
+        if (app == null) {
+            throw new BusinessException("申请单不存在");
+        }
+        if (app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()
+                && app.getStatus() != ApprovalStatusEnum.APPROVING.getCode()) {
+            throw new BusinessException("当前状态不允许驳回");
+        }
+
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            Application app = getById(dto.getApplicationId());
-            if (app == null) {
-                throw new BusinessException("申请单不存在");
-            }
-
-            // 驳回可以来自审核中或审批中
-            if (app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()
-                    && app.getStatus() != ApprovalStatusEnum.APPROVING.getCode()) {
-                throw new BusinessException("当前状态不允许驳回");
-            }
-
             updateStatus(app, ApprovalStatusEnum.REJECTED, dto.getVersion());
 
             Application update = new Application();
@@ -223,18 +217,17 @@ public class ApprovalServiceImpl implements ApprovalService {
             throw new BusinessException("退回必须填写原因");
         }
 
+        Application app = getById(dto.getApplicationId());
+        if (app == null) {
+            throw new BusinessException("申请单不存在");
+        }
+        if (app.getStatus() != ApprovalStatusEnum.PENDING.getCode()
+                && app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()) {
+            throw new BusinessException("当前状态不允许退回");
+        }
+
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            Application app = getById(dto.getApplicationId());
-            if (app == null) {
-                throw new BusinessException("申请单不存在");
-            }
-
-            if (app.getStatus() != ApprovalStatusEnum.PENDING.getCode()
-                    && app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()) {
-                throw new BusinessException("当前状态不允许退回");
-            }
-
             updateStatus(app, ApprovalStatusEnum.RETURNED, dto.getVersion());
 
             Application update = new Application();
