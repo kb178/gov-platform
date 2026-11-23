@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.haikou.government.approval.domain.ApprovalRecord;
 import com.haikou.government.approval.dto.ApplicationSubmitDTO;
 import com.haikou.government.approval.service.ApprovalRecordService;
+import com.haikou.government.approval.service.ApprovalService;
 import com.haikou.government.approval.service.ApplicationService;
 import com.haikou.government.approval.vo.ApplicationDetailVO;
 import com.haikou.government.approval.vo.ApplicationVO;
@@ -35,6 +36,9 @@ public class ApplicationController {
 
     @Autowired
     private ApprovalRecordService approvalRecordService;
+
+    @Autowired
+    private ApprovalService approvalService;
 
     // ==================== 提交申请 ====================
 
@@ -83,6 +87,24 @@ public class ApplicationController {
         Long userId = SecurityUtils.getCurrentUserId();
         applicationService.deleteDraft(applicationId, userId);
         return R.ok(null, "草稿删除成功");
+    }
+
+    // ==================== 撤回 / 重新提交 ====================
+
+    @Operation(summary = "撤回申请", description = "待受理状态可撤回，回到草稿")
+    @PostMapping("/withdraw/{applicationId}")
+    public R<Void> withdraw(@PathVariable Long applicationId) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        approvalService.withdraw(applicationId, userId);
+        return R.ok(null, "撤回成功");
+    }
+
+    @Operation(summary = "重新提交", description = "退回补材料后重新提交")
+    @PostMapping("/resubmit/{applicationId}")
+    public R<Void> resubmit(@PathVariable Long applicationId) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        approvalService.resubmit(applicationId, userId);
+        return R.ok(null, "重新提交成功");
     }
 
     // ==================== 查询 ====================
