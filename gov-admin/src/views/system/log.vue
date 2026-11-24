@@ -47,7 +47,7 @@
       </el-table-column>
       <el-table-column prop="operTime" label="操作时间" width="170" />
       <el-table-column label="耗时" width="80">
-        <template #default="{ row }}">{{ row.costTime }}ms</template>
+        <template #default="{ row }">{{ row.costTime }}ms</template>
       </el-table-column>
       <el-table-column label="操作" width="80" fixed="right">
         <template #default="{ row }">
@@ -124,6 +124,7 @@ const typeTagMap = {
 }
 
 const typeTextMap = {
+  0: '其他',
   1: '新增',
   2: '修改',
   3: '删除',
@@ -151,8 +152,8 @@ async function loadData() {
       operName: searchForm.operName || undefined,
       businessType: searchForm.businessType || undefined,
       status: searchForm.status !== '' ? searchForm.status : undefined,
-      beginTime: searchForm.dateRange?.[0] || undefined,
-      endTime: searchForm.dateRange?.[1] || undefined
+      beginTime: searchForm.dateRange?.[0] ? searchForm.dateRange[0] + ' 00:00:00' : undefined,
+      endTime: searchForm.dateRange?.[1] ? searchForm.dateRange[1] + ' 23:59:59' : undefined
     }
     const res = await getOperLogPage(params)
     tableData.value = res.data.records || []

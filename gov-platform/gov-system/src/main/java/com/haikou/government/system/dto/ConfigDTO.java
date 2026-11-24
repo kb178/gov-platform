@@ -29,6 +29,9 @@ public class ConfigDTO {
     @NotBlank(message = "参数键值不能为空")
     private String configValue;
 
+    @Schema(description = "系统内置（Y是 N否）")
+    private String configType;
+
     @Schema(description = "备注")
     private String remark;
 }

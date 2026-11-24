@@ -30,7 +30,8 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (response) => {
-    const { code, message, data } = response.data
+    const { code, msg, message, data } = response.data
+    const errMsg = message || msg
 
     // 成功响应
     if (code === 200) {
@@ -43,18 +44,18 @@ service.interceptors.response.use(
       userStore.resetState()
       router.push('/login')
       ElMessage.error('登录已过期，请重新登录')
-      return Promise.reject(new Error(message))
+      return Promise.reject(new Error(errMsg))
     }
 
     // 无权限
     if (code === 403) {
       ElMessage.error('没有操作权限')
-      return Promise.reject(new Error(message))
+      return Promise.reject(new Error(errMsg))
     }
 
     // 其他错误
-    ElMessage.error(message || '请求失败')
-    return Promise.reject(new Error(message))
+    ElMessage.error(errMsg || '请求失败')
+    return Promise.reject(new Error(errMsg))
   },
   (error) => {
     // HTTP 错误

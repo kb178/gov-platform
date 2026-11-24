@@ -30,11 +30,20 @@ export default defineConfig({
     port: 3001,
     host: '0.0.0.0',
     proxy: {
-      '/system': {
+      // 只代理后端 API 路径（前缀匹配），避免把 /system/user 等前端路由转发给网关
+      '/system/sys': {
         target: 'http://localhost:8080',
         changeOrigin: true
       },
-      '/item': {
+      '/system/dictType': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
+      '/system/dictData': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
+      '/item/item': {
         target: 'http://localhost:8080',
         changeOrigin: true
       }

@@ -20,7 +20,7 @@ public class PageResult<T> implements Serializable {
     private long total;
 
     /** 当前页数据 */
-    private List<T> rows;
+    private List<T> records;
 
     /** 当前页码 */
     private int pageNum;
@@ -31,14 +31,14 @@ public class PageResult<T> implements Serializable {
     public PageResult() {
     }
 
-    public PageResult(long total, List<T> rows) {
+    public PageResult(long total, List<T> records) {
         this.total = total;
-        this.rows = rows;
+        this.records = records;
     }
 
-    public PageResult(long total, List<T> rows, int pageNum, int pageSize) {
+    public PageResult(long total, List<T> records, int pageNum, int pageSize) {
         this.total = total;
-        this.rows = rows;
+        this.records = records;
         this.pageNum = pageNum;
         this.pageSize = pageSize;
     }

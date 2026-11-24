@@ -24,7 +24,7 @@
       <el-table-column prop="roleId" label="角色编号" width="80" />
       <el-table-column prop="roleName" label="角色名称" width="140" />
       <el-table-column prop="roleKey" label="权限标识" width="160" />
-      <el-table-column prop="sort" label="排序" width="80" />
+      <el-table-column prop="sortNum" label="排序" width="80" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-switch v-model="row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(row)" />
@@ -50,8 +50,8 @@
         <el-form-item label="权限标识" prop="roleKey" required>
           <el-input v-model="roleForm.roleKey" placeholder="请输入权限标识" />
         </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="roleForm.sort" :min="0" :max="999" />
+        <el-form-item label="排序" prop="sortNum">
+          <el-input-number v-model="roleForm.sortNum" :min="0" :max="999" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="roleForm.status">
@@ -109,7 +109,7 @@ const formRef = ref(null)
 const roleForm = reactive({
   roleName: '',
   roleKey: '',
-  sort: 0,
+  sortNum: 0,
   status: 0,
   remark: ''
 })
@@ -176,13 +176,13 @@ function showDialog(row) {
     Object.assign(roleForm, {
       roleName: row.roleName,
       roleKey: row.roleKey,
-      sort: row.sort,
+      sortNum: row.sortNum,
       status: row.status,
       remark: row.remark || ''
     })
   } else {
     editingRoleId.value = null
-    Object.assign(roleForm, { roleName: '', roleKey: '', sort: 0, status: 0, remark: '' })
+    Object.assign(roleForm, { roleName: '', roleKey: '', sortNum: 0, status: 0, remark: '' })
   }
   dialogVisible.value = true
 }

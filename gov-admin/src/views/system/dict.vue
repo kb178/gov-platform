@@ -39,7 +39,7 @@
         <el-table :data="currentData" v-loading="loadingData">
           <el-table-column prop="dictLabel" label="字典标签" min-width="140" />
           <el-table-column prop="dictValue" label="字典值" width="120" />
-          <el-table-column prop="dictSort" label="排序" width="80" />
+          <el-table-column prop="sortNum" label="排序" width="80" />
           <el-table-column label="状态" width="100">
             <template #default="{ row }">
               <el-switch v-model="row.status" :active-value="0" :inactive-value="1" @change="handleDataStatusChange(row)" />
@@ -84,8 +84,8 @@
         <el-form-item label="字典值" prop="dictValue" required>
           <el-input v-model="dataForm.dictValue" placeholder="请输入字典值" />
         </el-form-item>
-        <el-form-item label="排序" prop="dictSort">
-          <el-input-number v-model="dataForm.dictSort" :min="0" :max="999" />
+        <el-form-item label="排序" prop="sortNum">
+          <el-input-number v-model="dataForm.sortNum" :min="0" :max="999" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="dataForm.status">
@@ -141,7 +141,7 @@ const dataDialogVisible = ref(false)
 const isEditData = ref(false)
 const editingDataId = ref(null)
 const dataFormRef = ref(null)
-const dataForm = reactive({ dictLabel: '', dictValue: '', dictSort: 0, status: 0, remark: '' })
+const dataForm = reactive({ dictLabel: '', dictValue: '', sortNum: 0, status: 0, remark: '' })
 const dataFormRules = {
   dictLabel: [{ required: true, message: '请输入字典标签', trigger: 'blur' }],
   dictValue: [{ required: true, message: '请输入字典值', trigger: 'blur' }]
@@ -244,13 +244,13 @@ function showDataDialog(row) {
     Object.assign(dataForm, {
       dictLabel: row.dictLabel,
       dictValue: row.dictValue,
-      dictSort: row.dictSort,
+      sortNum: row.sortNum,
       status: row.status,
       remark: row.remark || ''
     })
   } else {
     editingDataId.value = null
-    Object.assign(dataForm, { dictLabel: '', dictValue: '', dictSort: 0, status: 0, remark: '' })
+    Object.assign(dataForm, { dictLabel: '', dictValue: '', sortNum: 0, status: 0, remark: '' })
   }
   dataDialogVisible.value = true
 }

@@ -20,8 +20,7 @@ public class UserAddDTO {
     @Size(min = 4, max = 64, message = "用户名长度4-64个字符")
     private String username;
 
-    /** 密码 */
-    @NotBlank(message = "密码不能为空")
+    /** 密码（为空时使用默认初始密码） */
     @Size(min = 6, max = 32, message = "密码长度6-32个字符")
     private String password;
 

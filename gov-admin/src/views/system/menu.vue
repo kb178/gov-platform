@@ -27,7 +27,7 @@
           <span>{{ row.icon }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="sort" label="排序" width="70" />
+      <el-table-column prop="sortNum" label="排序" width="70" />
       <el-table-column prop="perms" label="权限标识" width="160" show-overflow-tooltip />
       <el-table-column prop="path" label="路由路径" width="160" show-overflow-tooltip />
       <el-table-column label="类型" width="80">
@@ -77,8 +77,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="排序" prop="sort">
-              <el-input-number v-model="menuForm.sort" :min="0" :max="999" />
+            <el-form-item label="排序" prop="sortNum">
+              <el-input-number v-model="menuForm.sortNum" :min="0" :max="999" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -140,7 +140,7 @@ const menuForm = reactive({
   menuType: 'C',
   menuName: '',
   icon: '',
-  sort: 0,
+  sortNum: 0,
   perms: '',
   path: '',
   status: 0
@@ -213,14 +213,14 @@ function showDialog(row, parentId) {
       menuType: row.menuType,
       menuName: row.menuName,
       icon: row.icon || '',
-      sort: row.sort,
+      sortNum: row.sortNum,
       perms: row.perms || '',
       path: row.path || '',
       status: row.status
     })
   } else {
     editingMenuId.value = null
-    Object.assign(menuForm, { parentId: parentId || null, menuType: 'C', menuName: '', icon: '', sort: 0, perms: '', path: '', status: 0 })
+    Object.assign(menuForm, { parentId: parentId || null, menuType: 'C', menuName: '', icon: '', sortNum: 0, perms: '', path: '', status: 0 })
   }
   dialogVisible.value = true
 }

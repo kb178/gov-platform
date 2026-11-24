@@ -23,7 +23,7 @@
 
     <el-table :data="tableData" row-key="deptId" :default-expand-all="isExpand" :tree-props="{ children: 'children' }" v-loading="loading">
       <el-table-column prop="deptName" label="部门名称" min-width="220" />
-      <el-table-column prop="sort" label="排序" width="80" />
+      <el-table-column prop="sortNum" label="排序" width="80" />
       <el-table-column prop="leader" label="负责人" width="100" />
       <el-table-column prop="phone" label="联系电话" width="130" />
       <el-table-column label="状态" width="100">
@@ -64,8 +64,8 @@
         <el-form-item label="联系电话" prop="phone">
           <el-input v-model="deptForm.phone" placeholder="请输入联系电话" />
         </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="deptForm.sort" :min="0" :max="999" />
+        <el-form-item label="排序" prop="sortNum">
+          <el-input-number v-model="deptForm.sortNum" :min="0" :max="999" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="deptForm.status">
@@ -112,7 +112,7 @@ const deptForm = reactive({
   deptName: '',
   leader: '',
   phone: '',
-  sort: 0,
+  sortNum: 0,
   status: 0
 })
 
@@ -183,12 +183,12 @@ function showDialog(row, parentId) {
       deptName: row.deptName,
       leader: row.leader || '',
       phone: row.phone || '',
-      sort: row.sort,
+      sortNum: row.sortNum,
       status: row.status
     })
   } else {
     editingDeptId.value = null
-    Object.assign(deptForm, { parentId: parentId || null, deptName: '', leader: '', phone: '', sort: 0, status: 0 })
+    Object.assign(deptForm, { parentId: parentId || null, deptName: '', leader: '', phone: '', sortNum: 0, status: 0 })
   }
   dialogVisible.value = true
 }

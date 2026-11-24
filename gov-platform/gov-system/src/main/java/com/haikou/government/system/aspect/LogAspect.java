@@ -93,7 +93,8 @@ public class LogAspect {
             MethodSignature signature = (MethodSignature) joinPoint.getSignature();
             Method method = signature.getMethod();
             Log logAnnotation = method.getAnnotation(Log.class);
-            operLog.setTitle(logAnnotation.title() + " - " + logAnnotation.businessType().getDesc());
+            operLog.setTitle(logAnnotation.title());
+            operLog.setBusinessType(logAnnotation.businessType().getCode());
             operLog.setMethod(signature.getDeclaringTypeName() + "." + signature.getName());
 
             // 获取请求信息（使用 HttpRequestHolder，无需手动获取 request）

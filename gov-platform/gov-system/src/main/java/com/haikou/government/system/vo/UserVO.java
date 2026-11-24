@@ -71,6 +71,9 @@ public class UserVO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
+    /** 备注 */
+    private String remark;
+
     /** 角色ID列表 */
     private List<Long> roleIds;
 

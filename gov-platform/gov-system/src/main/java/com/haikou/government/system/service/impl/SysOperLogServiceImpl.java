@@ -102,6 +102,11 @@ public class SysOperLogServiceImpl extends ServiceImpl<SysOperLogMapper, SysOper
             wrapper.like(SysOperLog::getOperName, queryDTO.getOperName());
         }
 
+        // 业务操作类型
+        if (queryDTO.getBusinessType() != null) {
+            wrapper.eq(SysOperLog::getBusinessType, queryDTO.getBusinessType());
+        }
+
         // 操作状态
         if (queryDTO.getStatus() != null) {
             wrapper.eq(SysOperLog::getStatus, queryDTO.getStatus());

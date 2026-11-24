@@ -165,6 +165,11 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             wrapper.like(SysConfig::getConfigKey, queryDTO.getConfigKey());
         }
 
+        if (StringUtils.hasText(queryDTO.getConfigType())) {
+            // 系统内置（Y/N 精确查询）
+            wrapper.eq(SysConfig::getConfigType, queryDTO.getConfigType());
+        }
+
         wrapper.orderByAsc(SysConfig::getConfigId);
         return wrapper;
     }

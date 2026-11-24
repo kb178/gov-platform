@@ -34,6 +34,12 @@ public class SysOperLog implements Serializable {
     private String title;
 
     /**
+     * 业务操作类型（0其他 1新增 2修改 3删除 4查询 5授权 6导出）
+     */
+    @TableField("business_type")
+    private Integer businessType;
+
+    /**
      * 方法名称
      */
     @TableField("method")

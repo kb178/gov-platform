@@ -9,7 +9,9 @@ import com.haikou.government.common.core.utils.HttpRequestHolder;
 import com.haikou.government.common.redis.utils.RedisUtils;
 import com.haikou.government.common.security.utils.PasswordUtils;
 import com.haikou.government.system.domain.SysUser;
+import com.haikou.government.system.domain.SysDept;
 import com.haikou.government.system.domain.SysLoginLog;
+import com.haikou.government.system.domain.SysRole;
 import com.haikou.government.system.domain.SysUserRole;
 import com.haikou.government.system.dto.*;
 import com.haikou.government.system.vo.LoginVO;
@@ -17,6 +19,7 @@ import com.haikou.government.system.vo.RealNameVO;
 import com.haikou.government.system.vo.UserInfoVO;
 import com.haikou.government.system.vo.UserVO;
 import com.haikou.government.system.mapper.SysUserMapper;
+import com.haikou.government.system.mapper.SysDeptMapper;
 import com.haikou.government.system.mapper.SysLoginLogMapper;
 import com.haikou.government.system.mapper.SysUserRoleMapper;
 import com.haikou.government.system.mapper.SysRoleMapper;
@@ -64,6 +67,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Autowired
     private SysRoleMapper roleMapper;
+
+    @Autowired
+    private SysDeptMapper sysDeptMapper;
 
     /** 登录失败次数 Redis Key 前缀 */
     private static final String LOGIN_FAIL_KEY = "login:fail:";
@@ -665,12 +671,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 3. 创建用户对象
         SysUser user = new SysUser();
         user.setUsername(userAddDTO.getUsername());
-        user.setPassword(PasswordUtils.encode(userAddDTO.getPassword()));
+        // 密码为空时使用默认初始密码 123456
+        String rawPassword = StringUtils.hasText(userAddDTO.getPassword()) ? userAddDTO.getPassword() : "123456";
+        user.setPassword(PasswordUtils.encode(rawPassword));
         user.setNickname(userAddDTO.getNickname());
         user.setPhone(userAddDTO.getPhone());
         user.setEmail(userAddDTO.getEmail());
         user.setSex(userAddDTO.getSex());
-        user.setUserType(userAddDTO.getUserType());
+        // 管理端创建的账号默认为工作人员（可登录管理端）
+        user.setUserType(userAddDTO.getUserType() != null ? userAddDTO.getUserType() : (byte) 2);
         user.setDeptId(userAddDTO.getDeptId());
         user.setRemark(userAddDTO.getRemark());
         user.setStatus((byte) 0);
@@ -742,6 +751,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 4. 保存更新
         boolean success = updateById(user);
         if (success) {
+            // 5. 更新角色关联（roleIds 为 null 表示不更新，空数组表示清空）
+            if (userUpdateDTO.getRoleIds() != null) {
+                LambdaQueryWrapper<SysUserRole> deleteWrapper = new LambdaQueryWrapper<>();
+                deleteWrapper.eq(SysUserRole::getUserId, userUpdateDTO.getUserId());
+                userRoleMapper.delete(deleteWrapper);
+                if (!userUpdateDTO.getRoleIds().isEmpty()) {
+                    saveUserRoles(userUpdateDTO.getUserId(), userUpdateDTO.getRoleIds());
+                }
+            }
             log.info("修改用户成功：userId={}", userUpdateDTO.getUserId());
         }
         return success;
@@ -858,7 +876,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .username(user.getUsername())
                 .nickname(user.getNickname())
                 .realName(user.getRealName())
-                .phone(maskPhone(user.getPhone()))
+                .phone(user.getPhone())
                 .email(user.getEmail())
                 .sex(user.getSex())
                 .avatar(user.getAvatar())
@@ -869,9 +887,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .loginIp(user.getLoginIp())
                 .loginTime(user.getLoginTime())
                 .createTime(user.getCreateTime())
+                .remark(user.getRemark())
                 .roleIds(new ArrayList<>())
                 .roleNames(new ArrayList<>())
                 .build();
+
+        // 查询部门名称
+        if (user.getDeptId() != null) {
+            SysDept dept = sysDeptMapper.selectById(user.getDeptId());
+            if (dept != null) {
+                vo.setDeptName(dept.getDeptName());
+            }
+        }
 
         // 查询用户角色
         LambdaQueryWrapper<SysUserRole> queryWrapper = new LambdaQueryWrapper<>();
@@ -882,6 +909,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                     .map(SysUserRole::getRoleId)
                     .collect(Collectors.toList());
             vo.setRoleIds(roleIds);
+            // 查询角色名称
+            List<SysRole> roles = roleMapper.selectBatchIds(roleIds);
+            if (roles != null && !roles.isEmpty()) {
+                vo.setRoleNames(roles.stream()
+                        .map(SysRole::getRoleName)
+                        .collect(Collectors.toList()));
+            }
         }
 
         return vo;

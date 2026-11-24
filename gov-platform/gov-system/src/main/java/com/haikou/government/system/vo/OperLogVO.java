@@ -22,6 +22,9 @@ public class OperLogVO {
     @Schema(description = "模块标题")
     private String title;
 
+    @Schema(description = "业务操作类型（0其他 1新增 2修改 3删除 4查询 5授权 6导出）")
+    private Integer businessType;
+
     @Schema(description = "方法名称")
     private String method;
 

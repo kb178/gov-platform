@@ -48,6 +48,12 @@ public class SysConfig extends BaseEntity {
     private String configValue;
 
     /**
+     * 系统内置（Y是 N否）
+     */
+    @TableField("config_type")
+    private String configType;
+
+    /**
      * 备注
      */
     @TableField("remark")

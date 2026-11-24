@@ -3,6 +3,8 @@ package com.haikou.government.system.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 修改用户参数（管理员操作）
  *
@@ -39,4 +41,7 @@ public class UserUpdateDTO {
 
     /** 备注 */
     private String remark;
+
+    /** 角色ID列表（传空数组则清空角色，传null则不更新） */
+    private List<Long> roleIds;
 }

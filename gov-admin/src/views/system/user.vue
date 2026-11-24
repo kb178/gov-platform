@@ -25,10 +25,10 @@
       <el-table-column label="用户信息" min-width="200">
         <template #default="{ row }">
           <div class="user-cell">
-            <div class="user-avatar">{{ (row.nickName || row.userName || '').charAt(0) }}</div>
+            <div class="user-avatar">{{ (row.nickname || row.username || '').charAt(0) }}</div>
             <div>
-              <div class="user-name">{{ row.nickName }}</div>
-              <div class="user-account">{{ row.userName }}</div>
+              <div class="user-name">{{ row.nickname }}</div>
+              <div class="user-account">{{ row.username }}</div>
             </div>
           </div>
         </template>
@@ -36,7 +36,7 @@
       <el-table-column prop="deptName" label="所属部门" width="140" />
       <el-table-column label="角色" width="140">
         <template #default="{ row }">
-          <el-tag v-for="r in (row.roles || [])" :key="r.roleId" type="primary" size="small" effect="plain" class="role-tag">{{ r.roleName }}</el-tag>
+          <el-tag v-for="(name, idx) in (row.roleNames || [])" :key="row.roleIds ? row.roleIds[idx] : idx" type="primary" size="small" effect="plain" class="role-tag">{{ name }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="phone" label="手机号" width="130" />
@@ -71,13 +71,13 @@
       <el-form :model="userForm" :rules="formRules" ref="formRef" label-width="80px">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="用户名" prop="userName" required>
-              <el-input v-model="userForm.userName" placeholder="请输入用户名" :disabled="isEdit" />
+            <el-form-item label="用户名" prop="username" required>
+              <el-input v-model="userForm.username" placeholder="请输入用户名" :disabled="isEdit" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="姓名" prop="nickName" required>
-              <el-input v-model="userForm.nickName" placeholder="请输入姓名" />
+            <el-form-item label="姓名" prop="nickname" required>
+              <el-input v-model="userForm.nickname" placeholder="请输入姓名" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -149,8 +149,8 @@ const editingUserId = ref(null)
 const formRef = ref(null)
 
 const userForm = reactive({
-  userName: '',
-  nickName: '',
+  username: '',
+  nickname: '',
   phone: '',
   email: '',
   deptId: '',
@@ -159,8 +159,8 @@ const userForm = reactive({
 })
 
 const formRules = {
-  userName: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  nickName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  nickname: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
   deptId: [{ required: true, message: '请选择部门', trigger: 'change' }],
   roleIds: [{ required: true, message: '请选择角色', trigger: 'change' }]
@@ -220,7 +220,7 @@ function resetSearch() {
 function showAddDialog() {
   isEdit.value = false
   editingUserId.value = null
-  Object.assign(userForm, { userName: '', nickName: '', phone: '', email: '', deptId: '', roleIds: [], remark: '' })
+  Object.assign(userForm, { username: '', nickname: '', phone: '', email: '', deptId: '', roleIds: [], remark: '' })
   dialogVisible.value = true
 }
 
@@ -228,12 +228,12 @@ function showEditDialog(row) {
   isEdit.value = true
   editingUserId.value = row.userId
   Object.assign(userForm, {
-    userName: row.userName,
-    nickName: row.nickName,
+    username: row.username,
+    nickname: row.nickname,
     phone: row.phone,
     email: row.email || '',
     deptId: row.deptId,
-    roleIds: (row.roles || []).map(r => r.roleId),
+    roleIds: row.roleIds ? [...row.roleIds] : [],
     remark: row.remark || ''
   })
   dialogVisible.value = true
@@ -273,7 +273,7 @@ async function handleStatusChange(row) {
 
 async function resetPassword(row) {
   try {
-    await ElMessageBox.confirm(`确定要重置"${row.nickName}"的密码吗？`, '提示', { type: 'warning' })
+    await ElMessageBox.confirm(`确定要重置"${row.nickname}"的密码吗？`, '提示', { type: 'warning' })
     await resetUserPassword(row.userId)
     ElMessage.success('密码已重置为：123456')
   } catch (error) {
@@ -285,7 +285,7 @@ async function resetPassword(row) {
 
 async function handleDelete(row) {
   try {
-    await ElMessageBox.confirm(`确定要删除用户"${row.nickName}"吗？删除后不可恢复。`, '警告', { type: 'error' })
+    await ElMessageBox.confirm(`确定要删除用户"${row.nickname}"吗？删除后不可恢复。`, '警告', { type: 'error' })
     await deleteUserApi(row.userId)
     ElMessage.success('删除成功')
     loadData()
