@@ -129,6 +129,11 @@ public class AuthFilter implements GlobalFilter, Ordered {
      * @return true=白名单，false=需要校验
      */
     private boolean isWhiteList(String path) {
+        // 接口文档相关路径直接放行（Knife4j 网关聚合要访问各服务的 api-docs，路径带服务名前缀如 /approval/v3/api-docs）
+        if (path.contains("/v3/api-docs") || path.contains("/webjars")
+                || path.contains("/swagger-resources") || path.contains("/doc.html")) {
+            return true;
+        }
         return WHITE_LIST.stream().anyMatch(path::startsWith);
     }
 

@@ -135,6 +135,12 @@
                 <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 <version>${swagger.version}</version>
             </dependency>
+            <!-- Knife4j 网关聚合 -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-gateway-spring-boot-starter</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
 
             <!-- JWT -->
             <dependency>

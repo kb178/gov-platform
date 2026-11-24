@@ -16,6 +16,10 @@ spring:
         file-extension: yml
         import-check:
           enabled: false
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_ADDR:localhost:8858}   # Sentinel 控制台地址
+        port: 8719                                    # 与控制台通信端口
   # 数据源
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -28,6 +32,14 @@ spring:
       host: localhost
       port: 6379
       database: 1
+
+# Feign 远程调用超时配置
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000   # 连接超时 3 秒
+        readTimeout: 5000      # 读取超时 5 秒
 
 # MyBatis-Plus
 mybatis-plus:

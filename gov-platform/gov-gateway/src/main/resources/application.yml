@@ -72,6 +72,23 @@ jwt:
   secret: ${JWT_SECRET:gov-platform-jwt-secret-key-must-be-at-least-256-bits-long}
   expire: ${JWT_EXPIRE:7200000}
 
+# OpenAPI 聚合配置（各服务的接口文档汇总到网关）
+springdoc:
+  swagger-ui:
+    urls:
+      - name: 系统服务
+        url: /system/v3/api-docs
+      - name: 事项服务
+        url: /item/v3/api-docs
+      - name: 审批服务
+        url: /approval/v3/api-docs
+      - name: 证照服务
+        url: /license/v3/api-docs
+      - name: 消息服务
+        url: /message/v3/api-docs
+      - name: 数据服务
+        url: /data/v3/api-docs
+
 # 日志配置
 logging:
   level:

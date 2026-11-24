@@ -15,6 +15,12 @@ import com.haikou.government.approval.service.ApprovalRecordService;
 import com.haikou.government.approval.service.ApplicationService;
 import com.haikou.government.approval.vo.ApplicationDetailVO;
 import com.haikou.government.approval.vo.ApplicationVO;
+import com.alibaba.csp.sentinel.Entry;
+import com.alibaba.csp.sentinel.SphU;
+import com.alibaba.csp.sentinel.Tracer;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.haikou.government.api.remote.RemoteItemService;
+import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.common.redis.utils.RedisUtils;
 import com.haikou.government.common.security.utils.SecurityUtils;
@@ -28,7 +34,10 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +61,9 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @Autowired
+    private RemoteItemService remoteItemService;
 
     /** 申请编号序号 Redis key 前缀 */
     private static final String APP_NO_SEQ_PREFIX = "approval:app:no:seq:";
@@ -143,6 +155,9 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         if (pendingCount > 0) {
             throw new BusinessException("您对该事项已有在途申请，请勿重复提交");
         }
+
+        // 调 gov-item 校验材料完整性
+        checkMaterialCompleteness(dto);
 
         // 创建申请单
         Application application = buildApplication(dto, userId);
@@ -290,6 +305,69 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             throw new BusinessException("无权操作他人的申请");
         }
         return application;
+    }
+
+    /**
+     * 校验材料完整性（调 gov-item 查事项配置的必需材料）
+     * 调不通时不阻塞提交，只记日志（降级处理）
+     * 用 SphU.entry 编程式埋点，让 Sentinel 能看到这个资源（同类内部调用 @SentinelResource 不生效）
+     */
+    private void checkMaterialCompleteness(ApplicationSubmitDTO dto) {
+        Entry entry = null;
+        try {
+            entry = SphU.entry("checkMaterial"); //埋雷让sentinel可以找到，也标志者要开始进行远程调用了
+            R<List<Map<String, Object>>> result = remoteItemService.getMaterialListByItemId(dto.getItemId()); //远程调用
+            if (result == null || !result.isSuccess() || result.getData() == null) {
+                // 远程调用业务失败（比如 gov-item 抛异常返回 500），也要告诉 Sentinel 这次是失败的
+                Tracer.trace(new RuntimeException("材料清单查询失败"));
+                log.warn("查询事项材料清单失败，跳过完整性校验: itemId={}", dto.getItemId());
+                return;
+            }
+
+            // 查出该事项配置的必需材料
+            List<Map<String, Object>> requiredMaterials = result.getData().stream()
+                    .filter(m -> {
+                        Object required = m.get("required");
+                        return required != null && "1".equals(String.valueOf(required));
+                    })
+                    .collect(Collectors.toList());
+
+            if (requiredMaterials.isEmpty()) {
+                return;
+            }
+
+            // 用户传了哪些材料ID
+            Set<Long> submittedIds = dto.getMaterials().stream()
+                    .map(ApplicationSubmitDTO.MaterialItem::getMaterialId)
+                    .collect(Collectors.toSet());
+
+            // 找出缺少的必需材料
+            List<String> missing = new ArrayList<>();
+            for (Map<String, Object> m : requiredMaterials) {
+                Long materialId = Long.valueOf(String.valueOf(m.get("materialId")));
+                if (!submittedIds.contains(materialId)) {
+                    String name = String.valueOf(m.get("materialName"));
+                    missing.add(name);
+                }
+            }
+
+            if (!missing.isEmpty()) {
+                throw new BusinessException("缺少必需材料：" + String.join("、", missing));
+            }
+        } catch (BlockException e) {
+            // 被 Sentinel 限流/熔断了，跳过校验
+            log.warn("checkMaterial 被限流/熔断，跳过校验: {}", e.getMessage());
+        } catch (BusinessException e) {
+            Tracer.trace(e);  // 告诉 Sentinel：这次失败了，记入异常统计
+            throw e;
+        } catch (Exception e) {
+            Tracer.trace(e);  // 告诉 Sentinel：这次失败了，记入异常统计
+            log.warn("调用 gov-item 校验材料失败，跳过校验: {}", e.getMessage());
+        } finally {
+            if (entry != null) {
+                entry.exit();
+            }
+        }
     }
 
     private ApplicationVO convertToVO(Application application) {

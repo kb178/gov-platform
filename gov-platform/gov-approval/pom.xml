@@ -66,6 +66,10 @@
         <!-- 内部依赖 -->
         <dependency>
             <groupId>com.haikou</groupId>
+            <artifactId>gov-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.haikou</groupId>
             <artifactId>gov-common-security</artifactId>
         </dependency>
         <dependency>
