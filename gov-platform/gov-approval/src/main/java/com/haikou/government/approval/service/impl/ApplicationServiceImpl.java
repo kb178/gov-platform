@@ -72,6 +72,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         IPage<Application> result = this.page(entityPage, wrapper);
 
         Page<ApplicationVO> voPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        //通过convertToVO把Application转为Application
         List<ApplicationVO> voList = result.getRecords().stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());

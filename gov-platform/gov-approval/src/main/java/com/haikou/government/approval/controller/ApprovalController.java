@@ -3,7 +3,9 @@ package com.haikou.government.approval.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.haikou.government.approval.dto.ApprovalActionDTO;
+import com.haikou.government.approval.dto.MaterialCheckDTO;
 import com.haikou.government.approval.service.ApprovalService;
+import com.haikou.government.approval.vo.ApprovalProgressVO;
 import com.haikou.government.approval.vo.ApplicationVO;
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.common.security.utils.SecurityUtils;
@@ -112,5 +114,22 @@ public class ApprovalController {
         String userName = SecurityUtils.getCurrentUsername();
         approvalService.returnForMaterial(dto, userId, userName);
         return R.ok(null, "已退回");
+    }
+
+    // ==================== 材料核验 / 时间线 ====================
+
+    @Operation(summary = "材料核验", description = "逐个材料标记通过/不通过")
+    @PostMapping("/material/check")
+    public R<Void> checkMaterials(@Valid @RequestBody MaterialCheckDTO dto) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        String userName = SecurityUtils.getCurrentUsername();
+        approvalService.checkMaterials(dto, userId, userName);
+        return R.ok(null, "核验完成");
+    }
+
+    @Operation(summary = "审批进度", description = "查看申请的审批时间线")
+    @GetMapping("/progress/{applicationId}")
+    public R<ApprovalProgressVO> getProgress(@PathVariable Long applicationId) {
+        return R.ok(approvalService.getProgress(applicationId));
     }
 }

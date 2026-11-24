@@ -6,11 +6,15 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.haikou.government.approval.domain.ApprovalRecord;
 import com.haikou.government.approval.domain.Application;
+import com.haikou.government.approval.domain.ApplicationMaterial;
 import com.haikou.government.approval.dto.ApprovalActionDTO;
+import com.haikou.government.approval.dto.MaterialCheckDTO;
 import com.haikou.government.approval.enums.ApprovalStatusEnum;
 import com.haikou.government.approval.mapper.ApplicationMapper;
+import com.haikou.government.approval.mapper.ApplicationMaterialMapper;
 import com.haikou.government.approval.service.ApprovalRecordService;
 import com.haikou.government.approval.service.ApprovalService;
+import com.haikou.government.approval.vo.ApprovalProgressVO;
 import com.haikou.government.approval.vo.ApplicationVO;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.common.redis.utils.RedisUtils;
@@ -21,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -44,6 +49,9 @@ public class ApprovalServiceImpl implements ApprovalService {
     private ApplicationMapper applicationMapper;
 
     @Autowired
+    private ApplicationMaterialMapper applicationMaterialMapper;
+
+    @Autowired
     private ApprovalRecordService approvalRecordService;
 
     @Autowired
@@ -64,7 +72,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         // 状态没问题，再上锁防止并发
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            updateStatus(app, ApprovalStatusEnum.REVIEWING, dto.getVersion());
+            updateStatus(app, ApprovalStatusEnum.REVIEWING);
 
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
@@ -95,7 +103,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            updateStatus(app, ApprovalStatusEnum.REJECTED, dto.getVersion());
+            updateStatus(app, ApprovalStatusEnum.REJECTED);
 
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
@@ -124,7 +132,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            updateStatus(app, ApprovalStatusEnum.APPROVING, dto.getVersion());
+            updateStatus(app, ApprovalStatusEnum.APPROVING);
 
             saveRecord(dto.getApplicationId(), "科室审核", operatorId, operatorName,
                     (byte) 2, dto.getOpinion());
@@ -148,7 +156,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            updateStatus(app, ApprovalStatusEnum.APPROVED, dto.getVersion());
+            updateStatus(app, ApprovalStatusEnum.APPROVED);
 
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
@@ -182,14 +190,15 @@ public class ApprovalServiceImpl implements ApprovalService {
         if (app == null) {
             throw new BusinessException("申请单不存在");
         }
-        if (app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()
-                && app.getStatus() != ApprovalStatusEnum.APPROVING.getCode()) {
+        if (app.getStatus() == null
+                || (app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()
+                    && app.getStatus() != ApprovalStatusEnum.APPROVING.getCode())) {
             throw new BusinessException("当前状态不允许驳回");
         }
 
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            updateStatus(app, ApprovalStatusEnum.REJECTED, dto.getVersion());
+            updateStatus(app, ApprovalStatusEnum.REJECTED);
 
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
@@ -221,14 +230,15 @@ public class ApprovalServiceImpl implements ApprovalService {
         if (app == null) {
             throw new BusinessException("申请单不存在");
         }
-        if (app.getStatus() != ApprovalStatusEnum.PENDING.getCode()
-                && app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode()) {
+        if (app.getStatus() == null
+                || (app.getStatus() != ApprovalStatusEnum.PENDING.getCode()
+                    && app.getStatus() != ApprovalStatusEnum.REVIEWING.getCode())) {
             throw new BusinessException("当前状态不允许退回");
         }
 
         String lockKey = acquireLock(dto.getApplicationId(), operatorId);
         try {
-            updateStatus(app, ApprovalStatusEnum.RETURNED, dto.getVersion());
+            updateStatus(app, ApprovalStatusEnum.RETURNED);
 
             Application update = new Application();
             update.setApplicationId(app.getApplicationId());
@@ -263,7 +273,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         }
         checkStatus(app, ApprovalStatusEnum.PENDING);
 
-        updateStatus(app, ApprovalStatusEnum.DRAFT, app.getVersion());
+        updateStatus(app, ApprovalStatusEnum.DRAFT);
 
         log.info("撤回申请: applicationNo={}, userId={}", app.getApplicationNo(), userId);
     }
@@ -360,6 +370,99 @@ public class ApprovalServiceImpl implements ApprovalService {
         return voPage;
     }
 
+    // ==================== 材料核验 ====================
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void checkMaterials(MaterialCheckDTO dto, Long operatorId, String operatorName) {
+        // 校验申请单存在且未办结
+        Application app = getById(dto.getApplicationId());
+        if (app == null) {
+            throw new BusinessException("申请单不存在");
+        }
+        if (ApprovalStatusEnum.isFinal(app.getStatus())) {
+            throw new BusinessException("已办结的申请不能核验材料");
+        }
+
+        for (MaterialCheckDTO.CheckItem item : dto.getItems()) {
+            // 校验材料属于该申请
+            ApplicationMaterial material = applicationMaterialMapper.selectById(item.getId());
+            if (material == null || !material.getApplicationId().equals(dto.getApplicationId())) {
+                throw new BusinessException("材料不存在或不属于该申请");
+            }
+
+            LambdaUpdateWrapper<ApplicationMaterial> wrapper = new LambdaUpdateWrapper<>();
+            wrapper.eq(ApplicationMaterial::getId, item.getId())
+                    .set(ApplicationMaterial::getCheckStatus, item.getCheckStatus())
+                    .set(ApplicationMaterial::getCheckRemark, item.getCheckRemark())
+                    .set(ApplicationMaterial::getCheckBy, operatorName)
+                    .set(ApplicationMaterial::getCheckTime, LocalDateTime.now());
+            applicationMaterialMapper.update(null, wrapper);
+        }
+        log.info("材料核验完成: applicationId={}, operator={}", dto.getApplicationId(), operatorName);
+    }
+
+    // ==================== 审批进度时间线 ====================
+
+    @Override
+    public ApprovalProgressVO getProgress(Long applicationId) {
+        Application app = getById(applicationId);
+        if (app == null) {
+            throw new BusinessException("申请单不存在");
+        }
+
+        ApprovalProgressVO vo = new ApprovalProgressVO();
+        vo.setApplicationId(app.getApplicationId());
+        vo.setApplicationNo(app.getApplicationNo());
+        vo.setStatus(app.getStatus());
+        vo.setStatusText(ApprovalStatusEnum.getDesc(app.getStatus()));
+
+        // 组装时间线：申请提交节点 + 审批记录节点
+        List<ApprovalProgressVO.TimeLineNode> nodes = new ArrayList<>();
+
+        // 第一个节点：提交申请
+        ApprovalProgressVO.TimeLineNode submitNode = new ApprovalProgressVO.TimeLineNode();
+        submitNode.setNodeName("提交申请");
+        submitNode.setOperatorName(app.getCreateBy());
+        submitNode.setActionText("提交申请");
+        submitNode.setTime(app.getApplyTime());
+        submitNode.setCurrent(false);
+        nodes.add(submitNode);
+
+        // 审批记录节点
+        List<ApprovalRecord> records = approvalRecordService.getRecordsByApplicationId(applicationId);
+        for (ApprovalRecord record : records) {
+            ApprovalProgressVO.TimeLineNode node = new ApprovalProgressVO.TimeLineNode();
+            node.setNodeName(record.getNodeName());
+            node.setOperatorName(record.getApproverName());
+            node.setActionText(getActionText(record.getAction()));
+            node.setOpinion(record.getOpinion());
+            node.setTime(record.getCreateTime());
+            node.setCurrent(false);
+            nodes.add(node);
+        }
+
+        // 最后一个节点标记为当前节点
+        if (!nodes.isEmpty()) {
+            nodes.get(nodes.size() - 1).setCurrent(true);
+        }
+
+        vo.setTimeLine(nodes);
+        return vo;
+    }
+
+    private String getActionText(Byte action) {
+        if (action == null) return "未知";
+        switch (action) {
+            case 1: return "受理";
+            case 2: return "通过";
+            case 3: return "驳回";
+            case 4: return "退回补材料";
+            case 5: return "不予受理";
+            default: return "未知";
+        }
+    }
+
     // ==================== 私有方法 ====================
 
     /**
@@ -395,13 +498,12 @@ public class ApprovalServiceImpl implements ApprovalService {
      * 更新状态（乐观锁）
      * WHERE application_id = ? AND version = ? — 版本对不上就更新失败
      */
-    private void updateStatus(Application app, ApprovalStatusEnum target, Integer version) {
+    private void updateStatus(Application app, ApprovalStatusEnum target) {
         if (!ApprovalStatusEnum.canTransit(app.getStatus(), (byte) target.getCode())) {
             throw new BusinessException("不允许从【" + ApprovalStatusEnum.getDesc(app.getStatus())
                     + "】流转到【" + target.getDesc() + "】");
         }
 
-        // 用当前内存里的 version 做乐观锁条件
         int expectedVersion = app.getVersion() != null ? app.getVersion() : 0;
 
         LambdaUpdateWrapper<Application> wrapper = new LambdaUpdateWrapper<>();

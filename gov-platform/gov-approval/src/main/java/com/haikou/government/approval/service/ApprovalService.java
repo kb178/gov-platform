@@ -3,6 +3,8 @@ package com.haikou.government.approval.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.haikou.government.approval.dto.ApprovalActionDTO;
+import com.haikou.government.approval.dto.MaterialCheckDTO;
+import com.haikou.government.approval.vo.ApprovalProgressVO;
 import com.haikou.government.approval.vo.ApplicationVO;
 
 /**
@@ -73,4 +75,14 @@ public interface ApprovalService {
      * 已办列表（我处理过的）
      */
     IPage<ApplicationVO> getDoneList(Page<ApplicationVO> page, Long userId);
+
+    /**
+     * 材料核验（逐个材料标记通过/不通过）
+     */
+    void checkMaterials(MaterialCheckDTO dto, Long operatorId, String operatorName);
+
+    /**
+     * 查看审批进度时间线
+     */
+    ApprovalProgressVO getProgress(Long applicationId);
 }

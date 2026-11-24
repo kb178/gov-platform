@@ -23,7 +23,4 @@ public class ApprovalActionDTO implements Serializable {
 
     /** 审批意见（驳回/退回时必填） */
     private String opinion;
-
-    /** 乐观锁版本号（防并发，前端从详情接口拿到后带过来） */
-    private Integer version;
 }
