@@ -53,4 +53,9 @@ public interface DictTypeService extends IService<DictType> {
      * @return 是否成功
      */
     boolean deleteDictType(Long dictId);
+
+    /**
+     * 修改字典类型状态
+     */
+    boolean updateStatus(Long dictId, Byte status);
 }

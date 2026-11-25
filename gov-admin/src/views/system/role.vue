@@ -91,7 +91,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRoleList, addRole, updateRole, deleteRole as deleteRoleApi, assignRoleMenus } from '@/api/system'
+import { getRoleList, addRole, updateRole, updateRoleStatus, deleteRole as deleteRoleApi, assignRoleMenus } from '@/api/system'
 import { getMenuList } from '@/api/system'
 
 const loading = ref(false)
@@ -224,7 +224,7 @@ async function handleDelete(row) {
 
 async function handleStatusChange(row) {
   try {
-    await updateRole({ roleId: row.roleId, status: row.status })
+    await updateRoleStatus(row.roleId, row.status)
     ElMessage.success(`角色已${row.status === 0 ? '启用' : '停用'}`)
   } catch (error) {
     row.status = row.status === 0 ? 1 : 0

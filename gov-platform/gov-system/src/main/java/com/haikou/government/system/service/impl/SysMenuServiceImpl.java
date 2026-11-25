@@ -1,6 +1,7 @@
 package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.system.domain.SysMenu;
 import com.haikou.government.system.dto.MenuDTO;
@@ -138,6 +139,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
      * @param menuId 菜单ID
      * @return 是否成功
      */
+    @Override
+    public boolean updateStatus(Long menuId, Byte status) {
+        LambdaUpdateWrapper<SysMenu> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysMenu::getMenuId, menuId)
+                .set(SysMenu::getStatus, status);
+        return this.update(wrapper);
+    }
+
     @Override
     public boolean deleteMenu(Long menuId) {
         // 1. 校验菜单是否存在

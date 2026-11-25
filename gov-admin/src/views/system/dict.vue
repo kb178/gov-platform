@@ -109,8 +109,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  getDictTypeList, addDictType, updateDictType, deleteDictType,
-  getDictDataByType, addDictData, updateDictData, deleteDictData
+  getDictTypeList, addDictType, updateDictType, updateDictTypeStatus, deleteDictType,
+  getDictDataByType, addDictData, updateDictData, updateDictDataStatus, deleteDictData
 } from '@/api/system'
 
 const loadingTypes = ref(false)
@@ -293,7 +293,7 @@ async function handleDeleteData(row) {
 
 async function handleDataStatusChange(row) {
   try {
-    await updateDictData({ dictCode: row.dictCode, status: row.status })
+    await updateDictDataStatus(row.dictCode, row.status)
     ElMessage.success('状态已更新')
   } catch (error) {
     row.status = row.status === 0 ? 1 : 0

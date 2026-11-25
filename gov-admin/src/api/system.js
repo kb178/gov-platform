@@ -98,6 +98,15 @@ export function updateRole(data) {
   })
 }
 
+// 修改角色状态
+export function updateRoleStatus(roleId, status) {
+  return request({
+    url: `/system/sysRole/status/${roleId}`,
+    method: 'put',
+    params: { status }
+  })
+}
+
 // 删除角色
 export function deleteRole(roleId) {
   return request({
@@ -148,6 +157,15 @@ export function updateMenu(data) {
     url: '/system/sysMenu',
     method: 'put',
     data
+  })
+}
+
+// 修改菜单状态
+export function updateMenuStatus(menuId, status) {
+  return request({
+    url: `/system/sysMenu/status/${menuId}`,
+    method: 'put',
+    params: { status }
   })
 }
 
@@ -239,6 +257,15 @@ export function updateDictType(data) {
   })
 }
 
+// 修改字典类型状态
+export function updateDictTypeStatus(dictId, status) {
+  return request({
+    url: `/system/dictType/status/${dictId}`,
+    method: 'put',
+    params: { status }
+  })
+}
+
 // 删除字典类型
 export function deleteDictType(dictId) {
   return request({
@@ -280,6 +307,15 @@ export function updateDictData(data) {
     url: '/system/dictData',
     method: 'put',
     data
+  })
+}
+
+// 修改字典数据状态
+export function updateDictDataStatus(dictCode, status) {
+  return request({
+    url: `/system/dictData/status/${dictCode}`,
+    method: 'put',
+    params: { status }
   })
 }
 

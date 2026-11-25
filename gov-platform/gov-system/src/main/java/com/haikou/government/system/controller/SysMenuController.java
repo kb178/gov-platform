@@ -78,6 +78,20 @@ public class SysMenuController {
     }
 
     /**
+     * 修改菜单状态
+     *
+     * @param menuId 菜单ID
+     * @param status 状态（0正常 1停用）
+     * @return 是否成功
+     */
+    @Operation(summary = "修改菜单状态", description = "启用/停用菜单")
+    @PutMapping("/status/{menuId}")
+    public R<Boolean> updateStatus(@PathVariable Long menuId, @RequestParam Byte status) {
+        boolean result = sysMenuService.updateStatus(menuId, status);
+        return R.ok(result);
+    }
+
+    /**
      * 删除菜单
      *
      * @param menuId 菜单ID

@@ -82,6 +82,16 @@ public class SysRoleController {
     }
 
     /**
+     * 修改角色状态
+     */
+    @Log(title = "角色管理", businessType = BusinessType.UPDATE)
+    @Operation(summary = "修改角色状态", description = "启用/停用角色")
+    @PutMapping("/status/{roleId}")
+    public R<Boolean> updateStatus(@PathVariable Long roleId, @RequestParam Byte status) {
+        return R.ok(sysRoleService.updateStatus(roleId, status));
+    }
+
+    /**
      * 删除角色
      *
      * @param roleId 角色ID

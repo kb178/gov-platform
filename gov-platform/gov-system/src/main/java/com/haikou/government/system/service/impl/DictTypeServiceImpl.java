@@ -113,6 +113,14 @@ public class DictTypeServiceImpl extends ServiceImpl<DictTypeMapper, DictType> i
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean updateStatus(Long dictId, Byte status) {
+        LambdaUpdateWrapper<DictType> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(DictType::getDictId, dictId)
+                .set(DictType::getStatus, status);
+        return this.update(wrapper);
+    }
+
+    @Override
     public boolean deleteDictType(Long dictId) {
         DictType dictType = this.getById(dictId);
         if (dictType == null) {

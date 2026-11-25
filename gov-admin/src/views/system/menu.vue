@@ -115,7 +115,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getMenuList, addMenu, updateMenu, deleteMenu as deleteMenuApi } from '@/api/system'
+import { getMenuList, addMenu, updateMenu, updateMenuStatus, deleteMenu as deleteMenuApi } from '@/api/system'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -262,7 +262,7 @@ async function handleDelete(row) {
 
 async function handleStatusChange(row) {
   try {
-    await updateMenu({ menuId: row.menuId, status: row.status })
+    await updateMenuStatus(row.menuId, row.status)
     ElMessage.success(`菜单已${row.status === 0 ? '启用' : '停用'}`)
   } catch (error) {
     row.status = row.status === 0 ? 1 : 0

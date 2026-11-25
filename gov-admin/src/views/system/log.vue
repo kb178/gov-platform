@@ -30,14 +30,14 @@
 
     <el-table :data="tableData" v-loading="loading">
       <el-table-column prop="operId" label="日志编号" width="80" />
-      <el-table-column prop="title" label="操作模块" width="140" />
+      <el-table-column prop="title" label="操作模块" min-width="140" show-overflow-tooltip />
       <el-table-column label="操作类型" width="90">
         <template #default="{ row }">
           <el-tag :type="typeTagMap[row.businessType]" size="small">{{ typeTextMap[row.businessType] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="operName" label="操作人" width="100" />
-      <el-table-column prop="operIp" label="操作IP" width="130" />
+      <el-table-column prop="operName" label="操作人" min-width="100" show-overflow-tooltip />
+      <el-table-column prop="operIp" label="操作IP" min-width="130" show-overflow-tooltip />
       <el-table-column label="状态" width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 0 ? 'success' : 'danger'" size="small">
@@ -45,7 +45,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="operTime" label="操作时间" width="170" />
+      <el-table-column prop="operTime" label="操作时间" min-width="170" />
       <el-table-column label="耗时" width="80">
         <template #default="{ row }">{{ row.costTime }}ms</template>
       </el-table-column>

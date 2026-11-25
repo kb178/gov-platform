@@ -82,6 +82,16 @@ public class DictTypeController {
     }
 
     /**
+     * 修改字典类型状态
+     */
+    @Log(title = "字典管理", businessType = BusinessType.UPDATE)
+    @Operation(summary = "修改字典类型状态", description = "启用/停用字典类型")
+    @PutMapping("/status/{dictId}")
+    public R<Boolean> updateStatus(@PathVariable Long dictId, @RequestParam Byte status) {
+        return R.ok(dictTypeService.updateStatus(dictId, status));
+    }
+
+    /**
      * 删除字典类型
      *
      * @param dictId 字典类型ID

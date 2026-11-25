@@ -54,4 +54,9 @@ public interface DictDataService extends IService<DictData> {
      * @return 是否成功
      */
     boolean deleteDictData(Long dictCode);
+
+    /**
+     * 修改字典数据状态
+     */
+    boolean updateStatus(Long dictCode, Byte status);
 }

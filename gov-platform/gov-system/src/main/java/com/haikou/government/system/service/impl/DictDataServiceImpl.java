@@ -1,6 +1,7 @@
 package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.system.domain.DictData;
 import com.haikou.government.system.dto.DictDataDTO;
@@ -101,6 +102,14 @@ public class DictDataServiceImpl extends ServiceImpl<DictDataMapper, DictData> i
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean updateStatus(Long dictCode, Byte status) {
+        LambdaUpdateWrapper<DictData> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(DictData::getDictCode, dictCode)
+                .set(DictData::getStatus, status);
+        return this.update(wrapper);
+    }
+
+    @Override
     public boolean deleteDictData(Long dictCode) {
         DictData dictData = this.getById(dictCode);
         if (dictData == null) {

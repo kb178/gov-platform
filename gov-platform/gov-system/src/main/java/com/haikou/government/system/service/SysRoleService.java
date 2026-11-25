@@ -55,6 +55,11 @@ public interface SysRoleService extends IService<SysRole> {
     boolean deleteRole(Long roleId);
 
     /**
+     * 修改角色状态
+     */
+    boolean updateStatus(Long roleId, Byte status);
+
+    /**
      * 分配菜单权限
      *
      * @param roleId 角色ID

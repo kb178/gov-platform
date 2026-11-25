@@ -83,6 +83,16 @@ public class DictDataController {
     }
 
     /**
+     * 修改字典数据状态
+     */
+    @Log(title = "字典数据", businessType = BusinessType.UPDATE)
+    @Operation(summary = "修改字典数据状态", description = "启用/停用字典数据")
+    @PutMapping("/status/{dictCode}")
+    public R<Boolean> updateStatus(@PathVariable Long dictCode, @RequestParam Byte status) {
+        return R.ok(dictDataService.updateStatus(dictCode, status));
+    }
+
+    /**
      * 删除字典数据
      *
      * @param dictCode 字典编码

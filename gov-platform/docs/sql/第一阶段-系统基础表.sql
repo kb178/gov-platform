@@ -160,6 +160,7 @@ CREATE TABLE `dict_data` (
 CREATE TABLE `sys_oper_log` (
   `oper_id` BIGINT NOT NULL COMMENT '日志ID',
   `title` VARCHAR(50) DEFAULT '' COMMENT '模块标题',
+  `business_type` TINYINT DEFAULT 0 COMMENT '业务操作类型（0其他 1新增 2修改 3删除 4查询 5授权 6导出）',
   `method` VARCHAR(200) DEFAULT '' COMMENT '方法名称',
   `request_method` VARCHAR(10) DEFAULT '' COMMENT '请求方式',
   `oper_name` VARCHAR(50) DEFAULT '' COMMENT '操作人员',
@@ -200,6 +201,7 @@ CREATE TABLE `sys_config` (
   `config_name` VARCHAR(100) NOT NULL COMMENT '参数名称',
   `config_key` VARCHAR(100) NOT NULL COMMENT '参数键名',
   `config_value` VARCHAR(500) NOT NULL DEFAULT '' COMMENT '参数键值',
+  `config_type` CHAR(1) DEFAULT 'N' COMMENT '系统内置（Y是 N否）',
   `remark` VARCHAR(500) DEFAULT '' COMMENT '备注',
   `create_by` VARCHAR(64) DEFAULT '' COMMENT '创建者',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

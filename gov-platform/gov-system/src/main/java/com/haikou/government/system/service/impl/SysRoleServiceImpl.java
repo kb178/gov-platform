@@ -1,6 +1,7 @@
 package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.system.domain.RoleMenu;
 import com.haikou.government.system.domain.SysRole;
@@ -135,6 +136,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean updateStatus(Long roleId, Byte status) {
+        LambdaUpdateWrapper<SysRole> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysRole::getRoleId, roleId)
+                .set(SysRole::getStatus, status);
+        return this.update(wrapper);
+    }
+
+    @Override
     public boolean deleteRole(Long roleId) {
         SysRole role = this.getById(roleId);
         if (role == null) {

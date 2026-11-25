@@ -1,6 +1,8 @@
 package com.haikou.government.system.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +23,8 @@ import java.util.List;
 @AllArgsConstructor
 public class UserVO {
 
-    /** 用户ID */
+    /** 用户ID（转字符串防止 JS 精度丢失） */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     /** 用户名 */
@@ -49,6 +52,7 @@ public class UserVO {
     private Byte userType;
 
     /** 部门ID */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long deptId;
 
     /** 部门名称 */
@@ -75,6 +79,7 @@ public class UserVO {
     private String remark;
 
     /** 角色ID列表 */
+    @JsonSerialize(contentUsing = ToStringSerializer.class)
     private List<Long> roleIds;
 
     /** 角色名称列表 */

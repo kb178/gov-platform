@@ -55,4 +55,9 @@ public interface SysMenuService extends IService<SysMenu> {
      * @return 是否成功
      */
     boolean deleteMenu(Long menuId);
+
+    /**
+     * 修改菜单状态
+     */
+    boolean updateStatus(Long menuId, Byte status);
 }
