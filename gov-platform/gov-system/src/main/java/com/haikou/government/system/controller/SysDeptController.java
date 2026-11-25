@@ -82,6 +82,16 @@ public class SysDeptController {
     }
 
     /**
+     * 修改部门状态
+     */
+    @Log(title = "部门管理", businessType = BusinessType.UPDATE)
+    @Operation(summary = "修改部门状态", description = "启用/停用部门")
+    @PutMapping("/status/{deptId}")
+    public R<Boolean> updateStatus(@PathVariable Long deptId, @RequestParam Byte status) {
+        return R.ok(sysDeptService.updateStatus(deptId, status));
+    }
+
+    /**
      * 删除部门
      *
      * @param deptId 部门ID

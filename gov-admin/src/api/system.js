@@ -222,6 +222,15 @@ export function updateDept(data) {
   })
 }
 
+// 修改部门状态
+export function updateDeptStatus(deptId, status) {
+  return request({
+    url: `/system/sysDept/status/${deptId}`,
+    method: 'put',
+    params: { status }
+  })
+}
+
 // 删除部门
 export function deleteDept(deptId) {
   return request({

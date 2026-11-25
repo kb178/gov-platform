@@ -2,6 +2,7 @@ package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.haikou.government.common.core.exception.BusinessException;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.haikou.government.system.domain.SysDept;
 import com.haikou.government.system.dto.DeptDTO;
 import com.haikou.government.system.mapper.SysDeptMapper;
@@ -148,6 +149,14 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     /**
      * 删除部门
      */
+    @Override
+    public boolean updateStatus(Long deptId, Byte status) {
+        LambdaUpdateWrapper<SysDept> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysDept::getDeptId, deptId)
+                .set(SysDept::getStatus, status);
+        return this.update(wrapper);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteDept(Long deptId) {

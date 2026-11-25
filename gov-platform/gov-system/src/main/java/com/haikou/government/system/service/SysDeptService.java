@@ -53,4 +53,9 @@ public interface SysDeptService extends IService<SysDept> {
      * @return 是否成功
      */
     boolean deleteDept(Long deptId);
+
+    /**
+     * 修改部门状态
+     */
+    boolean updateStatus(Long deptId, Byte status);
 }

@@ -85,7 +85,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getDeptList, addDept, updateDept, deleteDept as deleteDeptApi } from '@/api/system'
+import { getDeptList, addDept, updateDept, updateDeptStatus, deleteDept as deleteDeptApi } from '@/api/system'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -230,7 +230,7 @@ async function handleDelete(row) {
 
 async function handleStatusChange(row) {
   try {
-    await updateDept({ deptId: row.deptId, status: row.status })
+    await updateDeptStatus(row.deptId, row.status)
     ElMessage.success(`部门已${row.status === 0 ? '启用' : '停用'}`)
   } catch (error) {
     row.status = row.status === 0 ? 1 : 0
