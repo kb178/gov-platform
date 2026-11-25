@@ -2,9 +2,12 @@ package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.system.domain.DictData;
 import com.haikou.government.system.dto.DictDataDTO;
+import com.haikou.government.system.dto.DictDataQueryDTO;
 import com.haikou.government.system.mapper.DictDataMapper;
 import com.haikou.government.system.service.DictDataService;
 import com.haikou.government.system.vo.DictDataVO;
@@ -143,5 +146,22 @@ public class DictDataServiceImpl extends ServiceImpl<DictDataMapper, DictData> i
         DictDataVO vo = new DictDataVO();
         BeanUtils.copyProperties(dictData, vo);
         return vo;
+    }
+
+    @Override
+    public PageResult<DictDataVO> getDictDataPage(DictDataQueryDTO queryDTO) {
+        LambdaQueryWrapper<DictData> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(queryDTO.getDictType() != null, DictData::getDictType, queryDTO.getDictType())
+                .like(queryDTO.getDictLabel() != null, DictData::getDictLabel, queryDTO.getDictLabel())
+                .eq(queryDTO.getStatus() != null, DictData::getStatus, queryDTO.getStatus())
+                .orderByAsc(DictData::getSortNum);
+
+        Page<DictData> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<DictData> result = this.page(page, wrapper);
+
+        List<DictDataVO> voList = result.getRecords().stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+        return new PageResult<>(result.getTotal(), voList, queryDTO.getPageNum(), queryDTO.getPageSize());
     }
 }

@@ -2,10 +2,14 @@ package com.haikou.government.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.exception.BusinessException;
 import com.haikou.government.system.domain.RoleMenu;
 import com.haikou.government.system.domain.SysRole;
 import com.haikou.government.system.dto.RoleDTO;
+import com.haikou.government.system.dto.RoleQueryDTO;
 import com.haikou.government.system.mapper.RoleMenuMapper;
 import com.haikou.government.system.mapper.SysRoleMapper;
 import com.haikou.government.system.service.SysRoleService;
@@ -243,5 +247,21 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         vo.setMenuIds(menuIds);
 
         return vo;
+    }
+
+    @Override
+    public PageResult<RoleVO> getRolePage(RoleQueryDTO queryDTO) {
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(queryDTO.getRoleName() != null, SysRole::getRoleName, queryDTO.getRoleName())
+                .eq(queryDTO.getStatus() != null, SysRole::getStatus, queryDTO.getStatus())
+                .orderByAsc(SysRole::getSortNum);
+
+        Page<SysRole> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<SysRole> result = this.page(page, wrapper);
+
+        List<RoleVO> voList = result.getRecords().stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+        return new PageResult<>(result.getTotal(), voList, queryDTO.getPageNum(), queryDTO.getPageSize());
     }
 }

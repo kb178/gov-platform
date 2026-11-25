@@ -41,6 +41,17 @@
       </el-table-column>
     </el-table>
 
+    <div class="pagination-wrap">
+      <span class="pagination-info">共 {{ total }} 条记录</span>
+      <el-pagination
+        :current-page="pageNum"
+        :page-size="pageSize"
+        :total="Number(total)"
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
+      />
+    </div>
+
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '新增角色'" width="500px">
       <el-form :model="roleForm" :rules="formRules" ref="formRef" label-width="80px">
@@ -91,13 +102,16 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRoleList, addRole, updateRole, updateRoleStatus, deleteRole as deleteRoleApi, assignRoleMenus } from '@/api/system'
+import { getRolePage, addRole, updateRole, updateRoleStatus, deleteRole as deleteRoleApi, assignRoleMenus } from '@/api/system'
 import { getMenuList } from '@/api/system'
 
 const loading = ref(false)
 const saving = ref(false)
 const savingPerm = ref(false)
 const tableData = ref([])
+const total = ref(0)
+const pageNum = ref(1)
+const pageSize = ref(10)
 
 const searchForm = reactive({ roleName: '', status: '' })
 
@@ -134,16 +148,14 @@ onMounted(() => {
 async function loadData() {
   loading.value = true
   try {
-    const res = await getRoleList()
-    let list = res.data || []
-    // 前端搜索过滤
-    if (searchForm.roleName) {
-      list = list.filter(item => item.roleName.includes(searchForm.roleName))
-    }
-    if (searchForm.status !== '') {
-      list = list.filter(item => item.status === searchForm.status)
-    }
-    tableData.value = list
+    const res = await getRolePage({
+      pageNum: pageNum.value,
+      pageSize: pageSize.value,
+      roleName: searchForm.roleName || undefined,
+      status: searchForm.status !== '' ? searchForm.status : undefined
+    })
+    tableData.value = res.data.records || []
+    total.value = res.data.total || 0
   } catch (error) {
     console.error('加载角色列表失败', error)
   } finally {
@@ -160,13 +172,19 @@ async function loadMenuTree() {
   }
 }
 
+function handlePageChange(page) {
+  pageNum.value = page
+  loadData()
+}
+
 function handleSearch() {
+  pageNum.value = 1
   loadData()
 }
 
 function resetSearch() {
   Object.assign(searchForm, { roleName: '', status: '' })
-  loadData()
+  handleSearch()
 }
 
 function showDialog(row) {
@@ -262,4 +280,6 @@ async function handleSavePerm() {
 
 <style lang="scss" scoped>
 .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; .total { margin-left: auto; font-size: 13px; color: #909399; } }
+.pagination-wrap { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+.pagination-info { font-size: 13px; color: #909399; }
 </style>

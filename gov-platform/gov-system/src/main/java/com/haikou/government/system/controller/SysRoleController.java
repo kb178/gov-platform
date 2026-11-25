@@ -1,8 +1,10 @@
 package com.haikou.government.system.controller;
 
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.RoleDTO;
+import com.haikou.government.system.dto.RoleQueryDTO;
 import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.SysRoleService;
 import com.haikou.government.system.vo.RoleVO;
@@ -79,6 +81,15 @@ public class SysRoleController {
     public R<Boolean> update(@Valid @RequestBody RoleDTO roleDTO) {
         boolean result = sysRoleService.updateRole(roleDTO);
         return R.ok(result);
+    }
+
+    /**
+     * 分页查询角色
+     */
+    @Operation(summary = "分页查询角色", description = "分页获取角色列表")
+    @GetMapping("/page")
+    public R<PageResult<RoleVO>> page(RoleQueryDTO queryDTO) {
+        return R.ok(sysRoleService.getRolePage(queryDTO));
     }
 
     /**

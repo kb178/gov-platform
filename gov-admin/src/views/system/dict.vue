@@ -53,6 +53,17 @@
             </template>
           </el-table-column>
         </el-table>
+
+        <div class="pagination-wrap">
+          <span class="pagination-info">共 {{ dataTotal }} 条记录</span>
+          <el-pagination
+            :current-page="dataPageNum"
+            :page-size="dataPageSize"
+            :total="Number(dataTotal)"
+            layout="prev, pager, next"
+            @current-change="handleDataPageChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -110,7 +121,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getDictTypeList, addDictType, updateDictType, updateDictTypeStatus, deleteDictType,
-  getDictDataByType, addDictData, updateDictData, updateDictDataStatus, deleteDictData
+  getDictDataPage, addDictData, updateDictData, updateDictDataStatus, deleteDictData
 } from '@/api/system'
 
 const loadingTypes = ref(false)
@@ -119,11 +130,14 @@ const savingType = ref(false)
 const savingData = ref(false)
 
 const dictTypes = ref([])
-const dictDataMap = ref({})
+const currentData = ref([])
+
+const dataTotal = ref(0)
+const dataPageNum = ref(1)
+const dataPageSize = ref(10)
 
 const activeType = ref(null)
 const currentType = computed(() => dictTypes.value.find(t => t.dictId === activeType.value))
-const currentData = computed(() => dictDataMap.value[activeType.value] || [])
 
 // 字典类型表单
 const typeDialogVisible = ref(false)
@@ -166,11 +180,17 @@ async function loadDictTypes() {
   }
 }
 
-async function loadDictData(dictType) {
+async function loadDictData() {
+  if (!currentType.value) return
   loadingData.value = true
   try {
-    const res = await getDictDataByType(dictType)
-    dictDataMap.value[activeType.value] = res.data || []
+    const res = await getDictDataPage({
+      pageNum: dataPageNum.value,
+      pageSize: dataPageSize.value,
+      dictType: currentType.value.dictType
+    })
+    currentData.value = res.data.records || []
+    dataTotal.value = res.data.total || 0
   } catch (error) {
     console.error('加载字典数据失败', error)
   } finally {
@@ -180,9 +200,13 @@ async function loadDictData(dictType) {
 
 function selectType(item) {
   activeType.value = item.dictId
-  if (!dictDataMap.value[item.dictId]) {
-    loadDictData(item.dictType)
-  }
+  dataPageNum.value = 1
+  loadDictData()
+}
+
+function handleDataPageChange(page) {
+  dataPageNum.value = page
+  loadDictData()
 }
 
 // 字典类型操作
@@ -270,7 +294,7 @@ async function handleSaveData() {
       ElMessage.success('字典数据创建成功')
     }
     dataDialogVisible.value = false
-    loadDictData(currentType.value.dictType)
+    loadDictData()
   } catch (error) {
     console.error('保存字典数据失败', error)
   } finally {
@@ -283,7 +307,7 @@ async function handleDeleteData(row) {
     await ElMessageBox.confirm('确定要删除该字典数据吗？', '警告', { type: 'error' })
     await deleteDictData(row.dictCode)
     ElMessage.success('删除成功')
-    loadDictData(currentType.value.dictType)
+    loadDictData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除字典数据失败', error)
@@ -378,4 +402,7 @@ async function handleDataStatusChange(row) {
   margin-bottom: 16px;
   .current-type { font-size: 14px; font-weight: 500; color: #1F2937; }
 }
+
+.pagination-wrap { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+.pagination-info { font-size: 13px; color: #909399; }
 </style>

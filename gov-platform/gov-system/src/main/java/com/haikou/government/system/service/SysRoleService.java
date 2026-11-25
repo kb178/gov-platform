@@ -2,6 +2,8 @@ package com.haikou.government.system.service;
 
 import com.haikou.government.system.domain.SysRole;
 import com.haikou.government.system.dto.RoleDTO;
+import com.haikou.government.common.core.domain.PageResult;
+import com.haikou.government.system.dto.RoleQueryDTO;
 import com.haikou.government.system.vo.RoleVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -58,6 +60,11 @@ public interface SysRoleService extends IService<SysRole> {
      * 修改角色状态
      */
     boolean updateStatus(Long roleId, Byte status);
+
+    /**
+     * 分页查询角色
+     */
+    PageResult<RoleVO> getRolePage(RoleQueryDTO queryDTO);
 
     /**
      * 分配菜单权限

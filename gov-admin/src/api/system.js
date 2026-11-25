@@ -72,6 +72,15 @@ export function getRoleList() {
   })
 }
 
+// 分页查询角色
+export function getRolePage(params) {
+  return request({
+    url: '/system/sysRole/page',
+    method: 'get',
+    params
+  })
+}
+
 // 查询角色详情
 export function getRoleDetail(roleId) {
   return request({
@@ -281,6 +290,15 @@ export function getDictDataByType(dictType) {
   return request({
     url: `/system/dictData/type/${dictType}`,
     method: 'get'
+  })
+}
+
+// 分页查询字典数据
+export function getDictDataPage(params) {
+  return request({
+    url: '/system/dictData/page',
+    method: 'get',
+    params
   })
 }
 

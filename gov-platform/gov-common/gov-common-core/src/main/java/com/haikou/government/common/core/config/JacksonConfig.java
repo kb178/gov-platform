@@ -25,9 +25,9 @@ public class JacksonConfig {
         // 用 builder 创建，保留 Spring Boot 默认配置（LocalDateTime 等时间类型的序列化）
         ObjectMapper mapper = builder.createXmlMapper(false).build();
         SimpleModule module = new SimpleModule();
+        // 只把 Long（包装类型，一般是 ID）转成字符串，long（基本类型，如 total 计数）保持数字
         module.addSerializer(Long.class, ToStringSerializer.instance);
-        module.addSerializer(Long.TYPE, ToStringSerializer.instance);
-        mapper.registerModule(module);  // 再额外装一个 Long 转 String 的
+        mapper.registerModule(module);
         return mapper;
     }
 }

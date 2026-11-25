@@ -2,6 +2,8 @@ package com.haikou.government.system.service;
 
 import com.haikou.government.system.domain.DictData;
 import com.haikou.government.system.dto.DictDataDTO;
+import com.haikou.government.common.core.domain.PageResult;
+import com.haikou.government.system.dto.DictDataQueryDTO;
 import com.haikou.government.system.vo.DictDataVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -59,4 +61,9 @@ public interface DictDataService extends IService<DictData> {
      * 修改字典数据状态
      */
     boolean updateStatus(Long dictCode, Byte status);
+
+    /**
+     * 分页查询字典数据
+     */
+    PageResult<DictDataVO> getDictDataPage(DictDataQueryDTO queryDTO);
 }

@@ -1,8 +1,10 @@
 package com.haikou.government.system.controller;
 
+import com.haikou.government.common.core.domain.PageResult;
 import com.haikou.government.common.core.domain.R;
 import com.haikou.government.system.annotation.Log;
 import com.haikou.government.system.dto.DictDataDTO;
+import com.haikou.government.system.dto.DictDataQueryDTO;
 import com.haikou.government.system.enums.BusinessType;
 import com.haikou.government.system.service.DictDataService;
 import com.haikou.government.system.vo.DictDataVO;
@@ -80,6 +82,15 @@ public class DictDataController {
     public R<Boolean> update(@Valid @RequestBody DictDataDTO dictDataDTO) {
         boolean result = dictDataService.updateDictData(dictDataDTO);
         return R.ok(result);
+    }
+
+    /**
+     * 分页查询字典数据
+     */
+    @Operation(summary = "分页查询字典数据", description = "分页获取字典数据列表")
+    @GetMapping("/page")
+    public R<PageResult<DictDataVO>> page(DictDataQueryDTO queryDTO) {
+        return R.ok(dictDataService.getDictDataPage(queryDTO));
     }
 
     /**
