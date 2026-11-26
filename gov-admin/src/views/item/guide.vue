@@ -42,13 +42,13 @@
     </el-table>
 
     <div class="pagination-wrap">
-      <span class="pagination-info">共 {{ total }} 条记录，每页 {{ pageSize }} 条</span>
+      <span class="pagination-info">共 {{ total }} 条记录</span>
       <el-pagination
-        v-model:current-page="pageNum"
-        v-model:page-size="pageSize"
-        layout="prev, pager, next, jumper"
-        :total="total"
-        @current-change="loadData"
+        :current-page="pageNum"
+        :page-size="pageSize"
+        :total="Number(total)"
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
       />
     </div>
 
@@ -170,6 +170,11 @@ async function loadCategoryList() {
   } catch (error) {
     console.error('加载分类列表失败', error)
   }
+}
+
+function handlePageChange(page) {
+  pageNum.value = page
+  loadData()
 }
 
 function handleSearch() {

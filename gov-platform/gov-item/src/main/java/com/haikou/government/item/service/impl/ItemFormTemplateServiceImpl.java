@@ -99,8 +99,8 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
             throw new BusinessException("模板不存在");
         }
 
-        // 已发布的模板不能修改（需先禁用）
-        if (existing.getStatus() != null && existing.getStatus() == 1) {
+        // 已启用的模板不能修改（需先禁用）
+        if (existing.getStatus() != null && existing.getStatus() == 0) {
             throw new BusinessException("已启用的模板不能修改，请先禁用");
         }
 
@@ -123,7 +123,7 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
         }
 
         // 已启用的模板不能删除
-        if (template.getStatus() != null && template.getStatus() == 1) {
+        if (template.getStatus() != null && template.getStatus() == 0) {
             throw new BusinessException("已启用的模板不能删除，请先禁用");
         }
 
@@ -145,10 +145,10 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
         // 先禁用同一事项下的其他模板（一个事项只能有一个启用的模板）
         disableOtherTemplates(template.getItemId(), templateId);
 
-        // 启用当前模板
+        // 启用当前模板（0=启用）
         ItemFormTemplate update = new ItemFormTemplate();
         update.setTemplateId(templateId);
-        update.setStatus((byte) 1);
+        update.setStatus((byte) 0);
         this.updateById(update);
 
         log.info("启用表单模板成功: templateId={}, templateName={}", templateId, template.getTemplateName());
@@ -167,7 +167,7 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
 
         ItemFormTemplate update = new ItemFormTemplate();
         update.setTemplateId(templateId);
-        update.setStatus((byte) 0);
+        update.setStatus((byte) 1);
         this.updateById(update);
 
         log.info("禁用表单模板成功: templateId={}, templateName={}", templateId, template.getTemplateName());
@@ -180,7 +180,7 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
     public ItemFormTemplateVO getActiveTemplate(Long itemId) {
         ItemFormTemplate template = this.getOne(new LambdaQueryWrapper<ItemFormTemplate>()
                 .eq(ItemFormTemplate::getItemId, itemId)
-                .eq(ItemFormTemplate::getStatus, 1)
+                .eq(ItemFormTemplate::getStatus, 0)  // 0=启用
                 .last("LIMIT 1"));
         return template != null ? convertToVO(template) : null;
     }
@@ -190,11 +190,11 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
      */
     private void disableOtherTemplates(Long itemId, Long excludeTemplateId) {
         ItemFormTemplate update = new ItemFormTemplate();
-        update.setStatus((byte) 0);
+        update.setStatus((byte) 1);  // 禁用
 
         this.update(update, new LambdaQueryWrapper<ItemFormTemplate>()
                 .eq(ItemFormTemplate::getItemId, itemId)
-                .eq(ItemFormTemplate::getStatus, 1)
+                .eq(ItemFormTemplate::getStatus, 0)  // 查当前启用的
                 .ne(ItemFormTemplate::getTemplateId, excludeTemplateId));
     }
 
@@ -214,7 +214,7 @@ public class ItemFormTemplateServiceImpl extends ServiceImpl<ItemFormTemplateMap
         }
 
         // 状态文本
-        vo.setStatusText(template.getStatus() != null && template.getStatus() == 1 ? "已启用" : "草稿");
+        vo.setStatusText(template.getStatus() != null && template.getStatus() == 1 ? "已禁用" : "已启用");
 
         return vo;
     }

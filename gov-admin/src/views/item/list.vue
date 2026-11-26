@@ -25,44 +25,53 @@
     </div>
 
     <el-table :data="tableData" v-loading="loading">
-      <el-table-column label="事项信息" min-width="240">
+      <el-table-column label="事项信息" min-width="220">
         <template #default="{ row }">
           <div class="item-name">{{ row.itemName }}</div>
           <div class="item-code">事项编码：{{ row.itemCode }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="所属分类" width="120">
+      <el-table-column label="所属分类" width="110">
         <template #default="{ row }">
           <el-tag type="primary" size="small" effect="plain">{{ row.categoryName }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="deptName" label="主管部门" width="120" />
-      <el-table-column label="状态" width="100">
+      <el-table-column prop="deptName" label="主管部门" width="110" show-overflow-tooltip />
+      <el-table-column prop="summary" label="描述" min-width="160" show-overflow-tooltip />
+      <el-table-column label="在线办理" width="90">
         <template #default="{ row }">
-          <el-tag :type="statusMap[row.status].type" size="small" effect="dark">
-            {{ statusMap[row.status].text }}
+          <el-tag :type="row.supportOnline === 1 ? 'success' : 'info'" size="small">
+            {{ row.supportOnline === 1 ? '支持' : '不支持' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="updateTime" label="更新时间" width="170" />
-      <el-table-column label="操作" width="260" fixed="right">
+      <el-table-column label="状态" width="90">
+        <template #default="{ row }">
+          <el-tag :type="statusMap[row.status]?.type" size="small" effect="dark">
+            {{ statusMap[row.status]?.text }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="updateTime" label="更新时间" width="165" />
+      <el-table-column label="操作" width="240" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="showEditDialog(row)">编辑</el-button>
           <el-button type="primary" link size="small" @click="handlePublish(row)" v-if="row.status === 0">发布</el-button>
-          <el-button type="primary" link size="small" @click="handleOffline(row)" v-if="row.status === 1">下线</el-button>
+          <el-button type="success" link size="small" @click="handlePublish(row)" v-if="row.status === 2">上线</el-button>
+          <el-button type="warning" link size="small" @click="handleOffline(row)" v-if="row.status === 1">下线</el-button>
           <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <div class="pagination-wrap">
-      <span class="pagination-info">共 {{ total }} 条记录，每页 {{ pageSize }} 条</span>
+      <span class="pagination-info">共 {{ total }} 条记录</span>
       <el-pagination
-        v-model:current-page="pageNum"
-        v-model:page-size="pageSize"
-        layout="prev, pager, next, jumper"
-        :total="total"
-        @current-change="loadData"
+        :current-page="pageNum"
+        :page-size="pageSize"
+        :total="Number(total)"
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
       />
     </div>
 
@@ -105,23 +114,57 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="事项描述" prop="description">
-              <el-input v-model="itemForm.description" type="textarea" :rows="3" placeholder="请输入事项描述" />
+            <el-form-item label="简短描述" prop="summary">
+              <el-input v-model="itemForm.summary" type="textarea" :rows="2" placeholder="请输入简短描述" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="办理条件" prop="condition">
-              <el-input v-model="itemForm.condition" type="textarea" :rows="2" placeholder="请输入办理条件" />
+            <el-form-item label="办理条件" prop="applyCondition">
+              <div class="rich-text-wrap">
+                <div class="format-hint">支持多行输入，每条一行，可使用序号（如：1. xxx）</div>
+                <el-input v-model="itemForm.applyCondition" type="textarea" :rows="6" placeholder="请输入办理条件，如：&#10;1. 具有海口市户籍&#10;2. 年满16周岁&#10;3. 持有有效身份证件" />
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="办理流程" prop="processFlow">
+              <div class="rich-text-wrap">
+                <div class="format-hint">支持多行输入，每步一行，可使用序号（如：1. xxx）</div>
+                <el-input v-model="itemForm.processFlow" type="textarea" :rows="6" placeholder="请输入办理流程，如：&#10;1. 网上提交申请&#10;2. 工作人员审核&#10;3. 现场核验材料&#10;4. 制证发放" />
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="办理时限" prop="timeLimit">
-              <el-input v-model="itemForm.timeLimit" placeholder="如：5个工作日" />
+            <el-form-item label="办理时限" prop="processTime">
+              <el-input v-model="itemForm.processTime" placeholder="如：5个工作日" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="办理地点" prop="location">
-              <el-input v-model="itemForm.location" placeholder="请输入办理地点" />
+            <el-form-item label="办理地点" prop="processLocation">
+              <el-input v-model="itemForm.processLocation" placeholder="请输入办理地点" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="收费标准" prop="feeStandard">
+              <el-input v-model="itemForm.feeStandard" placeholder="如：免费" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话" prop="contactPhone">
+              <el-input v-model="itemForm.contactPhone" placeholder="请输入联系电话" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="在线办理" prop="supportOnline">
+              <el-radio-group v-model="itemForm.supportOnline">
+                <el-radio :value="1">支持</el-radio>
+                <el-radio :value="0">不支持</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="排序号" prop="sortNum">
+              <el-input-number v-model="itemForm.sortNum" :min="0" :max="999" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -170,10 +213,15 @@ const itemForm = reactive({
   itemCode: '',
   categoryId: '',
   deptId: '',
-  description: '',
-  condition: '',
-  timeLimit: '',
-  location: ''
+  summary: '',
+  applyCondition: '',
+  processFlow: '',
+  processTime: '',
+  processLocation: '',
+  feeStandard: '',
+  contactPhone: '',
+  supportOnline: 1,
+  sortNum: 0
 })
 
 const formRules = {
@@ -237,6 +285,11 @@ async function loadDeptTree() {
   }
 }
 
+function handlePageChange(page) {
+  pageNum.value = page
+  loadData()
+}
+
 function handleSearch() {
   pageNum.value = 1
   loadData()
@@ -250,7 +303,7 @@ function resetSearch() {
 function showAddDialog() {
   isEdit.value = false
   editingItemId.value = null
-  Object.assign(itemForm, { itemName: '', itemCode: '', categoryId: '', deptId: '', description: '', condition: '', timeLimit: '', location: '' })
+  Object.assign(itemForm, { itemName: '', itemCode: '', categoryId: '', deptId: '', summary: '', applyCondition: '', processFlow: '', processTime: '', processLocation: '', feeStandard: '', contactPhone: '', supportOnline: 1, sortNum: 0 })
   dialogVisible.value = true
 }
 
@@ -262,10 +315,15 @@ function showEditDialog(row) {
     itemCode: row.itemCode,
     categoryId: row.categoryId,
     deptId: row.deptId,
-    description: row.description || '',
-    condition: row.condition || '',
-    timeLimit: row.timeLimit || '',
-    location: row.location || ''
+    summary: row.summary || '',
+    applyCondition: row.applyCondition || '',
+    processFlow: row.processFlow || '',
+    processTime: row.processTime || '',
+    processLocation: row.processLocation || '',
+    feeStandard: row.feeStandard || '',
+    contactPhone: row.contactPhone || '',
+    supportOnline: row.supportOnline != null ? row.supportOnline : 1,
+    sortNum: row.sortNum || 0
   })
   dialogVisible.value = true
 }
@@ -341,4 +399,6 @@ async function handleDelete(row) {
 .item-code { font-size: 12px; color: #909399; margin-top: 4px; }
 .pagination-wrap { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
 .pagination-info { font-size: 13px; color: #909399; }
+.rich-text-wrap { width: 100%; }
+.format-hint { font-size: 12px; color: #9CA3AF; margin-bottom: 4px; }
 </style>

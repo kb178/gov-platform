@@ -181,9 +181,9 @@ public class ItemInfoServiceImpl extends ServiceImpl<ItemInfoMapper, ItemInfo> i
             throw new BusinessException("事项不存在");
         }
 
-        // 只有草稿状态的事项才能发布
-        if (item.getStatus() != null && item.getStatus() != 0) {
-            throw new BusinessException("只有草稿状态的事项才能发布");
+        // 草稿和已下线的事项都可以发布
+        if (item.getStatus() != null && item.getStatus() != 0 && item.getStatus() != 2) {
+            throw new BusinessException("只有草稿或已下线的事项才能发布");
         }
 
         ItemInfo update = new ItemInfo();

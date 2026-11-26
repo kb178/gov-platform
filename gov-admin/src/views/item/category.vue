@@ -23,8 +23,7 @@
 
     <el-table :data="tableData" row-key="categoryId" :default-expand-all="isExpand" :tree-props="{ children: 'children' }" v-loading="loading">
       <el-table-column prop="categoryName" label="分类名称" min-width="200" />
-      <el-table-column prop="categoryCode" label="分类编码" width="150" />
-      <el-table-column prop="sort" label="排序" width="80" />
+      <el-table-column prop="sortNum" label="排序" width="80" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-switch v-model="row.status" :active-value="0" :inactive-value="1" @change="handleStatusChange(row)" />
@@ -58,11 +57,8 @@
         <el-form-item label="分类名称" prop="categoryName" required>
           <el-input v-model="categoryForm.categoryName" placeholder="请输入分类名称" />
         </el-form-item>
-        <el-form-item label="分类编码" prop="categoryCode" required>
-          <el-input v-model="categoryForm.categoryCode" placeholder="请输入分类编码" />
-        </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="categoryForm.sort" :min="0" :max="999" />
+        <el-form-item label="排序" prop="sortNum">
+          <el-input-number v-model="categoryForm.sortNum" :min="0" :max="999" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="categoryForm.status">
@@ -109,15 +105,13 @@ const formRef = ref(null)
 const categoryForm = reactive({
   parentId: null,
   categoryName: '',
-  categoryCode: '',
-  sort: 0,
+  sortNum: 0,
   status: 0,
   remark: ''
 })
 
 const formRules = {
-  categoryName: [{ required: true, message: '请输入分类名称', trigger: 'blur' }],
-  categoryCode: [{ required: true, message: '请输入分类编码', trigger: 'blur' }]
+  categoryName: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 }
 
 onMounted(() => {
@@ -180,14 +174,13 @@ function showDialog(row, parentId) {
     Object.assign(categoryForm, {
       parentId: row.parentId || null,
       categoryName: row.categoryName,
-      categoryCode: row.categoryCode,
-      sort: row.sort,
+      sortNum: row.sortNum || 0,
       status: row.status,
       remark: row.remark || ''
     })
   } else {
     editingCategoryId.value = null
-    Object.assign(categoryForm, { parentId: parentId || null, categoryName: '', categoryCode: '', sort: 0, status: 0, remark: '' })
+    Object.assign(categoryForm, { parentId: parentId || null, categoryName: '', sortNum: 0, status: 0, remark: '' })
   }
   dialogVisible.value = true
 }

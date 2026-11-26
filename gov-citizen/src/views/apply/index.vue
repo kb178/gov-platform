@@ -134,10 +134,27 @@
                           :auto-upload="false"
                           :accept="field.accept || 'image/*,.pdf'"
                           :limit="field.maxCount || 5"
+                          list-type="picture-card"
                           :on-change="(file) => handleFieldFileChange(field.name, file)"
+                          :on-preview="(file) => handleUploadPreview(file)"
+                          :on-remove="(file) => handleFieldFileRemove(field.name, file)"
                           :file-list="uploadFiles[field.name] || []"
                         >
-                          <el-button size="small" type="primary">选择文件</el-button>
+                          <el-icon><Plus /></el-icon>
+                          <!-- 图片缩略图上的操作按钮 -->
+                          <template #file="{ file }">
+                            <div class="upload-card-item">
+                              <img class="upload-card-thumb" :src="file.url" alt="" />
+                              <div class="upload-card-actions">
+                                <span class="action-btn" @click.stop="handleUploadPreview(file)">
+                                  <el-icon><ZoomIn /></el-icon>
+                                </span>
+                                <span class="action-btn" @click.stop="handleFieldFileRemove(field.name, file)">
+                                  <el-icon><Delete /></el-icon>
+                                </span>
+                              </div>
+                            </div>
+                          </template>
                           <template #tip>
                             <div class="el-upload__tip">
                               支持 {{ field.accept || '图片/PDF' }} 格式，最多 {{ field.maxCount || 5 }} 个文件
@@ -146,6 +163,45 @@
                         </el-upload>
                       </div>
                     </div>
+                  </div>
+
+                  <!-- 文件上传字段（单独渲染，占整行） -->
+                  <div class="form-group full-width" v-for="field in uploadFields" :key="field.name">
+                    <label class="form-label">
+                      {{ field.name }}
+                      <span v-if="field.required" class="required">*</span>
+                    </label>
+                    <el-upload
+                      action="#"
+                      :auto-upload="false"
+                      :accept="field.accept || 'image/*,.pdf'"
+                      :limit="field.maxCount || 5"
+                      list-type="picture-card"
+                      :on-change="(file) => handleFieldFileChange(field.name, file)"
+                      :on-preview="(file) => handleUploadPreview(file)"
+                      :on-remove="(file) => handleFieldFileRemove(field.name, file)"
+                      :file-list="uploadFiles[field.name] || []"
+                    >
+                      <el-icon><Plus /></el-icon>
+                      <template #file="{ file }">
+                        <div class="upload-card-item">
+                          <img class="upload-card-thumb" :src="file.url" alt="" />
+                          <div class="upload-card-actions">
+                            <span class="action-btn" @click.stop="handleUploadPreview(file)">
+                              <el-icon><ZoomIn /></el-icon>
+                            </span>
+                            <span class="action-btn" @click.stop="handleFieldFileRemove(field.name, file)">
+                              <el-icon><Delete /></el-icon>
+                            </span>
+                          </div>
+                        </div>
+                      </template>
+                      <template #tip>
+                        <div class="el-upload__tip">
+                          支持 {{ field.accept || '图片/PDF' }} 格式，最多 {{ field.maxCount || 5 }} 个文件
+                        </div>
+                      </template>
+                    </el-upload>
                   </div>
 
                   <!-- 备注 -->
@@ -196,12 +252,19 @@
                           </el-button>
                         </div>
                         <div class="checklist-desc">{{ material.desc }}</div>
-                        <!-- 已上传文件名 -->
-                        <div v-if="material.uploaded && material.fileName" class="checklist-file">
-                          📎 {{ material.fileName }}
-                          <el-button type="danger" link size="small" @click="handleRemoveMaterialFile(index)">
-                            删除
-                          </el-button>
+                        <!-- 已上传文件：文件名 + 预览按钮 -->
+                        <div v-if="material.uploaded && material.fileUrl" class="checklist-file-preview">
+                          <div class="file-info">
+                            <span class="file-name">📎 {{ material.fileName }}</span>
+                            <div class="file-actions">
+                              <el-button type="primary" link size="small" @click="handlePreviewImage(material.fileUrl)">
+                                👁 预览
+                              </el-button>
+                              <el-button type="danger" link size="small" @click="handleRemoveMaterialFile(index)">
+                                删除
+                              </el-button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <!-- 上传按钮 -->
@@ -213,7 +276,7 @@
                         :on-change="(file) => handleMaterialFileChange(index, file)"
                       >
                         <el-button :type="material.uploaded ? 'success' : 'primary'" size="small">
-                          {{ material.uploaded ? '已上传' : '上传文件' }}
+                          {{ material.uploaded ? '重新上传' : '上传文件' }}
                         </el-button>
                       </el-upload>
                     </div>
@@ -237,6 +300,15 @@
                         <span class="confirm-value">{{ formatConfirmValue(key, value) }}</span>
                       </div>
                     </div>
+                    <!-- 表单上传的图片：一寸照比例展示 -->
+                    <div v-if="formUploadImages.length > 0" class="confirm-images">
+                      <div v-for="(img, idx) in formUploadImages" :key="idx" class="confirm-image-card">
+                        <div class="photo-frame" @click="handlePreviewImage(img.url)">
+                          <img :src="img.url" class="photo-img" />
+                        </div>
+                        <div class="photo-name">{{ img.name }}</div>
+                      </div>
+                    </div>
                   </div>
 
                   <el-divider />
@@ -248,6 +320,13 @@
                         <span>{{ material.uploaded ? '✅' : '⬜' }}</span>
                         <span>{{ material.name }}</span>
                         <span v-if="material.fileName" class="confirm-file-name">({{ material.fileName }})</span>
+                        <el-button
+                          v-if="material.uploaded && material.fileUrl"
+                          type="primary" link size="small"
+                          @click="handlePreviewImage(material.fileUrl)"
+                        >
+                          👁 预览
+                        </el-button>
                       </div>
                     </div>
                   </div>
@@ -381,6 +460,13 @@
       </div>
     </div>
 
+    <!-- 上传图片预览弹窗 -->
+    <el-dialog v-model="uploadPreviewVisible" title="图片预览" width="600px" append-to-body>
+      <div style="text-align: center;">
+        <img :src="uploadPreviewUrl" alt="预览" style="max-width: 100%; max-height: 70vh; border-radius: 8px;" />
+      </div>
+    </el-dialog>
+
     <!-- 示例图片预览弹窗 -->
     <el-dialog
       v-model="previewVisible"
@@ -400,6 +486,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, ZoomIn, Delete } from '@element-plus/icons-vue'
+import { saveDraft, updateDraft, submitApplication, uploadFile } from '@/api/approval'
 import { getActiveFormTemplate, getItemDetail, getItemMaterials } from '@/api/item'
 import { getUserInfo } from '@/api/user'
 
@@ -449,6 +537,11 @@ const formRows = computed(() => {
     rows.push(fields.slice(i, i + 2))
   }
   return rows
+})
+
+// 文件上传字段（单独渲染，占整行）
+const uploadFields = computed(() => {
+  return formFields.value.filter(f => f.type === 'upload')
 })
 
 // ========== 加载数据 ==========
@@ -529,6 +622,14 @@ const handleFieldFileChange = (fieldName, file) => {
   if (!uploadFiles.value[fieldName]) {
     uploadFiles.value[fieldName] = []
   }
+  // on-change 可能对同一个文件触发多次（状态变化），按文件名去重
+  const exists = uploadFiles.value[fieldName].find(f => f.name === file.name)
+  if (exists) return
+
+  // 确保有 url（缩略图用），没有就从 raw 生成 blob URL
+  if (!file.url && file.raw) {
+    file.url = URL.createObjectURL(file.raw)
+  }
   uploadFiles.value[fieldName].push(file)
 }
 
@@ -553,6 +654,7 @@ const handleMaterialFileChange = (index, file) => {
   materials.value[index].checked = true
   materials.value[index].fileName = file.name
   materials.value[index].fileRaw = file.raw
+  materials.value[index].fileUrl = file.url || URL.createObjectURL(file.raw)
 
   ElMessage.success(`${materials.value[index].name} 上传成功`)
 }
@@ -564,6 +666,50 @@ const handleRemoveMaterialFile = (index) => {
   materials.value[index].fileRaw = null
   ElMessage.success('文件已删除')
 }
+
+// ========== 图片预览 ==========
+function isImageFile(name) {
+  return /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name || '')
+}
+
+const uploadPreviewVisible = ref(false)
+const uploadPreviewUrl = ref('')
+
+function handleUploadPreview(file) {
+  if (file.url) {
+    uploadPreviewUrl.value = file.url
+    uploadPreviewVisible.value = true
+  } else if (file.raw) {
+    fileToBase64(file.raw).then(url => {
+      uploadPreviewUrl.value = url
+      uploadPreviewVisible.value = true
+    })
+  }
+}
+
+function handlePreviewImage(url) {
+  uploadPreviewUrl.value = url
+  uploadPreviewVisible.value = true
+}
+
+function handleFieldFileRemove(fieldName, file) {
+  const files = uploadFiles.value[fieldName] || []
+  const idx = files.findIndex(f => f.name === file.name)
+  if (idx > -1) files.splice(idx, 1)
+}
+
+// 表单上传的图片（确认页展示用）
+const formUploadImages = computed(() => {
+  const images = []
+  for (const [key, files] of Object.entries(uploadFiles.value)) {
+    if (files && files.length > 0) {
+      files.forEach(f => {
+        if (f.url) images.push({ name: key, url: f.url })
+      })
+    }
+  }
+  return images
+})
 
 // ========== 示例预览 ==========
 const previewVisible = ref(false)
@@ -644,16 +790,83 @@ const showAgreement = () => {
   )
 }
 
-// ========== 暂存草稿 ==========
-const handleSaveDraft = () => {
-  const draftData = {
-    itemId: route.params.id,
-    formData: formData.value,
-    currentStep: currentStep.value,
-    savedAt: new Date().toISOString()
+// ========== 暂存草稿（存数据库） ==========
+const draftSavedId = ref(null)  // 记住草稿ID，下次就是更新
+
+const handleSaveDraft = async () => {
+  try {
+    ElMessage.info('正在保存草稿...')
+
+    // 1. 先上传材料文件到 MinIO 拿 URL
+    const materialsData = []
+    for (const m of materials.value) {
+      let fileUrl = m.fileUrl || ''
+      if (m.fileRaw && !m.fileUrl) {
+        const res = await uploadFile(m.fileRaw)
+        fileUrl = res.data.url
+        m.fileUrl = fileUrl  // 缓存URL，避免重复上传
+      }
+      materialsData.push({
+        materialId: m.materialId,
+        materialName: m.name,
+        required: m.required ? 1 : 0,
+        fileUrl
+      })
+    }
+
+    // 2. 表单上传的图片也传 MinIO
+    const formImageUrls = {}
+    for (const [key, files] of Object.entries(uploadFiles.value)) {
+      if (files && files.length > 0) {
+        formImageUrls[key] = []
+        for (const f of files) {
+          if (f.raw && !f.url) {
+            const res = await uploadFile(f.raw)
+            f.url = res.data.url
+          }
+          formImageUrls[key].push(f.url || '')
+        }
+      }
+    }
+
+    // 3. 构造后端 DTO 格式
+    const submitData = {
+      itemId: Number(route.params.id),
+      templateId: template.value?.templateId,
+      formData: JSON.stringify({ ...formData.value, _uploadImages: formImageUrls }),
+      materials: materialsData,
+      remark: formData.value['备注说明'] || ''
+    }
+
+    // 4. 调后端接口保存
+    if (draftSavedId.value) {
+      await updateDraft(draftSavedId.value, submitData)
+    } else {
+      const res = await saveDraft(submitData)
+      draftSavedId.value = res.data
+    }
+    ElMessage.success('草稿已保存到云端')
+  } catch (e) {
+    console.error('保存草稿失败:', e)
   }
-  localStorage.setItem(`applyDraft_${route.params.id}`, JSON.stringify(draftData))
-  ElMessage.success('草稿已保存')
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+function base64ToBlob(base64) {
+  const parts = base64.split(',')
+  const mime = parts[0].match(/:(.*?);/)[1]
+  const bin = atob(parts[1])
+  const arr = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i)
+  return new Blob([arr], { type: mime })
 }
 
 // ========== 提交 ==========
@@ -682,25 +895,45 @@ const handleSubmit = async () => {
 
     submitting.value = true
 
-    // TODO: 调用后端提交接口
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    // 生成办件编号
-    const now = new Date()
-    const orderNo = 'BJ' + now.getFullYear() +
-      String(now.getMonth() + 1).padStart(2, '0') +
-      String(now.getDate()).padStart(2, '0') +
-      String(Math.floor(Math.random() * 10000)).padStart(4, '0')
-
-    submitResult.value = {
-      orderNo,
-      itemName: itemInfo.value.name,
-      submitTime: now.toLocaleString('zh-CN'),
-      estimateTime: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')
+    // 上传材料文件到 MinIO
+    const materialsData = []
+    for (const m of materials.value) {
+      let fileUrl = m.fileUrl || ''
+      if (m.fileRaw && !m.fileUrl) {
+        const res = await uploadFile(m.fileRaw)
+        fileUrl = res.data.url
+        m.fileUrl = fileUrl
+      }
+      materialsData.push({
+        materialId: m.materialId,
+        materialName: m.name,
+        required: m.required ? 1 : 0,
+        fileUrl
+      })
     }
 
-    // 清除草稿
+    // 构造提交数据
+    const submitData = {
+      itemId: Number(route.params.id),
+      templateId: template.value?.templateId,
+      formData: JSON.stringify(formData.value),
+      materials: materialsData,
+      remark: formData.value['备注说明'] || ''
+    }
+
+    // 调后端提交接口
+    const res = await submitApplication(submitData)
+
+    submitResult.value = {
+      orderNo: res.data?.applicationNo || res.data || '提交成功',
+      itemName: itemInfo.value.name,
+      submitTime: new Date().toLocaleString('zh-CN'),
+      estimateTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')
+    }
+
+    // 清除本地草稿记录
     localStorage.removeItem(`applyDraft_${route.params.id}`)
+    draftSavedId.value = null
 
     ElMessage.success('提交成功')
     submitSuccess.value = true
@@ -724,6 +957,32 @@ onMounted(() => {
       }).then(() => {
         formData.value = draftData.formData
         currentStep.value = draftData.currentStep
+        // 恢复上传的图片
+        if (draftData.uploadFiles) {
+          const restored = {}
+          for (const [key, files] of Object.entries(draftData.uploadFiles)) {
+            restored[key] = files.map(f => {
+              const blob = base64ToBlob(f.base64)
+              const file = new File([blob], f.name, { type: blob.type })
+              return { name: f.name, raw: file, url: URL.createObjectURL(file) }
+            })
+          }
+          uploadFiles.value = restored
+        }
+        // 恢复材料文件
+        if (draftData.materials) {
+          draftData.materials.forEach((m, i) => {
+            if (i < materials.value.length && m.fileBase64) {
+              const blob = base64ToBlob(m.fileBase64)
+              const file = new File([blob], m.fileName || 'file', { type: blob.type })
+              materials.value[i].uploaded = true
+              materials.value[i].checked = true
+              materials.value[i].fileName = m.fileName
+              materials.value[i].fileRaw = file
+              materials.value[i].fileUrl = URL.createObjectURL(file)
+            }
+          })
+        }
         ElMessage.success('草稿已恢复')
       }).catch(() => {
         localStorage.removeItem(`applyDraft_${route.params.id}`)
@@ -971,6 +1230,111 @@ onMounted(() => {
 .field-upload {
   :deep(.el-upload-list) {
     margin-top: 8px;
+  }
+
+  /* 图片缩略图卡片 */
+  .upload-card-item {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  .upload-card-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  .upload-card-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 0;
+    border-radius: 0 0 6px 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .upload-card-item:hover .upload-card-actions {
+    opacity: 1;
+  }
+  .action-btn {
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    &:hover { color: #93c5fd; }
+  }
+
+  /* 材料上传后的缩略图 */
+  .checklist-file-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 8px;
+    background: #F0FDF4;
+    border-radius: 8px;
+  }
+  .material-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid #BBF7D0;
+    transition: border-color 0.2s;
+    &:hover { border-color: #22C55E; }
+  }
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .file-name {
+    font-size: 13px;
+    color: #374151;
+  }
+  .file-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* 确认页表单图片：一寸照比例 (5:7) */
+  .confirm-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 12px;
+    background: #F9FAFB;
+    border-radius: 8px;
+  }
+  .confirm-image-card {
+    text-align: center;
+  }
+  .photo-frame {
+    width: 85px;
+    height: 119px;  /* 一寸照比例 5:7 ≈ 85×119px */
+    border: 2px solid #E5E7EB;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    &:hover { border-color: #3B82F6; }
+  }
+  .photo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* 裁切填满，不拉伸 */
+  }
+  .photo-name {
+    font-size: 12px;
+    color: #6B7280;
+    margin-top: 4px;
   }
 }
 
