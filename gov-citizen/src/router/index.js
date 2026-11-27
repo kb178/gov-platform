@@ -43,6 +43,12 @@ const routes = [
         meta: { title: '办件进度' }
       },
       {
+        path: 'progress/:id',
+        name: 'ProgressDetail',
+        component: () => import('@/views/progress/detail.vue'),
+        meta: { title: '申请详情', requireAuth: true }
+      },
+      {
         path: 'my-license',
         name: 'MyLicense',
         component: () => import('@/views/license/index.vue'),

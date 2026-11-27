@@ -252,10 +252,10 @@
                           </el-button>
                         </div>
                         <div class="checklist-desc">{{ material.desc }}</div>
-                        <!-- 已上传文件：文件名 + 预览按钮 -->
+                        <!-- 已上传文件：预览按钮 -->
                         <div v-if="material.uploaded && material.fileUrl" class="checklist-file-preview">
                           <div class="file-info">
-                            <span class="file-name">📎 {{ material.fileName }}</span>
+                            <span class="file-name">✅ 已上传</span>
                             <div class="file-actions">
                               <el-button type="primary" link size="small" @click="handlePreviewImage(material.fileUrl)">
                                 👁 预览
@@ -300,7 +300,7 @@
                         <span class="confirm-value">{{ formatConfirmValue(key, value) }}</span>
                       </div>
                     </div>
-                    <!-- 表单上传的图片：一寸照比例展示 -->
+                    <!-- 表单上传的图片 -->
                     <div v-if="formUploadImages.length > 0" class="confirm-images">
                       <div v-for="(img, idx) in formUploadImages" :key="idx" class="confirm-image-card">
                         <div class="photo-frame" @click="handlePreviewImage(img.url)">
@@ -319,7 +319,6 @@
                       <div v-for="(material, index) in materials" :key="index" class="confirm-file">
                         <span>{{ material.uploaded ? '✅' : '⬜' }}</span>
                         <span>{{ material.name }}</span>
-                        <span v-if="material.fileName" class="confirm-file-name">({{ material.fileName }})</span>
                         <el-button
                           v-if="material.uploaded && material.fileUrl"
                           type="primary" link size="small"
@@ -487,7 +486,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, ZoomIn, Delete } from '@element-plus/icons-vue'
-import { saveDraft, updateDraft, submitApplication, uploadFile } from '@/api/approval'
+import { saveDraft, updateDraft, deleteDraft, submitApplication, uploadFile, getMyApplications, getApplicationDetail } from '@/api/approval'
 import { getActiveFormTemplate, getItemDetail, getItemMaterials } from '@/api/item'
 import { getUserInfo } from '@/api/user'
 
@@ -609,6 +608,8 @@ onMounted(async () => {
         ElMessage.error('表单模板配置错误')
       }
     }
+    // 检查是否有草稿（status=0），有就问用户要不要恢复
+    await checkDraft()
   } catch (error) {
     console.error('加载数据失败:', error)
     ElMessage.error('加载数据失败')
@@ -617,20 +618,127 @@ onMounted(async () => {
   }
 })
 
-// ========== 文件上传 ==========
-const handleFieldFileChange = (fieldName, file) => {
-  if (!uploadFiles.value[fieldName]) {
-    uploadFiles.value[fieldName] = []
+// ========== 检查并恢复草稿 ==========
+const checkDraft = async () => {
+  // 从进度页点"继续填写"进来，带 draftId，直接恢复不弹窗
+  const draftId = route.query.draftId
+  if (draftId) {
+    await restoreDraft(draftId)  // 不转 Number，防止大数精度丢失
+    return
   }
-  // on-change 可能对同一个文件触发多次（状态变化），按文件名去重
-  const exists = uploadFiles.value[fieldName].find(f => f.name === file.name)
-  if (exists) return
 
-  // 确保有 url（缩略图用），没有就从 raw 生成 blob URL
-  if (!file.url && file.raw) {
-    file.url = URL.createObjectURL(file.raw)
+  try {
+    const res = await getMyApplications({ pageNum: 1, pageSize: 50, status: 0 })
+    const list = res.data?.records || res.data || []
+    // 找到当前事项的草稿
+    const draft = list.find(item =>
+      String(item.itemId) === String(route.params.id) && item.status === 0
+    )
+    if (!draft) return
+
+    ElMessageBox.confirm(
+      `检测到您有一个未提交的草稿（${draft.applicationNo || draft.createTime}），是否继续填写？`,
+      '恢复草稿',
+      { confirmButtonText: '继续填写', cancelButtonText: '重新填写', type: 'info' }
+    ).then(async () => {
+      await restoreDraft(draft.applicationId)
+    }).catch(async () => {
+      // 用户选择重新填写，删除旧草稿
+      try {
+        await deleteDraft(draft.applicationId)
+      } catch (e) { /* 删不掉不影响使用 */ }
+    })
+  } catch (e) {
+    // 查询草稿失败不影响正常填写
   }
-  uploadFiles.value[fieldName].push(file)
+}
+
+const restoreDraft = async (applicationId) => {
+  try {
+    const res = await getApplicationDetail(applicationId)
+    const data = res.data
+    if (!data) return
+
+    draftSavedId.value = applicationId
+
+    // 恢复表单数据
+    if (data.formData) {
+      try {
+        const parsed = JSON.parse(data.formData)
+        // _uploadImages 是存的图片URL，提取出来
+        const uploadImages = parsed._uploadImages || {}
+        delete parsed._uploadImages
+        formData.value = { ...formData.value, ...parsed }
+
+        // 恢复表单图片
+        if (Object.keys(uploadImages).length > 0) {
+          const restored = {}
+          for (const [key, urls] of Object.entries(uploadImages)) {
+            restored[key] = (Array.isArray(urls) ? urls : [urls]).map(url => ({
+              name: key,
+              url: url,
+              raw: null
+            }))
+          }
+          uploadFiles.value = restored
+        
+        }
+      } catch (e) {
+        console.warn('解析草稿表单数据失败:', e)
+      }
+    }
+
+    // 恢复材料
+    if (data.materials && Array.isArray(data.materials)) {
+      data.materials.forEach(m => {
+        const mat = materials.value.find(x => x.materialId === m.materialId)
+        if (mat && m.fileUrl) {
+          mat.uploaded = true
+          mat.checked = true
+          mat.fileUrl = m.fileUrl
+          mat.fileName = m.fileUrl.split('/').pop() || '已上传文件'
+          // 注意：没有 fileRaw，所以不能再重新上传（除非用户主动替换）
+        }
+      })
+    }
+
+    ElMessage({ message: '草稿已恢复', type: 'success', duration: 1500 })
+  } catch (e) {
+    console.error('恢复草稿失败:', e)
+    ElMessage.error('恢复草稿失败')
+  }
+}
+
+// ========== 文件上传 ==========
+// 版本号：每次文件变动 +1，强制 computed 重新计算
+const fileVersion = ref(0)
+
+const handleFieldFileChange = (fieldName, file) => {
+  const current = uploadFiles.value[fieldName] || []
+  // on-change 可能对同一个文件触发多次（状态变化），按文件名去重
+  if (current.find(f => f.name === file.name)) return
+
+  // 校验文件大小
+  if (file.raw && file.raw.size > 20 * 1024 * 1024) {
+    ElMessage.error('图片太大了，不能超过 20MB，请压缩后重新上传')
+    return
+  }
+
+  // 用 base64 生成图片地址（比 blob URL 更可靠）
+  if (file.raw) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      file.url = e.target.result  // data:image/jpeg;base64,...
+      fileVersion.value++  // 图片加载完再触发刷新
+    }
+    reader.readAsDataURL(file.raw)
+  }
+
+  uploadFiles.value = {
+    ...uploadFiles.value,
+    [fieldName]: [...current, file]
+  }
+  fileVersion.value++
 }
 
 // ========== 材料文件上传 ==========
@@ -638,7 +746,7 @@ const handleMaterialFileChange = (index, file) => {
   // 验证文件大小
   const isLt10M = file.size / 1024 / 1024 < 10
   if (!isLt10M) {
-    ElMessage.error('文件大小不能超过 10MB')
+    ElMessage.error('文件太大了，不能超过 10MB，请压缩后重新上传')
     return false
   }
 
@@ -656,7 +764,7 @@ const handleMaterialFileChange = (index, file) => {
   materials.value[index].fileRaw = file.raw
   materials.value[index].fileUrl = file.url || URL.createObjectURL(file.raw)
 
-  ElMessage.success(`${materials.value[index].name} 上传成功`)
+  ElMessage({ message: '上传成功', type: 'success', duration: 1500 })
 }
 
 const handleRemoveMaterialFile = (index) => {
@@ -664,7 +772,7 @@ const handleRemoveMaterialFile = (index) => {
   materials.value[index].checked = false
   materials.value[index].fileName = ''
   materials.value[index].fileRaw = null
-  ElMessage.success('文件已删除')
+  ElMessage({ message: '已删除', type: 'success', duration: 1500 })
 }
 
 // ========== 图片预览 ==========
@@ -694,17 +802,20 @@ function handlePreviewImage(url) {
 
 function handleFieldFileRemove(fieldName, file) {
   const files = uploadFiles.value[fieldName] || []
-  const idx = files.findIndex(f => f.name === file.name)
-  if (idx > -1) files.splice(idx, 1)
+  const filtered = files.filter(f => f.name !== file.name)
+  uploadFiles.value = { ...uploadFiles.value, [fieldName]: filtered }
+  fileVersion.value++
 }
 
 // 表单上传的图片（确认页展示用）
+// fileVersion 是显式依赖，每次文件变动必定重新计算
 const formUploadImages = computed(() => {
+  fileVersion.value  // 显式依赖，确保能触发
   const images = []
   for (const [key, files] of Object.entries(uploadFiles.value)) {
-    if (files && files.length > 0) {
+    if (files && Array.isArray(files)) {
       files.forEach(f => {
-        if (f.url) images.push({ name: key, url: f.url })
+        if (f && f.url) images.push({ name: key, url: f.url })
       })
     }
   }
@@ -733,7 +844,7 @@ const handleDeleteFile = (index) => {
     matchedMaterial.checked = false
   }
 
-  ElMessage.success('文件已删除')
+  ElMessage({ message: '已删除', type: 'success', duration: 1500 })
 }
 
 // ========== 格式化确认值 ==========
@@ -795,16 +906,17 @@ const draftSavedId = ref(null)  // 记住草稿ID，下次就是更新
 
 const handleSaveDraft = async () => {
   try {
-    ElMessage.info('正在保存草稿...')
+    const msg = ElMessage.info({ message: '正在保存草稿...', duration: 1000 })
 
     // 1. 先上传材料文件到 MinIO 拿 URL
     const materialsData = []
     for (const m of materials.value) {
       let fileUrl = m.fileUrl || ''
-      if (m.fileRaw && !m.fileUrl) {
+      // blob URL 是临时地址，也要重新上传
+      if (m.fileRaw && (!fileUrl || fileUrl.startsWith('blob:'))) {
         const res = await uploadFile(m.fileRaw)
         fileUrl = res.data.url
-        m.fileUrl = fileUrl  // 缓存URL，避免重复上传
+        m.fileUrl = fileUrl
       }
       materialsData.push({
         materialId: m.materialId,
@@ -820,7 +932,7 @@ const handleSaveDraft = async () => {
       if (files && files.length > 0) {
         formImageUrls[key] = []
         for (const f of files) {
-          if (f.raw && !f.url) {
+          if (f.raw && (!f.url || f.url.startsWith('blob:'))) {
             const res = await uploadFile(f.raw)
             f.url = res.data.url
           }
@@ -831,7 +943,7 @@ const handleSaveDraft = async () => {
 
     // 3. 构造后端 DTO 格式
     const submitData = {
-      itemId: Number(route.params.id),
+      itemId: route.params.id,
       templateId: template.value?.templateId,
       formData: JSON.stringify({ ...formData.value, _uploadImages: formImageUrls }),
       materials: materialsData,
@@ -845,7 +957,7 @@ const handleSaveDraft = async () => {
       const res = await saveDraft(submitData)
       draftSavedId.value = res.data
     }
-    ElMessage.success('草稿已保存到云端')
+    ElMessage({ message: '草稿已保存', type: 'success', duration: 1500 })
   } catch (e) {
     console.error('保存草稿失败:', e)
   }
@@ -882,7 +994,7 @@ const submitResult = ref({
 
 const handleSubmit = async () => {
   if (!agreed.value) {
-    ElMessage.warning('请阅读并同意服务协议')
+    ElMessage({ message: '请阅读并同意服务协议', type: 'warning', duration: 2000 })
     return
   }
 
@@ -899,7 +1011,7 @@ const handleSubmit = async () => {
     const materialsData = []
     for (const m of materials.value) {
       let fileUrl = m.fileUrl || ''
-      if (m.fileRaw && !m.fileUrl) {
+      if (m.fileRaw && (!fileUrl || fileUrl.startsWith('blob:'))) {
         const res = await uploadFile(m.fileRaw)
         fileUrl = res.data.url
         m.fileUrl = fileUrl
@@ -912,30 +1024,46 @@ const handleSubmit = async () => {
       })
     }
 
-    // 构造提交数据
+    // 表单图片也传 MinIO
+    const formImageUrls = {}
+    for (const [key, files] of Object.entries(uploadFiles.value)) {
+      if (files && files.length > 0) {
+        formImageUrls[key] = []
+        for (const f of files) {
+          if (f.raw && (!f.url || f.url.startsWith('blob:'))) {
+            const res = await uploadFile(f.raw)
+            f.url = res.data.url
+          }
+          formImageUrls[key].push(f.url || '')
+        }
+      }
+    }
+
+    // 构造提交数据（有草稿就带上 draftId，后端会复用草稿编号）
     const submitData = {
-      itemId: Number(route.params.id),
+      itemId: route.params.id,
       templateId: template.value?.templateId,
-      formData: JSON.stringify(formData.value),
+      formData: JSON.stringify({ ...formData.value, _uploadImages: formImageUrls }),
       materials: materialsData,
       remark: formData.value['备注说明'] || ''
+    }
+    if (draftSavedId.value) {
+      submitData.draftId = draftSavedId.value
     }
 
     // 调后端提交接口
     const res = await submitApplication(submitData)
 
     submitResult.value = {
-      orderNo: res.data?.applicationNo || res.data || '提交成功',
+      orderNo: res.data,
       itemName: itemInfo.value.name,
       submitTime: new Date().toLocaleString('zh-CN'),
       estimateTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')
     }
 
-    // 清除本地草稿记录
-    localStorage.removeItem(`applyDraft_${route.params.id}`)
     draftSavedId.value = null
 
-    ElMessage.success('提交成功')
+    ElMessage({ message: '提交成功', type: 'success', duration: 1500 })
     submitSuccess.value = true
   } catch {
     // 取消
@@ -944,54 +1072,7 @@ const handleSubmit = async () => {
   }
 }
 
-// ========== 初始化 - 检查草稿 ==========
-onMounted(() => {
-  const draft = localStorage.getItem(`applyDraft_${route.params.id}`)
-  if (draft) {
-    try {
-      const draftData = JSON.parse(draft)
-      ElMessageBox.confirm('检测到未完成的申请，是否恢复？', '恢复草稿', {
-        confirmButtonText: '恢复',
-        cancelButtonText: '重新填写',
-        type: 'info'
-      }).then(() => {
-        formData.value = draftData.formData
-        currentStep.value = draftData.currentStep
-        // 恢复上传的图片
-        if (draftData.uploadFiles) {
-          const restored = {}
-          for (const [key, files] of Object.entries(draftData.uploadFiles)) {
-            restored[key] = files.map(f => {
-              const blob = base64ToBlob(f.base64)
-              const file = new File([blob], f.name, { type: blob.type })
-              return { name: f.name, raw: file, url: URL.createObjectURL(file) }
-            })
-          }
-          uploadFiles.value = restored
-        }
-        // 恢复材料文件
-        if (draftData.materials) {
-          draftData.materials.forEach((m, i) => {
-            if (i < materials.value.length && m.fileBase64) {
-              const blob = base64ToBlob(m.fileBase64)
-              const file = new File([blob], m.fileName || 'file', { type: blob.type })
-              materials.value[i].uploaded = true
-              materials.value[i].checked = true
-              materials.value[i].fileName = m.fileName
-              materials.value[i].fileRaw = file
-              materials.value[i].fileUrl = URL.createObjectURL(file)
-            }
-          })
-        }
-        ElMessage.success('草稿已恢复')
-      }).catch(() => {
-        localStorage.removeItem(`applyDraft_${route.params.id}`)
-      })
-    } catch (e) {
-      localStorage.removeItem(`applyDraft_${route.params.id}`)
-    }
-  }
-})
+// 草稿恢复由数据加载后的 checkDraft() 处理（走数据库，不再用 localStorage）
 </script>
 
 <style lang="scss" scoped>
@@ -1303,39 +1384,41 @@ onMounted(() => {
     gap: 8px;
   }
 
-  /* 确认页表单图片：一寸照比例 (5:7) */
-  .confirm-images {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 16px;
-    padding: 12px;
-    background: #F9FAFB;
-    border-radius: 8px;
-  }
-  .confirm-image-card {
-    text-align: center;
-  }
-  .photo-frame {
-    width: 85px;
-    height: 119px;  /* 一寸照比例 5:7 ≈ 85×119px */
-    border: 2px solid #E5E7EB;
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    &:hover { border-color: #3B82F6; }
-  }
-  .photo-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;  /* 裁切填满，不拉伸 */
-  }
-  .photo-name {
-    font-size: 12px;
-    color: #6B7280;
-    margin-top: 4px;
-  }
+}
+
+/* 确认页表单图片：一寸照比例 (5:7) */
+.confirm-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+.confirm-image-card {
+  text-align: center;
+}
+.photo-frame {
+  width: 100px;
+  height: 140px;  /* 一寸照比例 5:7 */
+  border: 2px solid #3B82F6;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #F0F4FF;
+  transition: border-color 0.2s;
+  &:hover { border-color: #1D4ED8; }
+}
+.photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-name {
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 4px;
 }
 
 /* 材料清单 */

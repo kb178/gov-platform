@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.haikou.government.approval.domain.ApprovalRecord;
 import com.haikou.government.approval.domain.Application;
 import com.haikou.government.approval.domain.ApplicationFormData;
 import com.haikou.government.approval.domain.ApplicationMaterial;
@@ -102,10 +103,23 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         if (application == null) {
             throw new BusinessException("申请单不存在");
         }
+        // 只能看自己的申请（管理员从 todo/done 进来时，userId 是审批人）
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null && !currentUserId.equals(application.getUserId())) {
+            // 不是申请人，看看是不是审批人（有审批记录）
+            Long recordCount = approvalRecordService.count(
+                    new LambdaQueryWrapper<ApprovalRecord>()
+                            .eq(ApprovalRecord::getApplicationId, applicationId)
+                            .eq(ApprovalRecord::getApproverId, currentUserId));
+            if (recordCount == 0) {
+                throw new BusinessException("无权查看该申请");
+            }
+        }
 
         ApplicationDetailVO vo = new ApplicationDetailVO();
         BeanUtils.copyProperties(application, vo);
         vo.setStatusText(getStatusText(application.getStatus()));
+        vo.setUserName(application.getCreateBy());
 
         // 表单数据
         ApplicationFormData formData = formDataMapper.selectOne(
@@ -139,7 +153,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long submitApplication(ApplicationSubmitDTO dto, Long userId) {
+    public String submitApplication(ApplicationSubmitDTO dto, Long userId) {
         if (!StringUtils.hasText(dto.getFormData())) {
             throw new BusinessException("表单数据不能为空");
         }
@@ -147,19 +161,54 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             throw new BusinessException("申请材料不能为空");
         }
 
-        // 同一事项有在途申请（待受理/审核中/退回/审批中）就不让再提
-        Long pendingCount = this.count(new LambdaQueryWrapper<Application>()
-                .eq(Application::getUserId, userId)
-                .eq(Application::getItemId, dto.getItemId())
-                .in(Application::getStatus, 1, 2, 3, 4));
-        if (pendingCount > 0) {
-            throw new BusinessException("您对该事项已有在途申请，请勿重复提交");
+        // 新建申请时才检查在途申请；提交草稿是把草稿改成正式申请，不检查
+        if (dto.getDraftId() == null) {
+            Long pendingCount = this.count(new LambdaQueryWrapper<Application>()
+                    .eq(Application::getUserId, userId)
+                    .eq(Application::getItemId, dto.getItemId())
+                    .in(Application::getStatus, 1, 2, 3, 4));
+            if (pendingCount > 0) {
+                throw new BusinessException("您对该事项已有在途申请，请勿重复提交");
+            }
         }
 
         // 调 gov-item 校验材料完整性
         checkMaterialCompleteness(dto);
 
-        // 创建申请单
+        // 如果有草稿ID，把草稿改成"待受理"，不新建（编号连续）
+        if (dto.getDraftId() != null) {
+            Application draft = this.getById(dto.getDraftId());
+            if (draft == null || !draft.getUserId().equals(userId)) {
+                throw new BusinessException("草稿不存在");
+            }
+            if (draft.getStatus() != null && draft.getStatus() != 0) {
+                throw new BusinessException("该草稿已提交，请勿重复操作");
+            }
+
+            // 更新草稿状态和内容
+            draft.setStatus((byte) 1);
+            draft.setApplyTime(LocalDateTime.now());
+            draft.setItemId(dto.getItemId());
+            draft.setUrgency(dto.getUrgency() != null ? dto.getUrgency() : (byte) 0);
+            draft.setRemark(dto.getRemark());
+            this.updateById(draft);
+
+            // 更新表单和材料（先删后增）
+            formDataMapper.delete(new LambdaQueryWrapper<ApplicationFormData>()
+                    .eq(ApplicationFormData::getApplicationId, draft.getApplicationId()));
+            saveFormData(draft.getApplicationId(), dto);
+
+            materialMapper.delete(new LambdaQueryWrapper<ApplicationMaterial>()
+                    .eq(ApplicationMaterial::getApplicationId, draft.getApplicationId()));
+            saveMaterials(draft.getApplicationId(), dto);
+
+            log.info("草稿提交成功: applicationNo={}, userId={}, itemId={}",
+                    draft.getApplicationNo(), userId, dto.getItemId());
+
+            return draft.getApplicationNo();
+        }
+
+        // 没有草稿，新建申请单
         Application application = buildApplication(dto, userId);
         application.setStatus((byte) 1); // 待受理
         application.setApplyTime(LocalDateTime.now());
@@ -171,7 +220,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         log.info("提交申请成功: applicationNo={}, userId={}, itemId={}",
                 application.getApplicationNo(), userId, dto.getItemId());
 
-        return application.getApplicationId();
+        return application.getApplicationNo();
     }
 
     /**
@@ -374,6 +423,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         ApplicationVO vo = new ApplicationVO();
         BeanUtils.copyProperties(application, vo);
         vo.setStatusText(getStatusText(application.getStatus()));
+        vo.setUserName(application.getCreateBy());  // createBy 就是申请人用户名
         return vo;
     }
 

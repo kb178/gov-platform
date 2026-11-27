@@ -40,6 +40,9 @@ public enum ApprovalStatusEnum {
      * 根据状态码获取枚举
      */
     public static ApprovalStatusEnum fromCode(Byte code) {
+        if (code == null) {
+            return null;
+        }
         for (ApprovalStatusEnum e : values()) {
             if (e.code == code) {
                 return e;

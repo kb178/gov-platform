@@ -47,10 +47,10 @@ public class ApplicationController {
      */
     @Operation(summary = "提交申请", description = "创建申请单+表单数据+材料，状态变为待受理")
     @PostMapping("/submit")
-    public R<Long> submitApplication(@Valid @RequestBody ApplicationSubmitDTO dto) {
+    public R<String> submitApplication(@Valid @RequestBody ApplicationSubmitDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
-        Long applicationId = applicationService.submitApplication(dto, userId);
-        return R.ok(applicationId, "申请提交成功");
+        String applicationNo = applicationService.submitApplication(dto, userId);
+        return R.ok(applicationNo, "申请提交成功");
     }
 
     // ==================== 草稿 ====================
@@ -60,7 +60,7 @@ public class ApplicationController {
      */
     @Operation(summary = "保存草稿", description = "保存为草稿状态，可后续修改再提交")
     @PostMapping("/draft")
-    public R<Long> saveDraft(@RequestBody ApplicationSubmitDTO dto) {
+    public R<Long> saveDraft(@Valid @RequestBody ApplicationSubmitDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
         Long applicationId = applicationService.saveDraft(dto, userId);
         return R.ok(applicationId, "草稿保存成功");
@@ -72,7 +72,7 @@ public class ApplicationController {
     @Operation(summary = "修改草稿", description = "只能修改草稿状态的申请")
     @PutMapping("/draft/{applicationId}")
     public R<Void> updateDraft(@PathVariable Long applicationId,
-                               @RequestBody ApplicationSubmitDTO dto) {
+                               @Valid @RequestBody ApplicationSubmitDTO dto) {
         Long userId = SecurityUtils.getCurrentUserId();
         applicationService.updateDraft(applicationId, dto, userId);
         return R.ok(null, "草稿修改成功");

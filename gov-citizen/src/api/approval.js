@@ -52,13 +52,22 @@ export function getApplicationDetail(applicationId) {
   })
 }
 
-// 上传文件到 MinIO（不手动设 Content-Type，让浏览器自动加 boundary）
+// 审批记录
+export function getApprovalRecords(applicationId) {
+  return request({
+    url: `/approval/application/record/${applicationId}`,
+    method: 'get'
+  })
+}
+
+// 上传文件到 MinIO
 export function uploadFile(file) {
   const formData = new FormData()
   formData.append('file', file)
   return request({
     url: '/approval/file/upload',
     method: 'post',
-    data: formData
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' }
   })
 }

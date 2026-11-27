@@ -40,7 +40,7 @@ public interface ApplicationService extends IService<Application> {
      * @param userId 申请人ID
      * @return 申请单ID
      */
-    Long submitApplication(ApplicationSubmitDTO dto, Long userId);
+    String submitApplication(ApplicationSubmitDTO dto, Long userId);
 
     /**
      * 保存草稿

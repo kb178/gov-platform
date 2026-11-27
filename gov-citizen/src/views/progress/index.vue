@@ -46,7 +46,7 @@
                 <div class="progress-number">办件编号：{{ item.orderNo }}</div>
               </div>
               <span :class="['progress-status', `status-${item.status}`]">
-                {{ getStatusText(item.status) }}
+                {{ item.statusText }}
               </span>
             </div>
 
@@ -85,7 +85,7 @@
             </div>
 
             <!-- 进度时间线 -->
-            <div v-if="item.status !== 'rejected'" class="progress-timeline">
+            <div v-if="item.timeline && item.timeline.length > 0" class="progress-timeline">
               <div class="timeline-header">
                 <span class="timeline-title">办理进度</span>
                 <span class="timeline-toggle" @click="toggleTimeline(item.id)">
@@ -107,40 +107,33 @@
               </div>
             </div>
 
-            <!-- 驳回原因 -->
-            <div v-if="item.status === 'rejected'" class="reject-reason">
-              <span class="reject-icon">❌</span>
-              <span class="reject-text">驳回原因：{{ item.rejectReason }}</span>
+            <!-- 驳回/退回原因 -->
+            <div v-if="item.status === 'rejected' || item.status === 'returned'" class="reject-reason">
+              <span class="reject-icon">{{ item.status === 'rejected' ? '❌' : '↩️' }}</span>
+              <span class="reject-text">{{ item.statusText }}，请补充材料后重新提交</span>
             </div>
 
             <div class="progress-card-footer">
               <span v-if="item.status === 'approved'" class="footer-text success"> ✅ 已办结 </span>
-              <span v-else-if="item.status === 'rejected'" class="footer-text danger">
-                请补充材料后重新提交
-              </span>
-              <span v-else class="footer-text"> 预计完成时间：{{ item.estimateTime }} </span>
+              <span v-else-if="item.status === 'rejected'" class="footer-text danger"> 已驳回 </span>
+              <span v-else-if="item.status === 'returned'" class="footer-text danger"> 退回补材料 </span>
+              <span v-else-if="item.status === 'draft'" class="footer-text"> 草稿未提交 </span>
+              <span v-else class="footer-text"> {{ item.statusText }} </span>
               <div class="progress-actions">
-                <button
-                  v-if="item.status === 'processing' || item.status === 'pending'"
-                  class="btn-action btn-urge"
-                  @click="handleUrge(item)"
-                >
-                  催办
-                </button>
                 <button class="btn-action btn-detail" @click="handleDetail(item)">查看详情</button>
                 <button
-                  v-if="item.status === 'approved'"
-                  class="btn-action btn-download"
-                  @click="handleDownload(item)"
-                >
-                  下载证照
-                </button>
-                <button
-                  v-if="item.status === 'rejected'"
+                  v-if="item.status === 'rejected' || item.status === 'returned'"
                   class="btn-action btn-reapply"
                   @click="handleReapply(item)"
                 >
                   重新申请
+                </button>
+                <button
+                  v-if="item.status === 'draft'"
+                  class="btn-action btn-reapply"
+                  @click="handleReapply(item)"
+                >
+                  继续填写
                 </button>
               </div>
             </div>
@@ -186,9 +179,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getMyApplications, getApplicationDetail } from '@/api/approval'
 
 const router = useRouter()
 
@@ -196,159 +190,119 @@ const router = useRouter()
 const searchKeyword = ref('')
 
 const handleSearch = () => {
-  currentPage.value = 1
-  ElMessage.info(`搜索: ${searchKeyword.value}`)
+  loadData()
 }
 
 // ========== 状态筛选 ==========
 const activeStatus = ref('all')
 
-const statusList = ref([
-  { id: 'all', name: '全部', count: 6 },
-  { id: 'pending', name: '待受理', count: 1 },
-  { id: 'processing', name: '审核中', count: 2 },
-  { id: 'approved', name: '已办结', count: 2 },
-  { id: 'rejected', name: '已驳回', count: 1 }
-])
+// 后端状态：0草稿 1待受理 2审核中 3退回 4审批中 5已驳回 6已通过
+const statusMap = {
+  0: 'draft',
+  1: 'pending',
+  2: 'processing',
+  3: 'returned',
+  4: 'processing',
+  5: 'rejected',
+  6: 'approved'
+}
+
+const statusTextMap = {
+  0: '草稿',
+  1: '待受理',
+  2: '审核中',
+  3: '退回补材料',
+  4: '审批中',
+  5: '已驳回',
+  6: '已通过'
+}
+
+const statusList = computed(() => {
+  const all = progressList.value
+  return [
+    { id: 'all', name: '全部', count: all.length },
+    { id: 'pending', name: '待受理', count: all.filter(i => i.status === 'pending').length },
+    { id: 'processing', name: '审核中', count: all.filter(i => i.status === 'processing').length },
+    { id: 'approved', name: '已办结', count: all.filter(i => i.status === 'approved').length },
+    { id: 'rejected', name: '已驳回', count: all.filter(i => i.status === 'rejected').length }
+  ]
+})
 
 const handleStatusChange = statusId => {
   activeStatus.value = statusId
   currentPage.value = 1
 }
 
-const getStatusText = status => {
-  const map = {
-    pending: '待受理',
-    processing: '审核中',
-    approved: '已办结',
-    rejected: '已驳回'
-  }
-  return map[status] || status
-}
+const getStatusText = item => item.statusText || ''
 
-// ========== 办件列表 ==========
-const progressList = ref([
-  {
-    id: 1,
-    icon: '📄',
-    title: '居民身份证换领',
-    orderNo: 'BJ20240115001234',
-    status: 'processing',
-    applyTime: '2024-01-15 14:30',
-    dept: '公安局',
-    duration: '5个工作日',
-    currentStep: '科员审核',
-    estimateTime: '2024-01-20',
-    timeline: [
-      { name: '提交申请', status: 'completed', time: '01-15 14:30' },
-      { name: '已受理', status: 'completed', time: '01-15 16:00' },
-      { name: '科员审核', status: 'active', time: '进行中' },
-      { name: '领导审批', status: 'pending', time: '' },
-      { name: '办结', status: 'pending', time: '' }
-    ]
-  },
-  {
-    id: 2,
-    icon: '🏢',
-    title: '营业执照变更',
-    orderNo: 'BJ20240116005678',
-    status: 'pending',
-    applyTime: '2024-01-16 10:15',
-    dept: '市场监督管理局',
-    duration: '1个工作日',
-    currentStep: '等待受理',
-    estimateTime: '2024-01-17',
-    timeline: [
-      { name: '提交申请', status: 'completed', time: '01-16 10:15' },
-      { name: '待受理', status: 'active', time: '进行中' },
-      { name: '审核', status: 'pending', time: '' },
-      { name: '办结', status: 'pending', time: '' }
-    ]
-  },
-  {
-    id: 3,
-    icon: '🏠',
-    title: '不动产登记',
-    orderNo: 'BJ20240110003456',
-    status: 'approved',
-    applyTime: '2024-01-10 09:00',
-    dept: '自然资源和规划局',
-    completeTime: '2024-01-12 16:30',
-    duration: '3个工作日',
-    timeline: [
-      { name: '提交申请', status: 'completed', time: '01-10 09:00' },
-      { name: '已受理', status: 'completed', time: '01-10 10:30' },
-      { name: '审核', status: 'completed', time: '01-11 14:00' },
-      { name: '办结', status: 'completed', time: '01-12 16:30' }
-    ]
-  },
-  {
-    id: 4,
-    icon: '🏠',
-    title: '不动产转移登记',
-    orderNo: 'BJ20240112009999',
-    status: 'approved',
-    applyTime: '2024-01-12 11:00',
-    dept: '自然资源和规划局',
-    completeTime: '2024-01-15 09:00',
-    duration: '3个工作日',
-    timeline: [
-      { name: '提交申请', status: 'completed', time: '01-12 11:00' },
-      { name: '已受理', status: 'completed', time: '01-12 14:00' },
-      { name: '审核', status: 'completed', time: '01-14 16:00' },
-      { name: '办结', status: 'completed', time: '01-15 09:00' }
-    ]
-  },
-  {
-    id: 5,
-    icon: '🚗',
-    title: '机动车驾驶证补换领',
-    orderNo: 'BJ20240117002222',
-    status: 'processing',
-    applyTime: '2024-01-17 09:30',
-    dept: '公安局交警支队',
-    duration: '1个工作日',
-    currentStep: '制证中',
-    estimateTime: '2024-01-18',
-    timeline: [
-      { name: '提交申请', status: 'completed', time: '01-17 09:30' },
-      { name: '已受理', status: 'completed', time: '01-17 10:00' },
-      { name: '制证', status: 'active', time: '进行中' },
-      { name: '办结', status: 'pending', time: '' }
-    ]
-  },
-  {
-    id: 6,
-    icon: '🍽️',
-    title: '食品经营许可证',
-    orderNo: 'BJ20240108007890',
-    status: 'rejected',
-    applyTime: '2024-01-08 11:20',
-    dept: '市场监督管理局',
-    rejectTime: '2024-01-09 15:00',
-    rejectReason: '材料不全，请补充经营场所平面图和设备清单'
+// ========== 加载数据 ==========
+const loading = ref(false)
+const progressList = ref([])
+const total = ref(0)
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    // 不传 status 查全部（status 传 undefined 后端查所有）
+    const params = {
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    }
+    // 状态筛选映射到后端 status 参数
+    const statusReverseMap = {
+      pending: 1,
+      processing: 2,
+      approved: 6,
+      rejected: 5
+    }
+    if (activeStatus.value !== 'all') {
+      params.status = statusReverseMap[activeStatus.value]
+    }
+
+    const res = await getMyApplications(params)
+    const records = res.data?.records || []
+    total.value = res.data?.total || 0
+
+    // 转换为页面需要的格式
+    progressList.value = records.map(r => ({
+      id: r.applicationId,
+      itemId: r.itemId,
+      icon: '📄',
+      title: r.itemName || '办件申请',
+      orderNo: r.applicationNo,
+      status: statusMap[r.status] || 'pending',
+      statusText: statusTextMap[r.status] || '未知',
+      applyTime: r.applyTime || r.createTime || '',
+      dept: r.deptName || '',
+      duration: r.processTime || '',
+      currentStep: statusTextMap[r.status] || '',
+      createTime: r.createTime
+    }))
+  } catch (e) {
+    console.error('加载申请列表失败:', e)
+  } finally {
+    loading.value = false
   }
-])
+}
 
 // 筛选后的列表
 const filteredProgressList = computed(() => {
   let list = progressList.value
-
-  // 状态筛选
-  if (activeStatus.value !== 'all') {
-    list = list.filter(item => item.status === activeStatus.value)
-  }
 
   // 关键词搜索
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
     list = list.filter(
       item =>
-        item.orderNo.toLowerCase().includes(keyword) || item.title.toLowerCase().includes(keyword)
+        item.orderNo?.toLowerCase().includes(keyword) || item.title?.toLowerCase().includes(keyword)
     )
   }
 
   return list
+})
+
+onMounted(() => {
+  loadData()
 })
 
 // ========== 时间线展开/收起 ==========
@@ -363,73 +317,52 @@ const toggleTimeline = id => {
   }
 }
 
-// ========== 分页 ==========
+// ========== 分页（服务端） ==========
 const currentPage = ref(1)
 const pageSize = ref(10)
 
 const totalPages = computed(() => {
-  return Math.ceil(filteredProgressList.value.length / pageSize.value)
+  return Math.ceil(total.value / pageSize.value)
 })
 
 const displayPages = computed(() => {
   const pages = []
-  const total = totalPages.value
+  const t = totalPages.value
   const current = currentPage.value
 
-  if (total <= 5) {
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
+  if (t <= 5) {
+    for (let i = 1; i <= t; i++) pages.push(i)
   } else {
     if (current <= 3) {
-      for (let i = 1; i <= 5; i++) {
-        pages.push(i)
-      }
-    } else if (current >= total - 2) {
-      for (let i = total - 4; i <= total; i++) {
-        pages.push(i)
-      }
+      for (let i = 1; i <= 5; i++) pages.push(i)
+    } else if (current >= t - 2) {
+      for (let i = t - 4; i <= t; i++) pages.push(i)
     } else {
-      for (let i = current - 2; i <= current + 2; i++) {
-        pages.push(i)
-      }
+      for (let i = current - 2; i <= current + 2; i++) pages.push(i)
     }
   }
-
   return pages
 })
 
 const handlePageChange = page => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
+  loadData()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // ========== 操作 ==========
-const handleUrge = item => {
-  ElMessageBox.confirm(`确定要催办 "${item.title}" 吗？催办后工作人员会尽快处理。`, '催办确认', {
-    confirmButtonText: '确定催办',
-    cancelButtonText: '取消',
-    type: 'info'
-  })
-    .then(() => {
-      ElMessage.success('催办成功，工作人员会尽快处理')
-    })
-    .catch(() => {})
-}
-
 const handleDetail = item => {
-  ElMessage.info(`查看详情: ${item.orderNo}`)
-  // TODO: 跳转到详情页或弹窗显示
-}
-
-const handleDownload = item => {
-  ElMessage.success(`正在下载: ${item.title} 相关证照`)
-  // TODO: 下载证照
+  router.push(`/progress/${item.id}`)
 }
 
 const handleReapply = item => {
-  router.push(`/apply/${item.id}`)
+  // 草稿 → 继续填写（带 draftId 自动恢复）；退回/驳回 → 重新申请
+  if (item.status === 'draft') {
+    router.push(`/apply/${item.itemId}?draftId=${item.id}`)
+  } else {
+    router.push(`/apply/${item.itemId}`)
+  }
 }
 </script>
 
@@ -640,6 +573,16 @@ const handleReapply = item => {
   &.status-rejected {
     background: #fee2e2;
     color: #dc2626;
+  }
+
+  &.status-returned {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  &.status-draft {
+    background: #f3f4f6;
+    color: #6b7280;
   }
 }
 

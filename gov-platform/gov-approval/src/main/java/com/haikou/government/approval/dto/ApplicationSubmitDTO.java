@@ -24,6 +24,9 @@ public class ApplicationSubmitDTO implements Serializable {
     @NotNull(message = "办理事项不能为空")
     private Long itemId;
 
+    /** 草稿ID（如果有草稿，提交时改为更新草稿状态，不新建） */
+    private Long draftId;
+
     /** 表单模板ID（item_form_template，可选） */
     private Long templateId;
 

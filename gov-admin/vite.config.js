@@ -46,6 +46,10 @@ export default defineConfig({
       '/item/item': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      '/approval/': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   },

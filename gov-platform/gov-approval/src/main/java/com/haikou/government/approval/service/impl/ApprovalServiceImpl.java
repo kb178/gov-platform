@@ -293,12 +293,14 @@ public class ApprovalServiceImpl implements ApprovalService {
         }
         checkStatus(app, ApprovalStatusEnum.RETURNED);
 
+        // 清掉旧的退回原因，更新状态
         int expectedVersion = app.getVersion() != null ? app.getVersion() : 0;
         LambdaUpdateWrapper<Application> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(Application::getApplicationId, applicationId)
                 .eq(Application::getVersion, expectedVersion)
                 .set(Application::getStatus, (byte) ApprovalStatusEnum.PENDING.getCode())
                 .set(Application::getApplyTime, LocalDateTime.now())
+                .set(Application::getRejectReason, null) // 清掉旧退回原因
                 .set(Application::getVersion, expectedVersion + 1);
 
         int rows = applicationMapper.update(null, wrapper);
@@ -325,7 +327,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         // TODO: 从用户角色动态判断，现在先让前端传 status 或者全查
         LambdaQueryWrapper<Application> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(Application::getStatus, 1, 2, 4) // 待受理/审核中/审批中
-                .orderByAsc(Application::getUrgency) // 加急的排前面
+                .orderByDesc(Application::getUrgency) // 加急的排前面
                 .orderByAsc(Application::getApplyTime);
 
         Page<Application> entityPage = new Page<>(page.getCurrent(), page.getSize());

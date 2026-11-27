@@ -5,223 +5,333 @@
       <span class="desc">处理待审批的事项申请</span>
     </div>
 
-    <!-- 筛选标签 -->
-    <div class="filter-tabs">
-      <el-tag
-        v-for="tab in filterTabs"
-        :key="tab.key"
-        :effect="activeFilter === tab.key ? 'dark' : 'plain'"
-        class="filter-tab"
-        @click="activeFilter = tab.key"
-      >
-        {{ tab.label }}
-        <span class="count">{{ tab.count }}</span>
-      </el-tag>
-    </div>
-
     <!-- 搜索栏 -->
     <div class="search-bar">
-      <el-select v-model="searchForm.type" placeholder="事项类型" clearable style="width: 160px">
-        <el-option label="户籍办理" value="household" />
-        <el-option label="工商登记" value="business" />
-        <el-option label="社会保障" value="social" />
-        <el-option label="不动产" value="property" />
-      </el-select>
-      <el-input v-model="searchForm.applicant" placeholder="申请人姓名" clearable style="width: 180px" />
-      <el-date-picker v-model="searchForm.date" type="date" placeholder="申请时间" style="width: 180px" />
+      <el-input v-model="searchForm.keyword" placeholder="申请人/办件编号" clearable style="width: 200px" @keyup.enter="handleSearch" />
       <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button @click="handleReset">重置</el-button>
     </div>
 
-    <!-- 批量操作 -->
-    <transition name="el-fade-in">
-      <div v-if="selectedRows.length" class="batch-bar">
-        <span>已选择 <strong>{{ selectedRows.length }}</strong> 项</span>
-        <el-button type="success" size="small">批量通过</el-button>
-        <el-button type="danger" size="small">批量驳回</el-button>
-        <el-button size="small" @click="clearSelection">取消选择</el-button>
-      </div>
-    </transition>
-
     <!-- 表格 -->
-    <el-table :data="tableData" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="40" />
-      <el-table-column label="申请人" min-width="160">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%">
+      <el-table-column label="办件编号" width="180">
+        <template #default="{ row }">
+          <span class="app-no">{{ row.applicationNo }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="申请人" width="100">
         <template #default="{ row }">
           <div class="applicant-cell">
-            <div class="applicant-avatar">{{ row.applicant.charAt(0) }}</div>
-            <div>
-              <div class="applicant-name">{{ row.applicant }}</div>
-              <div class="applicant-id">身份证：{{ row.idCard }}</div>
-            </div>
+            <div class="applicant-avatar">{{ (row.userName || '?').charAt(0) }}</div>
+            <span>{{ row.userName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="事项名称" min-width="180">
+      <el-table-column prop="itemName" label="事项名称" min-width="180" />
+      <el-table-column label="紧急程度" width="90">
         <template #default="{ row }">
-          <div class="item-name">{{ row.itemName }}</div>
-          <div class="item-category">{{ row.category }}</div>
-        </template>
-      </el-table-column>
-      <el-table-column label="紧急程度" width="100">
-        <template #default="{ row }">
-          <el-tag :type="row.urgent ? 'danger' : 'success'" size="small" effect="plain">
-            {{ row.urgent ? '🚨 加急' : '✓ 普通' }}
+          <el-tag :type="row.urgency === 1 ? 'danger' : 'success'" size="small" effect="plain">
+            {{ row.urgency === 1 ? '加急' : '普通' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="applyTime" label="申请时间" width="160" />
-      <el-table-column label="剩余时间" width="120">
+      <el-table-column prop="statusText" label="状态" width="100">
         <template #default="{ row }">
-          <span :class="['remain-time', row.remainClass]">{{ row.remainText }}</span>
+          <el-tag :type="statusTagType(row.status)" size="small">{{ row.statusText }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column prop="applyTime" label="申请时间" width="160" />
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="showApproval(row)">审批</el-button>
-          <el-button type="primary" link size="small">详情</el-button>
+          <el-button type="primary" link size="small" @click="showDetail(row)">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
     <div class="pagination-wrap">
-      <span class="pagination-info">共 48 条记录，每页 10 条</span>
-      <el-pagination layout="prev, pager, next" :total="48" :page-size="10" />
+      <span class="pagination-info">共 {{ total }} 条记录</span>
+      <el-pagination
+        :current-page="pageNum"
+        :page-size="pageSize"
+        :total="total"
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
+      />
     </div>
 
     <!-- 审批弹窗 -->
     <el-dialog v-model="dialogVisible" title="审批处理" width="600px">
       <div class="approval-info" v-if="currentRow">
+        <div class="info-row"><span class="label">办件编号：</span><span>{{ currentRow.applicationNo }}</span></div>
         <div class="info-row"><span class="label">事项名称：</span><span>{{ currentRow.itemName }}</span></div>
-        <div class="info-row"><span class="label">申请人：</span><span>{{ currentRow.applicant }}</span></div>
+        <div class="info-row"><span class="label">申请人：</span><span>{{ currentRow.userName }}</span></div>
         <div class="info-row"><span class="label">申请时间：</span><span>{{ currentRow.applyTime }}</span></div>
+        <div class="info-row"><span class="label">当前状态：</span><el-tag size="small">{{ currentRow.statusText }}</el-tag></div>
       </div>
 
-      <el-form label-width="80px">
-        <el-form-item label="审批结果" required>
+      <el-form label-width="90px">
+        <el-form-item label="审批操作" required>
           <div class="result-options">
-            <div :class="['result-option', 'approve', { selected: approvalResult === 'approve' }]" @click="approvalResult = 'approve'">
-              <div class="result-icon">✅</div>
-              <div>通过</div>
-            </div>
-            <div :class="['result-option', 'reject', { selected: approvalResult === 'reject' }]" @click="approvalResult = 'reject'">
-              <div class="result-icon">❌</div>
-              <div>驳回</div>
-            </div>
+            <!-- 根据当前状态显示可选操作 -->
+            <template v-if="currentRow?.status === 1">
+              <div :class="['result-option', 'accept', { selected: approvalAction === 'accept' }]" @click="approvalAction = 'accept'">
+                <div class="result-icon">✅</div><div>受理</div>
+              </div>
+              <div :class="['result-option', 'return', { selected: approvalAction === 'return' }]" @click="approvalAction = 'return'">
+                <div class="result-icon">↩️</div><div>退回补材料</div>
+              </div>
+              <div :class="['result-option', 'reject', { selected: approvalAction === 'rejectAtAccept' }]" @click="approvalAction = 'rejectAtAccept'">
+                <div class="result-icon">❌</div><div>不予受理</div>
+              </div>
+            </template>
+            <template v-else-if="currentRow?.status === 2">
+              <div :class="['result-option', 'accept', { selected: approvalAction === 'reviewPass' }]" @click="approvalAction = 'reviewPass'">
+                <div class="result-icon">✅</div><div>审核通过</div>
+              </div>
+              <div :class="['result-option', 'return', { selected: approvalAction === 'return' }]" @click="approvalAction = 'return'">
+                <div class="result-icon">↩️</div><div>退回补材料</div>
+              </div>
+              <div :class="['result-option', 'reject', { selected: approvalAction === 'reject' }]" @click="approvalAction = 'reject'">
+                <div class="result-icon">❌</div><div>驳回</div>
+              </div>
+            </template>
+            <template v-else-if="currentRow?.status === 4">
+              <div :class="['result-option', 'accept', { selected: approvalAction === 'approve' }]" @click="approvalAction = 'approve'">
+                <div class="result-icon">✅</div><div>审批通过</div>
+              </div>
+              <div :class="['result-option', 'reject', { selected: approvalAction === 'reject' }]" @click="approvalAction = 'reject'">
+                <div class="result-icon">❌</div><div>驳回</div>
+              </div>
+            </template>
           </div>
         </el-form-item>
-        <el-form-item label="审批意见" required>
-          <el-input v-model="approvalComment" type="textarea" :rows="4" placeholder="请输入审批意见" />
-        </el-form-item>
-        <el-form-item v-if="approvalResult === 'reject'" label="驳回原因" required>
-          <el-select v-model="rejectReason" placeholder="请选择驳回原因" style="width: 100%">
-            <el-option label="材料不齐全" value="material" />
-            <el-option label="信息填写错误" value="info" />
-            <el-option label="不符合申请条件" value="qualify" />
-            <el-option label="其他原因" value="other" />
-          </el-select>
+        <el-form-item label="审批意见">
+          <el-input v-model="approvalOpinion" type="textarea" :rows="4" placeholder="请输入审批意见" />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitApproval">提交</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitApproval">提交</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailVisible" title="申请详情" width="700px">
+      <el-descriptions :column="2" border v-if="detailData">
+        <el-descriptions-item label="办件编号">{{ detailData.applicationNo }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ detailData.userName }}</el-descriptions-item>
+        <el-descriptions-item label="事项名称">{{ detailData.itemName }}</el-descriptions-item>
+        <el-descriptions-item label="状态"><el-tag size="small">{{ detailData.statusText }}</el-tag></el-descriptions-item>
+        <el-descriptions-item label="申请时间">{{ detailData.applyTime }}</el-descriptions-item>
+        <el-descriptions-item label="加急">{{ detailData.urgency === 1 ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ detailData.remark || '-' }}</el-descriptions-item>
+      </el-descriptions>
+
+      <!-- 表单数据 -->
+      <div v-if="detailFormData" class="detail-section">
+        <h4>申请信息</h4>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item v-for="(val, key) in detailFormData" :key="key" :label="key">{{ val }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+
+      <!-- 材料清单 -->
+      <div v-if="detailMaterials?.length" class="detail-section">
+        <h4>申请材料</h4>
+        <el-table :data="detailMaterials" size="small">
+          <el-table-column prop="materialName" label="材料名称" />
+          <el-table-column label="是否必须" width="80">
+            <template #default="{ row }">{{ row.required === 1 ? '是' : '否' }}</template>
+          </el-table-column>
+          <el-table-column label="核验状态" width="100">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.checkStatus === 1 ? 'success' : row.checkStatus === 2 ? 'danger' : 'info'">
+                {{ row.checkStatus === 1 ? '已核验' : row.checkStatus === 2 ? '未通过' : '待核验' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="附件" width="80">
+            <template #default="{ row }">
+              <el-button v-if="row.fileUrl" type="primary" link size="small" @click="previewFile(row.fileUrl)">查看</el-button>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- 审批记录 -->
+      <div v-if="detailRecords?.length" class="detail-section">
+        <h4>审批记录</h4>
+        <el-timeline>
+          <el-timeline-item v-for="rec in detailRecords" :key="rec.id" :timestamp="rec.createTime" placement="top">
+            <div><strong>{{ rec.nodeName }}</strong> - {{ rec.approverName }} {{ actionText(rec.action) }}</div>
+            <div v-if="rec.opinion" class="record-opinion">{{ rec.opinion }}</div>
+          </el-timeline-item>
+        </el-timeline>
+      </div>
+
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { getTodoList, accept, rejectAtAccept, reviewPass, approve, reject, returnForMaterial, getApplicationDetail, getApprovalRecords } from '@/api/approval'
 
-const activeFilter = ref('all')
-const filterTabs = [
-  { key: 'all', label: '全部', count: 48 },
-  { key: 'urgent', label: '加急', count: 5 },
-  { key: 'today', label: '今日新增', count: 12 },
-  { key: 'timeout', label: '即将超时', count: 3 }
-]
+// ==================== 列表 ====================
+const loading = ref(false)
+const tableData = ref([])
+const total = ref(0)
+const pageNum = ref(1)
+const pageSize = ref(10)
 
-const searchForm = reactive({ type: '', applicant: '', date: '' })
+const searchForm = reactive({ keyword: '' })
 
-const tableData = ref([
-  { applicant: '张三', idCard: '460102****1234', itemName: '营业执照申请', category: '工商登记', urgent: true, applyTime: '2024-01-16 09:30', remainText: '剩余 2 小时', remainClass: 'danger' },
-  { applicant: '李四', idCard: '460102****5678', itemName: '居民身份证换领', category: '户籍办理', urgent: false, applyTime: '2024-01-16 10:15', remainText: '剩余 3 天', remainClass: '' },
-  { applicant: '王五', idCard: '460102****9012', itemName: '食品经营许可证申请', category: '工商登记', urgent: false, applyTime: '2024-01-16 11:00', remainText: '剩余 5 天', remainClass: '' },
-  { applicant: '赵六', idCard: '460102****3456', itemName: '不动产登记', category: '不动产', urgent: true, applyTime: '2024-01-16 14:20', remainText: '剩余 1 天', remainClass: 'warning' },
-  { applicant: '钱七', idCard: '460102****7890', itemName: '公积金提取申请', category: '公积金', urgent: false, applyTime: '2024-01-16 15:45', remainText: '剩余 5 天', remainClass: '' }
-])
-
-const selectedRows = ref([])
-const handleSelectionChange = (rows) => { selectedRows.value = rows }
-const clearSelection = () => { selectedRows.value = [] }
-
-const dialogVisible = ref(false)
-const currentRow = ref(null)
-const approvalResult = ref('')
-const approvalComment = ref('')
-const rejectReason = ref('')
-
-function showApproval(row) {
-  currentRow.value = row
-  approvalResult.value = ''
-  approvalComment.value = ''
-  rejectReason.value = ''
-  dialogVisible.value = true
-}
-
-function submitApproval() {
-  if (!approvalResult.value) return ElMessage.warning('请选择审批结果')
-  if (!approvalComment.value) return ElMessage.warning('请输入审批意见')
-  ElMessage.success('审批提交成功')
-  dialogVisible.value = false
-}
-
-function handleSearch() { ElMessage.info('搜索功能待对接接口') }
-</script>
-
-<style lang="scss" scoped>
-.filter-tabs {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-
-  .filter-tab {
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 20px;
-
-    .count {
-      margin-left: 6px;
-      opacity: 0.8;
-    }
+async function loadList() {
+  loading.value = true
+  try {
+    const res = await getTodoList({ pageNum: pageNum.value, pageSize: pageSize.value })
+    tableData.value = res.data?.records || []
+    total.value = Number(res.data?.total) || 0
+  } catch (e) {
+    console.error('加载待办列表失败', e)
+  } finally {
+    loading.value = false
   }
 }
 
-.batch-bar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 20px;
-  background: #EFF6FF;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  color: #1E40AF;
+function handleSearch() {
+  pageNum.value = 1
+  loadList()
 }
 
-.applicant-cell { display: flex; align-items: center; gap: 10px; }
-.applicant-avatar {
-  width: 32px; height: 32px; border-radius: 50%; background: #DBEAFE;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; color: #1E40AF; font-weight: 600; flex-shrink: 0;
+function handleReset() {
+  searchForm.keyword = ''
+  pageNum.value = 1
+  loadList()
 }
-.applicant-name { font-weight: 500; font-size: 14px; }
-.applicant-id { font-size: 12px; color: #909399; margin-top: 2px; }
-.item-name { font-weight: 500; font-size: 14px; }
-.item-category { font-size: 12px; color: #909399; margin-top: 2px; }
-.remain-time { font-size: 13px; &.warning { color: #E6A23C; } &.danger { color: #F56C6C; } }
+
+function handlePageChange(page) {
+  pageNum.value = page
+  loadList()
+}
+
+function statusTagType(status) {
+  const map = { 1: 'warning', 2: 'primary', 4: 'primary', 3: 'info', 5: 'danger', 6: 'success' }
+  return map[status] || 'info'
+}
+
+// ==================== 审批操作 ====================
+const dialogVisible = ref(false)
+const currentRow = ref(null)
+const approvalAction = ref('')
+const approvalOpinion = ref('')
+const submitting = ref(false)
+
+function showApproval(row) {
+  currentRow.value = row
+  approvalAction.value = ''
+  approvalOpinion.value = ''
+  dialogVisible.value = true
+}
+
+async function submitApproval() {
+  if (!approvalAction.value) return ElMessage.warning('请选择审批操作')
+
+  // 驳回/退回/不予受理 必须填意见
+  const needOpinion = ['reject', 'rejectAtAccept', 'return']
+  if (needOpinion.includes(approvalAction.value) && !approvalOpinion.value.trim()) {
+    return ElMessage.warning('该操作必须填写审批意见')
+  }
+
+  submitting.value = true
+  try {
+    const data = { applicationId: currentRow.value.applicationId, opinion: approvalOpinion.value }
+    const actionMap = {
+      accept, rejectAtAccept, reviewPass, approve, reject, return: returnForMaterial
+    }
+    await actionMap[approvalAction.value](data)
+    ElMessage.success('操作成功')
+    dialogVisible.value = false
+    loadList()
+  } catch (e) {
+    console.error('审批操作失败', e)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// ==================== 详情 ====================
+const detailVisible = ref(false)
+const detailData = ref(null)
+const detailFormData = ref(null)
+const detailMaterials = ref([])
+const detailRecords = ref([])
+
+async function showDetail(row) {
+  try {
+    const [detailRes, recordRes] = await Promise.all([
+      getApplicationDetail(row.applicationId),
+      getApprovalRecords(row.applicationId)
+    ])
+    detailData.value = detailRes.data
+    detailMaterials.value = detailRes.data?.materials || []
+    detailRecords.value = recordRes.data || []
+
+    // 解析表单数据 JSON
+    const formDataStr = detailRes.data?.formData
+    if (formDataStr) {
+      try {
+        const parsed = JSON.parse(formDataStr)
+        delete parsed._uploadImages // 去掉内部字段
+        detailFormData.value = parsed
+      } catch { detailFormData.value = null }
+    } else {
+      detailFormData.value = null
+    }
+
+    detailVisible.value = true
+  } catch (e) {
+    console.error('获取详情失败', e)
+  }
+}
+
+function previewFile(url) {
+  window.open(url, '_blank')
+}
+
+function actionText(action) {
+  const map = { 1: '受理', 2: '通过', 3: '驳回', 4: '退回补材料', 5: '不予受理' }
+  return map[action] || ''
+}
+
+onMounted(() => {
+  loadList()
+})
+</script>
+
+<style lang="scss" scoped>
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.app-no { font-family: monospace; font-size: 13px; }
+
+.applicant-cell { display: flex; align-items: center; gap: 8px; }
+.applicant-avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: #DBEAFE;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: #1E40AF; font-weight: 600; flex-shrink: 0;
+}
 
 .pagination-wrap { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
 .pagination-info { font-size: 13px; color: #909399; }
@@ -232,14 +342,22 @@ function handleSearch() { ElMessage.info('搜索功能待对接接口') }
 }
 
 .result-options {
-  display: flex; gap: 16px; width: 100%;
+  display: flex; gap: 12px; width: 100%; flex-wrap: wrap;
   .result-option {
-    flex: 1; padding: 20px; border: 2px solid #E5E7EB; border-radius: 8px;
-    text-align: center; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 500;
-    .result-icon { font-size: 32px; margin-bottom: 8px; }
-    &.approve.selected { border-color: #67C23A; background: #F0FDF4; }
+    flex: 1; min-width: 100px; padding: 16px 12px; border: 2px solid #E5E7EB; border-radius: 8px;
+    text-align: center; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500;
+    .result-icon { font-size: 28px; margin-bottom: 6px; }
+    &.accept.selected { border-color: #67C23A; background: #F0FDF4; }
     &.reject.selected { border-color: #F56C6C; background: #FEF2F2; }
+    &.return.selected { border-color: #E6A23C; background: #FDF6EC; }
     &:hover { border-color: #409EFF; }
   }
 }
+
+.detail-section {
+  margin-top: 20px;
+  h4 { margin-bottom: 12px; font-size: 14px; color: #303133; border-left: 3px solid #409EFF; padding-left: 8px; }
+}
+
+.record-opinion { font-size: 13px; color: #909399; margin-top: 4px; }
 </style>
